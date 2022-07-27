@@ -20,12 +20,12 @@ module "vpc" {
   enable_dns_hostnames = true
 
   public_subnet_tags = {
-    "kubernetes.io/cluster/internal-vpc" = "shared"
-    "kubernetes.io/role/elb"             = "1"
+    "kubernetes.io/cluster/aws-main-eu-01" = "shared"
+    "kubernetes.io/role/elb"               = "1"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/cluster/internal-vpc" = "shared"
-    "kubernetes.io/role/internal-elb"    = "1"
+    "kubernetes.io/cluster/aws-main-eu-01" = "shared"
+    "kubernetes.io/role/internal-elb"      = "1"
   }
 }
