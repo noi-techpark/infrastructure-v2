@@ -1,0 +1,24 @@
+# https://artifacthub.io/packages/helm/k8s-dashboard/kubernetes-dashboard
+
+extraArgs:
+  - --enable-skip-login
+
+protocolHttp: true
+
+rbac:
+  create: true
+  clusterReadOnlyRole: true
+
+service:
+  type: NodePort
+
+ingress:
+  enabled: true
+
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+  
+  className: alb
+
+  paths: [ "/*" ]

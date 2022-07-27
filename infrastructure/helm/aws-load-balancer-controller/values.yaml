@@ -1,0 +1,7 @@
+# https://artifacthub.io/packages/helm/aws/aws-load-balancer-controller
+
+clusterName: aws-main-eu-01
+
+serviceAccount:
+  create: false
+  name: aws-load-balancer-controller
