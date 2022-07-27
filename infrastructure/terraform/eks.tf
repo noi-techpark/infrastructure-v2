@@ -1,11 +1,11 @@
 ################################################################################
 ## This file contains the EKS cluster.
-## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/17.24.0
+## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/18.26.6
 ################################################################################
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 18.0"
+  version = "~> 18.26"
 
   # ----------------------------------------------------------------------------
   # General
@@ -17,11 +17,17 @@ module "eks" {
   # Network
   # ----------------------------------------------------------------------------
   vpc_id  = module.vpc.vpc_id
-  subnets = module.vpc.private_subnets
+  subnet_ids = module.vpc.private_subnets
+
+  # ----------------------------------------------------------------------------
+  # Logging
+  # ----------------------------------------------------------------------------
+  create_cloudwatch_log_group = false # We are missing IAM permission.
 
   # ----------------------------------------------------------------------------
   # Authentication - this has to be managed manually.
   # ----------------------------------------------------------------------------
+  create_aws_auth_configmap = true
   manage_aws_auth_configmap = true
 
   aws_auth_roles = []

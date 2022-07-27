@@ -15,20 +15,16 @@ terraform {
     # The configuration of the AWS provider and its required version.
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
+      version = "~> 4.23"
+    }
+
+    # The configuration of the kubernetes provider and its required version.
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.12"
     }
   }
 
   # The required version of Terraform itself.
   required_version = "~> 1.0"
-}
-
-# The instance of the AWS provider.
-provider "aws" {
-  # The default region used to provision resources.
-  region = "eu-west-1"
-
-  # The access credentials passed as variables by Terraform Cloud.
-  access_key = var.AWS_ACCESS_KEY_ID
-  secret_key = var.AWS_SECRET_ACCESS_KEY
 }
