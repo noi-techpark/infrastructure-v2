@@ -1,0 +1,7 @@
+# https://artifacthub.io/packages/helm/camel-k/camel-k
+platform:
+  build:
+    registry:
+      address: docker.io
+      secret: docker-hub-secrets
+      organization: opendatahub

@@ -94,3 +94,48 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
   --values infrastructure/helm/kubernetes-dashboard/values.yaml \
   --namespace kube-system
 ```
+
+### MongoDB
+
+```
+helm repo add bitnami https://charts.bitnami.com/bitnami
+```
+
+```
+helm upgrade --install mongodb bitnami/mongodb \
+  --values infrastructure/helm/mongodb/values.yaml
+```
+
+### Camel K
+
+```
+kubectl create secret docker-registry docker-hub-secrets \
+  --docker-username=[USER] \
+  --docker-password=[TOKEN]
+```
+
+```
+helm repo add camel-k https://apache.github.io/camel-k/charts
+```
+
+```
+helm upgrade --install camel-k camel-k/camel-k \
+  --values infrastructure/helm/camel-k/values.yaml
+```
+
+Tips: install `kamel` CLI and read Camel K [docs](https://camel.apache.org/camel-k/1.9.x/running/running.html).
+
+#### Run Camel Routes
+
+```
+cd infrastructure/apache-camel
+```
+
+```
+kamel run \
+  --name queue-route \
+  --property mqtt.url=tcp://mosquitto:1883 \
+  --property queue_internal_storage.url=tcp://mosquittostorage:1883 \
+  --property queue_internal_storage.topic=storage \
+    QueueRoute.java
+```
