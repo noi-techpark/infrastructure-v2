@@ -102,7 +102,7 @@ public class MqttRoute extends RouteBuilder {
     }
 
     private String getMqttConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:#?brokerUrl=%s", 
+        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:#?brokerUrl=%s&qos=2", 
             mqttConfig.url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string

@@ -1,0 +1,13 @@
+image:
+  repository: roggia/notifier
+  tag: latest
+
+env:
+  - name: MONGODB_CONNECTION_STRING
+    value: mongodb://mongodb-0.mongodb-headless.default.svc.cluster.local:27017
+  - name: MONGODB_CONNECTION_REPLICA_SET
+    value: rs0
+  - name: INTERNAL_NOTIFIER_QUEUE_URL
+    value: mqtt://mosquitto-notifier.default.svc.cluster.local:1883
+  - name: INTERNAL_NOTIFIER_QUEUE_TOPIC
+    value: notify

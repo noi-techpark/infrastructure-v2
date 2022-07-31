@@ -3,8 +3,8 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-jackson
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-mongodb
 // camel-k: dependency=mvn:io.quarkus:quarkus-mongodb-client
-// camel-k: dependency=mvn:org.apache.camel:camel-jackson;3.6.0
-// camel-k: dependency=mvn:org.apache.commons:commons-lang3;3.12.0
+// camel-k: dependency=mvn:org.apache.camel:camel-jackson:3.6.0
+// camel-k: dependency=mvn:org.apache.commons:commons-lang3:3.12.0
 
 
 package it.bz.opendatahub.writer;
@@ -97,7 +97,7 @@ public class WriterRoute extends RouteBuilder {
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s", 
+        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2", 
             config.topic, config.url));
         return uri.toString();
     }
@@ -120,7 +120,7 @@ final class WriterConfigLogger {
      * @param config The {@link WriterConfig} to log.
      */
     public static void log(WriterConfig config) {
-        LOG.info("WRITER|internal_mqtt url: {}", config.url);
-        LOG.info("WRITER|internal_mqtt topic: {}", config.topic);
+        LOG.info("WRITER|INTERNAL_MQTT url: {}", config.url);
+        LOG.info("WRITER|INTERNAL_MQTT topic: {}", config.topic);
     }
 }

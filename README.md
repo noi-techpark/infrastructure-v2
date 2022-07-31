@@ -108,6 +108,8 @@ helm upgrade --install mongodb bitnami/mongodb \
 
 ### Camel K
 
+TODO: move docker repository to ECR once we have permissions.
+
 ```
 kubectl create secret docker-registry docker-hub-secrets \
   --docker-username=[USER] \
@@ -151,7 +153,7 @@ kamel run \
 ```
 kamel run \
   --name writer-route \
-  --property quarkus.mongodb.connection-string=mongodb://mongodb-headless.default.svc.cluster.local:27017 \
+  --property quarkus.mongodb.connection-string=mongodb://mongodb-0.mongodb-headless.default.svc.cluster.local:27017 \
   --property quarkus.mongodb.devservices.enabled=false \
   --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
   --property internal_mqtt.topic=storage \
@@ -173,4 +175,18 @@ helm upgrade --install mosquitto-notifier k8s-at-home/mosquitto \
 
 helm upgrade --install mosquitto-storage k8s-at-home/mosquitto \
   --values infrastructure/helm/mosquitto/values-storage.yaml
+```
+
+### Notifier
+
+TODO: move docker repository to ECR once we have permissions.
+
+```
+docker build -t roggia/notifier:latest .
+docker push roggia/notifier:latest
+```
+
+```
+helm upgrade --install notifier ./infrastructure/helm/notifier/notifier \
+  --values infrastructure/helm/notifier/values.yaml
 ```

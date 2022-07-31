@@ -5,3 +5,4 @@ architecture: replicaset
 
 auth:
   enabled: false
+  replicaSetKey: ec1916f3-417e-47f0-bb8f-ee1ce047cc5f # RANDOM

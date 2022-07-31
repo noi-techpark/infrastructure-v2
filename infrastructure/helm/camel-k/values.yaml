@@ -4,4 +4,4 @@ platform:
     registry:
       address: docker.io
       secret: docker-hub-secrets
-      organization: opendatahub
+      organization: roggia
