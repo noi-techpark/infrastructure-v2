@@ -133,9 +133,44 @@ cd infrastructure/apache-camel
 
 ```
 kamel run \
-  --name queue-route \
-  --property mqtt.url=tcp://mosquitto:1883 \
-  --property queue_internal_storage.url=tcp://mosquittostorage:1883 \
-  --property queue_internal_storage.topic=storage \
-    QueueRoute.java
+  --name mqtt-route \
+  --property mqtt.url=tcp://mosquitto-edge:1883 \
+  --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
+  --property internal_mqtt.topic=storage \
+    MqttRoute.java
+```
+
+```
+kamel run \
+  --name rest-route \
+  --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
+  --property internal_mqtt.topic=storage \
+    RestRoute.java
+```
+
+```
+kamel run \
+  --name writer-route \
+  --property quarkus.mongodb.connection-string=mongodb://mongodb-headless.default.svc.cluster.local:27017 \
+  --property quarkus.mongodb.devservices.enabled=false \
+  --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
+  --property internal_mqtt.topic=storage \
+    WriterRoute.java
+```
+
+### Mosquitto
+
+```
+helm repo add k8s-at-home https://k8s-at-home.com/charts/
+```
+
+```
+helm upgrade --install mosquitto-edge k8s-at-home/mosquitto \
+  --values infrastructure/helm/mosquitto/values-edge.yaml
+
+helm upgrade --install mosquitto-notifier k8s-at-home/mosquitto \
+  --values infrastructure/helm/mosquitto/values-notifier.yaml
+
+helm upgrade --install mosquitto-storage k8s-at-home/mosquitto \
+  --values infrastructure/helm/mosquitto/values-storage.yaml
 ```
