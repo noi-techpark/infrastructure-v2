@@ -28,17 +28,17 @@ async function main() {
      * MQTT client for test env
      */
 
-     console.log(`connecting to mqtt ${process.env.INTERNAL_NOTIFIER_QUEUE_URL}`)
+     console.log(`connecting to mqtt ${process.env.NOTIFIER_QUEUE_URL}`)
 
-    const mqttclient  = mqtt.connect(process.env.INTERNAL_NOTIFIER_QUEUE_URL)
+    const mqttclient  = mqtt.connect(process.env.NOTIFIER_QUEUE_URL)
     const connect = new Promise(resolve => {
         mqttclient.on('connect', function () {
-            console.log(`connected to mqtt ${process.env.INTERNAL_NOTIFIER_QUEUE_URL}`)
-            mqttclient.subscribe(process.env.INTERNAL_NOTIFIER_QUEUE_TOPIC, function (err) {
+            console.log(`connected to mqtt ${process.env.NOTIFIER_QUEUE_URL}`)
+            mqttclient.subscribe(process.env.NOTIFIER_QUEUE_TOPIC, function (err) {
                 if (!err) {
                     resolve();
                 } else {
-                    throw new Error(`Could not connect to topic ${process.env.INTERNAL_NOTIFIER_QUEUE_TOPIC}`)
+                    throw new Error(`Could not connect to topic ${process.env.NOTIFIER_QUEUE_TOPIC}`)
                 }
               })
             
@@ -53,7 +53,7 @@ async function main() {
         await client.connect();
 
         // Make the appropriate DB calls
-        await monitorListingsUsingEventEmitter(client, mqttclient, process.env.INTERNAL_NOTIFIER_QUEUE_TOPIC);
+        await monitorListingsUsingEventEmitter(client, mqttclient, process.env.NOTIFIER_QUEUE_TOPIC);
 
     } finally {
         // Close the connection to the MongoDB cluster

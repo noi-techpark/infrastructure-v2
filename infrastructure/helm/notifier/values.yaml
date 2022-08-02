@@ -7,7 +7,7 @@ env:
     value: mongodb://mongodb-0.mongodb-headless.default.svc.cluster.local:27017
   - name: MONGODB_CONNECTION_REPLICA_SET
     value: rs0
-  - name: INTERNAL_NOTIFIER_QUEUE_URL
+  - name: NOTIFIER_QUEUE_URL
     value: mqtt://mosquitto-notifier.default.svc.cluster.local:1883
-  - name: INTERNAL_NOTIFIER_QUEUE_TOPIC
+  - name: NOTIFIER_QUEUE_TOPIC
     value: notify

@@ -130,7 +130,7 @@ Tips: install `kamel` CLI and read Camel K [docs](https://camel.apache.org/camel
 #### Run Camel Routes
 
 ```
-cd infrastructure/apache-camel
+cd infrastructure
 ```
 
 ```
@@ -139,7 +139,7 @@ kamel run \
   --property mqtt.url=tcp://mosquitto-edge:1883 \
   --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
   --property internal_mqtt.topic=storage \
-    MqttRoute.java
+    inbound/src/main/java/it/bz/opendatahub/inbound/MqttRoute.java
 ```
 
 ```
@@ -147,7 +147,7 @@ kamel run \
   --name rest-route \
   --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
   --property internal_mqtt.topic=storage \
-    RestRoute.java
+    inbound/src/main/java/it/bz/opendatahub/inbound/RestRoute.java
 ```
 
 ```
@@ -157,7 +157,7 @@ kamel run \
   --property quarkus.mongodb.devservices.enabled=false \
   --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
   --property internal_mqtt.topic=storage \
-    WriterRoute.java
+    writer/src/main/java/it/bz/opendatahub/writer/WriterRoute.java
 ```
 
 ### Mosquitto
