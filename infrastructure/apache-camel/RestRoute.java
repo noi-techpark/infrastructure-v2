@@ -108,7 +108,7 @@ public class RestRoute extends RouteBuilder {
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2", 
+        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2&retained=true", 
         restConfig.storage_topic, restConfig.storage_url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
