@@ -136,5 +136,7 @@ final class RestConfigLogger {
      * @param config The {@link MqttConfig} to log.
      */
     public static void log(RestConfig config) {
+        LOG.info("INTARNAL MQTT URL: {}", config.storage_url);
+        LOG.info("INTARNAL MQTT user: {}", config.storage_topic);
     }
 }

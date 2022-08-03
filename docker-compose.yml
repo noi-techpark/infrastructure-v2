@@ -38,6 +38,9 @@ services:
     volumes:
       - ./infrastructure/inbound:/code
       - ./.mvn:/code/.mvn
+    depends_on:
+      - mosquitto
+      - mosquittostorage
     working_dir: /code
     command: ["./mvnw -B compile quarkus:dev"]
     ports:
@@ -51,6 +54,7 @@ services:
       target: dev
     depends_on:
       - mongodb1
+      - mosquittostorage
     env_file:
        infrastructure/writer/.env
     volumes:
