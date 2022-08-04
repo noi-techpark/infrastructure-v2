@@ -3,6 +3,20 @@ const { monitorListingsUsingEventEmitter } = require('./changeStream');
 const dotenv = require("dotenv")
 const mqtt = require('mqtt');
 
+/**
+ * What are changestreams?: https://www.mongodb.com/docs/manual/changeStreams/
+ * 
+ * For the purpose of the PoC, we use a single MongoDB deployment as rawDataTable and we store data in {provider} db / {provider} collection
+ * provider = flightdata -> data stored in flightdata/flightadata.
+ * 
+ * You might want to customize the logic about where data is stored. in that case you have to deploy a notifier for each MongoDB deployment.
+ * 
+ * We also use the same MongoDB doplyment to store persistendt data about the checkpoint used to restart processing data in the case of network or application failure.
+ * checkpoint stored in admin/notifier_checkpoint.
+ * 
+ * You might want to store the checkpoint in a REDIS, filesystem, ...
+ * In that case change the functions `flushCheckpoint` and `getCursor` according to your need
+ */
 async function main() {
     dotenv.config()
 
@@ -31,7 +45,7 @@ async function main() {
      * MQTT client for test env
      */
 
-     console.log(`connecting to mqtt ${process.env.NOTIFIER_QUEUE_URL}`)
+    console.log(`connecting to mqtt ${process.env.NOTIFIER_QUEUE_URL}`)
 
     const mqttclient  = mqtt.connect(process.env.NOTIFIER_QUEUE_URL)
     const connect = new Promise(resolve => {

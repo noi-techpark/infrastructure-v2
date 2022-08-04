@@ -36,7 +36,7 @@ class WriterConfig {
 }
 
 /**
- * Route to read from MQTT.
+ * Route to read from INTERNAL MQTT and store data in rawDataTable.
  */
 @ApplicationScoped
 public class WriterRoute extends RouteBuilder {
@@ -57,13 +57,19 @@ public class WriterRoute extends RouteBuilder {
     public void configure() {
         WriterConfigLogger.log(config);
 
+        // Readt from Internal MQTT
+        // Writes a valid BSON object to MongoDB
+        // TODO Add throtling if needed
+        // TODO If error occurs, don't ACK message
         from(getInternalStorageQueueConnectionString())
             .end()
             .log("${body}")
             .unmarshal(new JacksonDataFormat())
             .process(exchange -> {
+                // First we unmarshal the payload
                 Map<String, Object> body = (HashMap<String, Object>)exchange.getMessage().getBody(Map.class);
                 Object timestamp = body.get("timestamp");
+                // we convert the timestamp field in a valid BSON TimeStamp
                 if (timestamp != null)
                 {
                     Instant instant = Instant.parse((String)timestamp);
@@ -71,29 +77,42 @@ public class WriterRoute extends RouteBuilder {
                     body.put("bsontimestamp", dateTimestamp);
                 }
                 exchange.getMessage().setBody(body);
+                // we then compute the database connection isong the message body (in this case we only care bout the field `provider`)
+                // and store the connection string in the `database` header to be used later
                 exchange.getMessage().setHeader("database", getDatabaseString((String)body.get("provider")));
             })
-            .log("${body[provider]}")
-            // .log("${body.GetProvider}")
-            // .log("${body.GetRawdata}")
-            // .to("mongodb://camelMongoClient?database=test&collection=test&operation=save");
+            // we don't use `.to()` because the connection string is dynamic and we use the previousy set header `database`
+            // to send the data to te database
             .recipientList(header("database"));
-            //?hosts=localhost:30001
     }
 
+    /**
+     * For the purpose of the PoC, we use a single MongoDB deployment as rawDataTable and we store data in {provider} db / {provider} collection
+     * provider = flightdata -> data stored in flightdata/flightadata.
+     * 
+     * If we need to use multiple deplyoments or custom paths, you should edit this function.
+     * References:
+     * https://camel.apache.org/camel-quarkus/2.10.x/reference/extensions/mongodb.html
+     * https://quarkus.io/guides/mongodb
+     */
     private String getDatabaseString(String provider) {
         String cleanProvider = StringUtils.stripStart(provider, "/");
         final StringBuilder uri = new StringBuilder(String.format("mongodb://camelMongoClient?database=%s&collection=%s&operation=insert", 
         cleanProvider, cleanProvider));
 
-        // // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
-        // config.user().ifPresent(user -> uri.append(String.format("&userName=%s", user)));
-        // config.password().ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-        System.out.println(uri.toString());
-
         return uri.toString();
     }
 
+    // When using Mosquitto
+    //      Connecting to the internal MQTT is not trivial and both publishers and subscribers follow a certain
+    //      agreement to ensure no message will be lost:
+    //      Publishers MUST publish with QoS >= 1
+    //      Subscribers MUST connect with QoS >= 1
+    //      Subscribers MUST connect with cleanStart = false
+    //      ALL Subscribers in ALL pods must connect with an unique clientId which can't change at pod restart
+    //      Read https://www.hivemq.com/blog/mqtt-essentials-part-7-persistent-session-queuing-messages/
+    //      https://stackoverflow.com/questions/52439954/get-all-messages-after-the-client-has-re-connected-to-the-mqtt-broker
+    //      to know more aboutn Persistent COnnection 
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
@@ -103,9 +122,6 @@ public class WriterRoute extends RouteBuilder {
     }
 }
 
-/**
- * Utility class to log {@link WriterConfig}.
- */
 final class WriterConfigLogger {
 
     private static Logger LOG = LoggerFactory.getLogger(WriterConfigLogger.class);
@@ -114,11 +130,6 @@ final class WriterConfigLogger {
         // Private constructor, don't allow new instances
     }
 
-    /**
-     * Log {@link WriterConfig}.
-     *
-     * @param config The {@link WriterConfig} to log.
-     */
     public static void log(WriterConfig config) {
         LOG.info("WRITER|INTERNAL_MQTT url: {}", config.url);
         LOG.info("WRITER|INTERNAL_MQTT topic: {}", config.topic);

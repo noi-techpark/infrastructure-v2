@@ -1,10 +1,18 @@
 const { Timestamp } = require('mongodb');
 
+/**
+ * monitorListingsUsingEventEmitter opens a changestream watching for all updates
+ * matching the rule {"$match": {"operationType": "insert"}}, which filters out only new inserted documents
+ * https://www.mongodb.com/docs/drivers/node/current/usage-examples/changeStream/
+ */
 async function monitorListingsUsingEventEmitter(client, mqttclient, topic, pipeline = [
     {"$match": {"operationType": "insert"}},
 ]) {
+        // Get the last checkpoint, if any, otherwhise start from timestamp 0 to process opLogs
         let cursor = await getCursor(client);
         console.log(cursor);
+        // Each hour the notifier will flish the current cluster timestamp in the collection
+        // admin/notifier_checkpoint creating a checkpoint
         const checkpointInterrvall = 3600 * 1000; // 1 hour in milliseconds
 
         return new Promise((resolve) => {
@@ -13,23 +21,20 @@ async function monitorListingsUsingEventEmitter(client, mqttclient, topic, pipel
          * https://stackoverflow.com/questions/55184492/difference-between-resumeafter-and-startatoperationtime-in-mongodb-change-stream
         */
         // console.log(collection)
-        const resumeToken = "8262CC86F3000000012B022C0100296E5A1004DAC285AFE7094F63923AF1BD7BBC196846645F6964006462CC86F2B8B4E7FCCD54B9F90004";
         const aftetTime = cursor ? cursor.timestamp : new Timestamp({ t: 0, i: 0 });
         console.log("Reading events starting from " + new Date(aftetTime.getHighBits() * 1000))
         console.log("Now is " + new Date())
-        // const changeStream = collection.watch(pipeline, { startAfter : { _data: resumeToken} });
         // watching the whole deplyoment https://www.mongodb.com/docs/manual/changeStreams/
         const changeStream = client.watch(pipeline, { startAtOperationTime: aftetTime})
-        // console.log(changeStream)
 
         let updating = false;
         changeStream.on('change', async (next) => {
             // console.log(changeStream.resumeToken);
             const operationTime = new Date(next.clusterTime.getHighBits() * 1000);
-            if (cursor) {
-                console.log(operationTime.getTime(), cursor.date.getTime());
-                console.log(operationTime.getTime() - cursor.date.getTime(), checkpointInterrvall);
-            }
+            // if (cursor) {
+            //     console.log(operationTime.getTime(), cursor.date.getTime());
+            //     console.log(operationTime.getTime() - cursor.date.getTime(), checkpointInterrvall);
+            // }
 
             if (!updating && (!cursor || operationTime.getTime() - cursor.date.getTime() > checkpointInterrvall))
             {
@@ -38,6 +43,8 @@ async function monitorListingsUsingEventEmitter(client, mqttclient, topic, pipel
                 updating = false;
                 // console.log("new cursor", cursor);
             }
+
+            // publish {id, db and collection} to the queue the transformes will watch to know about new data
             mqttclient.publish(topic, JSON.stringify({
                 id: next.documentKey._id.toString(),
                 db: next.ns.db,
@@ -45,8 +52,6 @@ async function monitorListingsUsingEventEmitter(client, mqttclient, topic, pipel
             }))
         });
     })
-
-    //await closeChangeStream(60000, changeStream);
 };
 
 async function flushCheckpoint(client, old, timestamp) {
@@ -67,15 +72,5 @@ async function getCursor(client) {
     const checkpoint = await client.db("admin").collection("notifier_checkpoint").findOne({ }, {});
     return checkpoint ? { ...checkpoint, date: new Date(checkpoint.timestamp.getHighBits() * 1000)} : null;
 }
-
-function closeChangeStream(timeInMs = 60000, changeStream) {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            console.log("Closing the change stream");
-            changeStream.close();
-            resolve();
-        }, timeInMs)
-    })
-};
 
 module.exports = { monitorListingsUsingEventEmitter };

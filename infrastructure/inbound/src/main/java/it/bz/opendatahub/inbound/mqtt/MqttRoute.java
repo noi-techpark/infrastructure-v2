@@ -80,22 +80,33 @@ public class MqttRoute extends RouteBuilder {
         String mqttConnectionString = getMqttConnectionString();
 
         // Use MQTT connection
-        // process and forward to SEDA_MQTT_QUEUE_OUT
+        // process and forward to the internal queue waiting to be written in rawDataTable
+        // TODO Add throtling if needed
+        // TODO If error occurs, don't ACK message
         from(mqttConnectionString)
                 .routeId("[Route: MQTT subscription]")
                 .setHeader("topic", header(PahoMqtt5Constants.MQTT_TOPIC))
-                // Put body as string into header "rawdata" for later reuse
                 .process(exchange -> {
                     Map<String, Object> map = new HashMap<String, Object>();
                     ObjectMapper objectMapper = new ObjectMapper();
                     
                     String payload = exchange.getMessage().getBody(String.class);
+
+                    // We start encapsulating the payload in a new message where we have
+                    // {provider: ..., timestamp: ..., rawdata: ...}
+                    // timestamp indicates when we received the message
+                    // provider is the provided which sent the message
+                    // rawdata is the data sent
+
+                    // provider is populated using the topic `exchange.getMessage().getHeader("topic").toString()`
+                    // we might use a proper function to remove the first "/" and normalize subpaths (/open/test -> open_test)
                     map.put("provider", exchange.getMessage().getHeader("topic").toString());
                     map.put("rawdata", payload);
                     map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
                     exchange.getMessage().setHeader("provider", exchange.getMessage().getHeader("topic").toString());
                     exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
-                        
+                    
+                    // We validate the payload checking it is a proper json
                     if (isValidJSON(payload)) {
                         exchange.getMessage().setHeader("validPayload", true);
                     } else {
@@ -106,9 +117,14 @@ public class MqttRoute extends RouteBuilder {
                 .log("MQTT| ${body}")
                 .log("MQTT| ${headers}")
                 .choice()
+                    // if the payload is not a valid json
                     .when(header("validPayload").isEqualTo(false))
+                    // we handle the request as invalid and forward the encapsulated payload to 
+                    // whatever mechanism we want to use to stored malformed data
                     .log("ERROR NOT A VALID PAYLOAD, ROUTE TO FALIED STORAGE")
                 .otherwise()
+                    // otherwise we forward the encapsulated message to the 
+                    // internal queue waiting to be written in rawDataTable
                     .to(getInternalStorageQueueConnectionString())
                 .end();
     }
@@ -123,7 +139,20 @@ public class MqttRoute extends RouteBuilder {
         }
     }
 
+    // When using Mosquitto
+    //      Connecting to the perimetral MQTT is not trivial and both publishers and subscribers follow a certain
+    //      agreement to ensure no message will be lost:
+    //      Publishers MUST publish with QoS >= 1
+    //      Subscribers MUST connect with QoS >= 1
+    //      Subscribers MUST connect with cleanStart = false
+    //      ALL Subscribers in ALL pods must connect with an unique clientId which can't change at pod restart
+    //      Read https://www.hivemq.com/blog/mqtt-essentials-part-7-persistent-session-queuing-messages/
+    //      https://stackoverflow.com/questions/52439954/get-all-messages-after-the-client-has-re-connected-to-the-mqtt-broker
+    //      to know more aboutn Persistent COnnection 
     private String getMqttConnectionString() {
+        // paho-mqtt5 seems to not work properly with cleanStart=false
+        // even if the client wants to have all message missed (static clientId, cleanStart=false, QoS >= 1)
+        // it receives only last message on reconnection
         final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:#?brokerUrl=%s&cleanStart=false&qos=2&clientId=mqtt-route", 
             mqttConfig.url));
 
@@ -134,6 +163,8 @@ public class MqttRoute extends RouteBuilder {
         return uri.toString();
     }
 
+    // When using Mosquitto
+    //      To ensure no message will be lost by the Writer, we have to publish all message with QoS >= 1
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
@@ -148,9 +179,6 @@ public class MqttRoute extends RouteBuilder {
     }
 }
 
-/**
- * Utility class to log {@link MqttConfig}.
- */
 final class MqttConfigLogger {
 
     private static Logger LOG = LoggerFactory.getLogger(MqttConfigLogger.class);
@@ -159,11 +187,6 @@ final class MqttConfigLogger {
         // Private constructor, don't allow new instances
     }
 
-    /**
-     * Log {@link MqttConfig}.
-     *
-     * @param config The {@link MqttConfig} to log.
-     */
     public static void log(MqttConfig config) {
         String url = config.url;
         String user = config.user.orElseGet(() -> "*** no user ***");

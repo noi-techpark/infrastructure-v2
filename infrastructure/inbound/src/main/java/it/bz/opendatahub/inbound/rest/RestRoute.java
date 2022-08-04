@@ -69,10 +69,8 @@ public class RestRoute extends RouteBuilder {
         RestConfigLogger.log(restConfig);
         
         // Exposes REST connection
-        // process and forward to SEDA_MQTT_QUEUE_OUT
+        // process and forward to the internal queue waiting to be written in rawDataTable
         restConfiguration()
-            //.component("netty-http")
-            // .scheme("https")
             .apiContextPath("/api-doc")
             .apiProperty("api.title", "ODH inbound REST API")
             .apiProperty("api.version", "0.0.1")
@@ -83,12 +81,20 @@ public class RestRoute extends RouteBuilder {
             
 
         from("rest:post:/{provider}")
-            // Put body as string into header "rawdata" for later reuse
             .process(exchange -> {
                 Map<String, Object> map = new HashMap<String, Object>();
                 ObjectMapper objectMapper = new ObjectMapper();
 
                 String payload = exchange.getIn().getBody(String.class);
+                // We start encapsulating the payload in a new message where we have
+                // {provider: ..., timestamp: ..., rawdata: ...}
+                // timestamp indicates when we received the message
+                // provider is the provided which sent the message
+                // rawdata is the data sent
+
+                // provider is populated using the uri path of the request (request on /flightdata -> flightdat)
+                // we might use a proper function to transform the request path into provider
+
                 map.put("provider", exchange.getIn().getHeader("provider").toString());
                 map.put("rawdata",payload);
                 map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
@@ -105,9 +111,14 @@ public class RestRoute extends RouteBuilder {
             .log("REST| ${body}")
             .log("REST| ${headers}")
             .choice()
+                // if the payload is not a valid json
                 .when(header("validPayload").isEqualTo(false))
+                // we handle the request as invalid and forward the encapsulated payload to 
+                // whatever mechanism we want to use to stored malformed data
                 .log("ERROR NOT A VALID PAYLOAD, ROUTE TO FALIED STORAGE")
             .otherwise()
+                // otherwise we forward the encapsulated message to the 
+                // internal queue waiting to be written in rawDataTable
                 .to(getInternalStorageQueueConnectionString())
             .end()
 
@@ -127,6 +138,8 @@ public class RestRoute extends RouteBuilder {
         }
     }
 
+    // When using Mosquitto
+    //      To ensure no message will be lost by the Writer, we have to publish all message with QoS >= 1
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
@@ -141,9 +154,6 @@ public class RestRoute extends RouteBuilder {
     }
 }
 
-/**
- * Utility class to log {@link MqttConfig}.
- */
 final class RestConfigLogger {
 
     private static Logger LOG = LoggerFactory.getLogger(RestConfigLogger.class);
@@ -151,12 +161,7 @@ final class RestConfigLogger {
     private RestConfigLogger() {
         // Private constructor, don't allow new instances
     }
-
-    /**
-     * Log {@link MqttConfig}.
-     *
-     * @param config The {@link MqttConfig} to log.
-     */
+    
     public static void log(RestConfig config) {
         LOG.info("INTARNAL MQTT URL: {}", config.storage_url);
         LOG.info("INTARNAL MQTT user: {}", config.storage_topic);
