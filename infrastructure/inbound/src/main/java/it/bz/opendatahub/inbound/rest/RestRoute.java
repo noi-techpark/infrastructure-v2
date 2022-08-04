@@ -11,7 +11,8 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.rest.RestBindingMode;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -87,17 +88,28 @@ public class RestRoute extends RouteBuilder {
                 Map<String, Object> map = new HashMap<String, Object>();
                 ObjectMapper objectMapper = new ObjectMapper();
 
+                String payload = exchange.getIn().getBody(String.class);
                 map.put("provider", exchange.getIn().getHeader("provider").toString());
-                map.put("rawdata", exchange.getIn().getBody(String.class));
+                map.put("rawdata",payload);
                 map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
                 
                 exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
                 exchange.getMessage().setHeader("provider", exchange.getIn().getHeader("provider").toString());
+
+                if (isValidJSON(payload)) {
+                    exchange.getMessage().setHeader("validPayload", true);
+                } else {
+                    exchange.getMessage().setHeader("validPayload", false);
+                }
             })
             .log("REST| ${body}")
             .log("REST| ${headers}")
-            .to(getInternalStorageQueueConnectionString())
-            // .to(RestConfig.SEDA_MQTT_QUEUE_OUT)
+            .choice()
+                .when(header("validPayload").isEqualTo(false))
+                .log("ERROR NOT A VALID PAYLOAD, ROUTE TO FALIED STORAGE")
+            .otherwise()
+                .to(getInternalStorageQueueConnectionString())
+            .end()
 
             // reset and send response
             .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
@@ -105,10 +117,20 @@ public class RestRoute extends RouteBuilder {
             /*.endRest()*/;
     }
 
+    public boolean isValidJSON(final String json) {
+        try {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            final JsonNode jsonNode = objectMapper.readTree(json);
+            return jsonNode instanceof ContainerNode;
+        } catch (Exception jpe) {
+            return false;
+        }
+    }
+
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2&retained=true", 
+        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2", 
         restConfig.storage_topic, restConfig.storage_url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string

@@ -97,7 +97,7 @@ public class WriterRoute extends RouteBuilder {
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2", 
+        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&cleanStart=false&qos=2&clientId=writer-route", 
             config.topic, config.url));
         return uri.toString();
     }

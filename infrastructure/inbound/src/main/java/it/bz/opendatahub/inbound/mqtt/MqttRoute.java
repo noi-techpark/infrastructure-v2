@@ -20,7 +20,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.node.ContainerNode;
 
 import java.util.Optional;
 
@@ -87,22 +88,43 @@ public class MqttRoute extends RouteBuilder {
                 .process(exchange -> {
                     Map<String, Object> map = new HashMap<String, Object>();
                     ObjectMapper objectMapper = new ObjectMapper();
-
-                    map.put("provider", exchange.getMessage().getHeader("topic").toString());
-                    map.put("rawdata", exchange.getMessage().getBody(String.class));
-                    map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
                     
-                    exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
+                    String payload = exchange.getMessage().getBody(String.class);
+                    map.put("provider", exchange.getMessage().getHeader("topic").toString());
+                    map.put("rawdata", payload);
+                    map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
                     exchange.getMessage().setHeader("provider", exchange.getMessage().getHeader("topic").toString());
+                    exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
+                        
+                    if (isValidJSON(payload)) {
+                        exchange.getMessage().setHeader("validPayload", true);
+                    } else {
+                        exchange.getMessage().setHeader("validPayload", false);
+                    }
+                    
                 })
                 .log("MQTT| ${body}")
                 .log("MQTT| ${headers}")
-                // .to(MqttConfig.SEDA_MQTT_QUEUE_OUT);
-                .to(getInternalStorageQueueConnectionString());
+                .choice()
+                    .when(header("validPayload").isEqualTo(false))
+                    .log("ERROR NOT A VALID PAYLOAD, ROUTE TO FALIED STORAGE")
+                .otherwise()
+                    .to(getInternalStorageQueueConnectionString())
+                .end();
+    }
+
+    public boolean isValidJSON(final String json) {
+        try {
+            final ObjectMapper objectMapper = new ObjectMapper();
+            final JsonNode jsonNode = objectMapper.readTree(json);
+            return jsonNode instanceof ContainerNode;
+        } catch (Exception jpe) {
+            return false;
+        }
     }
 
     private String getMqttConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:#?brokerUrl=%s&qos=2", 
+        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:#?brokerUrl=%s&cleanStart=false&qos=2&clientId=mqtt-route", 
             mqttConfig.url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
@@ -115,7 +137,7 @@ public class MqttRoute extends RouteBuilder {
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2&retained=true", 
+        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2", 
         mqttConfig.storage_topic, mqttConfig.storage_url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
