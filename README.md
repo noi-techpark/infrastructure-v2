@@ -229,6 +229,16 @@ docker-compose up
 ```
 inthe main folder. It will build and spin up all components.
 
+`perimetral Mosquitto` exposet at: `localhost:1883`
+
+`perimetral Rest` exposet at: `localhost:8080`
+
+`internal Mosquitto` exposet at: `localhost:1884`
+
+`transformers Mosquitto` exposet at: `localhost:1885`
+
+`MongoDB` exposet at: `localhost:27017`
+
 *Note that when using docker compose, we are not deploying using **Camel K** but building a docker container in which a full Maven-Quarkus application runs.*
 
 *Docker compose deplyoment uses **Mosquitto** instad of **AmazonSNS***
