@@ -139,7 +139,7 @@ kamel run \
   --property mqtt.url=tcp://mosquitto-edge:1883 \
   --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
   --property internal_mqtt.topic=storage \
-    inbound/src/main/java/it/bz/opendatahub/inbound/MqttRoute.java
+    inbound/src/main/java/it/bz/opendatahub/inbound/mqtt/MqttRoute.java
 ```
 
 ```
@@ -147,7 +147,7 @@ kamel run \
   --name rest-route \
   --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
   --property internal_mqtt.topic=storage \
-    inbound/src/main/java/it/bz/opendatahub/inbound/RestRoute.java
+    inbound/src/main/java/it/bz/opendatahub/inbound/rest/RestRoute.java
 ```
 
 ```

@@ -152,7 +152,7 @@ public class MqttRoute extends RouteBuilder {
         // -> https://stackoverflow.com/questions/56248757/camel-paho-routes-not-receiving-offline-messages-while-connecting-back
 
         // therefore we use paho
-        final StringBuilder uri = new StringBuilder(String.format("paho:#?brokerUrl=%s&cleanStart=false&qos=2&clientId=mqtt-route", 
+        final StringBuilder uri = new StringBuilder(String.format("paho:#?brokerUrl=%s&cleanSession=false&qos=2&clientId=mqtt-route", 
             mqttConfig.url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
