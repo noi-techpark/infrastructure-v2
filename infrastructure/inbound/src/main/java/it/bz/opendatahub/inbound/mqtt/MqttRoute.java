@@ -1,13 +1,13 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho-mqtt5
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
 
 package it.bz.opendatahub.inbound.mqtt;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.paho.mqtt5.PahoMqtt5Constants;
+import org.apache.camel.component.paho.PahoConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +36,6 @@ import org.eclipse.microprofile.config.ConfigProvider;
  * to see how it works.
  */
 class MqttConfig {
-    public static final String SEDA_MQTT_QUEUE_OUT = "seda:queue_out?multipleConsumers=true";
-
     String url;
 
     // Username is optional and may not be set
@@ -85,7 +83,7 @@ public class MqttRoute extends RouteBuilder {
         // TODO If error occurs, don't ACK message
         from(mqttConnectionString)
                 .routeId("[Route: MQTT subscription]")
-                .setHeader("topic", header(PahoMqtt5Constants.MQTT_TOPIC))
+                .setHeader("topic", header(PahoConstants.MQTT_TOPIC))
                 .process(exchange -> {
                     Map<String, Object> map = new HashMap<String, Object>();
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -150,10 +148,11 @@ public class MqttRoute extends RouteBuilder {
     //      https://stackoverflow.com/questions/52439954/get-all-messages-after-the-client-has-re-connected-to-the-mqtt-broker
     //      to know more aboutn Persistent COnnection 
     private String getMqttConnectionString() {
-        // paho-mqtt5 seems to not work properly with cleanStart=false
-        // even if the client wants to have all message missed (static clientId, cleanStart=false, QoS >= 1)
-        // it receives only last message on reconnection
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:#?brokerUrl=%s&cleanStart=false&qos=2&clientId=mqtt-route", 
+        // paho-mqtt5 has some problem with the retained messages on startup
+        // -> https://stackoverflow.com/questions/56248757/camel-paho-routes-not-receiving-offline-messages-while-connecting-back
+
+        // therefore we use paho
+        final StringBuilder uri = new StringBuilder(String.format("paho:#?brokerUrl=%s&cleanStart=false&qos=2&clientId=mqtt-route", 
             mqttConfig.url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
@@ -168,7 +167,7 @@ public class MqttRoute extends RouteBuilder {
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2", 
+        final StringBuilder uri = new StringBuilder(String.format("paho:%s?brokerUrl=%s&qos=2", 
         mqttConfig.storage_topic, mqttConfig.storage_url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string

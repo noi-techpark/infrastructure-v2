@@ -1,5 +1,5 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho-mqtt5
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-jackson
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-mongodb
 // camel-k: dependency=mvn:io.quarkus:quarkus-mongodb-client
@@ -115,7 +115,10 @@ public class WriterRoute extends RouteBuilder {
     //      to know more aboutn Persistent COnnection 
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
-        // for testing purpose we use Mosquitto
+        // paho-mqtt5 has some problem with the retained messages on startup
+        // -> https://stackoverflow.com/questions/56248757/camel-paho-routes-not-receiving-offline-messages-while-connecting-back
+
+        // therefore we use paho
         final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&cleanStart=false&qos=2&clientId=writer-route", 
             config.topic, config.url));
         return uri.toString();

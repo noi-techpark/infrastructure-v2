@@ -267,8 +267,6 @@ Using Mosquitto is't done by properly publishing mesage and establishing a **Per
 - Subscribers MUST connect with `cleanStart` = false
 - ALL Subscribers in ALL pods must connect with an unique `clientId` which can't change at pod restart
 
-Unfortunately in the PoC, for some reason, only the last message gets replayed even if the clienct is properly configured. [Reference](https://camel.apache.org/components/3.18.x/paho-mqtt5-component.html)
-
 
 ## MQTT Message ACK
 

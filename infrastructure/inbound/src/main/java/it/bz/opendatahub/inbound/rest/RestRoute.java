@@ -3,7 +3,7 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rest
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho-mqtt5
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
 
 package it.bz.opendatahub.inbound.rest;
 
@@ -38,8 +38,6 @@ import java.util.Optional;
  * to see how it works.
  */
 class RestConfig {
-    public static final String SEDA_MQTT_QUEUE_OUT = "seda:queue_out?multipleConsumers=true";
-
     public String storage_url;
     public String storage_topic;
 
@@ -143,7 +141,7 @@ public class RestRoute extends RouteBuilder {
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
         // for testing purpose we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&qos=2", 
+        final StringBuilder uri = new StringBuilder(String.format("paho:%s?brokerUrl=%s&qos=2", 
         restConfig.storage_topic, restConfig.storage_url));
 
         // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
