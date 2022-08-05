@@ -223,11 +223,22 @@ Reference: [Blog Article](https://piotrminkowski.com/2020/12/08/apache-camel-k-a
 ### Docker
 We provide a `docker-compose` file to start the architecture locally.
 
-To tun the architecture just 
-```
+To run the custer just 
+```sh
 docker-compose up
 ```
-inthe main folder. It will build and spin up all components.
+in the main folder. It will build and spin up all components.
+
+The first time we compose up, we have to initialize MongoDB's replica set. To do so we have to run the command outside the cluster.
+
+```sh
+docker exec odh-infrastructure-v2_mongodb1_1 mongo --eval "rs.initiate({
+            _id : 'rs0',
+            members: [
+              { _id : 0, host : 'mongodb1:27017' },
+            ]
+          })"
+```
 
 `perimetral Mosquitto` exposet at: `localhost:1883`
 
