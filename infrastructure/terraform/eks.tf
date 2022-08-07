@@ -51,10 +51,10 @@ module "eks" {
       username = "simon-dalvai"
       groups   = ["system:masters"]
     },
-    # Rudi Thoeni.
+    # Rudolf Thoeni.
     {
       userarn  = "arn:aws:iam::755952719952:user/Rudi"
-      username = "rudi-thoeni"
+      username = "rudolf-thoeni"
       groups   = ["system:masters"]
     },
   ]
