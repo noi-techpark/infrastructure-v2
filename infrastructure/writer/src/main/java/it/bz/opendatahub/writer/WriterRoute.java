@@ -119,7 +119,7 @@ public class WriterRoute extends RouteBuilder {
         // -> https://stackoverflow.com/questions/56248757/camel-paho-routes-not-receiving-offline-messages-while-connecting-back
 
         // therefore we use paho
-        final StringBuilder uri = new StringBuilder(String.format("paho-mqtt5:%s?brokerUrl=%s&cleanSession=false&qos=2&clientId=writer-route", 
+        final StringBuilder uri = new StringBuilder(String.format("paho:%s?brokerUrl=%s&cleanSession=false&qos=2&clientId=writer-route", 
             config.topic, config.url));
         return uri.toString();
     }
