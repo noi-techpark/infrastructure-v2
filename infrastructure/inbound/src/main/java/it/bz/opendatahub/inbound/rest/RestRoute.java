@@ -161,7 +161,7 @@ final class RestConfigLogger {
     }
     
     public static void log(RestConfig config) {
-        LOG.info("INTARNAL MQTT URL: {}", config.storage_url);
-        LOG.info("INTARNAL MQTT user: {}", config.storage_topic);
+        LOG.info("INTERNAL MQTT URL: {}", config.storage_url);
+        LOG.info("INTERNAL MQTT user: {}", config.storage_topic);
     }
 }

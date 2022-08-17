@@ -5,7 +5,7 @@
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 18.26"
+  version = "~> 18.27"
 
   # ----------------------------------------------------------------------------
   # General
@@ -35,28 +35,28 @@ module "eks" {
   aws_auth_users = [
     # Terraform.
     {
-      userarn  = "arn:aws:iam::755952719952:user/odhv2-terraform"
+      userarn  = "arn:aws:iam::463112166163:user/odh-v2-terraform"
       username = "terraform"
       groups   = ["system:masters"]
     },
     # Animeshon.
     {
-      userarn  = "arn:aws:iam::755952719952:user/animeshon"
+      userarn  = "arn:aws:iam::463112166163:user/animeshon"
       username = "animeshon"
       groups   = ["system:masters"]
     },
-    # Simon Dalvai.
-    {
-      userarn  = "arn:aws:iam::755952719952:user/sdalvai"
-      username = "simon-dalvai"
-      groups   = ["system:masters"]
-    },
-    # Rudolf Thoeni.
-    {
-      userarn  = "arn:aws:iam::755952719952:user/Rudi"
-      username = "rudolf-thoeni"
-      groups   = ["system:masters"]
-    },
+    # # Simon Dalvai.
+    # {
+    #   userarn  = "arn:aws:iam::463112166163:user/sdalvai"
+    #   username = "simon-dalvai"
+    #   groups   = ["system:masters"]
+    # },
+    # # Rudolf Thoeni.
+    # {
+    #   userarn  = "arn:aws:iam::463112166163:user/Rudi"
+    #   username = "rudolf-thoeni"
+    #   groups   = ["system:masters"]
+    # },
   ]
 
   aws_auth_accounts = []
@@ -72,7 +72,7 @@ module "eks" {
       name = "main-pool"
 
       # Node group autoscaling.
-      max_size     = 3
+      max_size     = 1
       desired_size = 1
 
       # Node instances.

@@ -1,6 +1,10 @@
 # https://artifacthub.io/packages/helm/bitnami/mongodb
 fullnameOverride: mongodb
 
+# Workaround for https://github.com/bitnami/charts/issues/10843.
+image:
+  tag: 4.4.13-debian-10-r48
+
 architecture: replicaset
 
 auth:

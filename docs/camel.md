@@ -7,6 +7,10 @@ In order to run, compiled, and debug Camel routes, it is necessary to satisfy th
 - Installation of [Kamel CLI](https://camel.apache.org/camel-k/1.9.x/cli/cli.html)
 - Prerequisites of [Kubernetes](kubernetes.md#Prerequisites)
 
+## Known Limitations
+
+**Amazon ECR is not supported yet by Kamel, use [Docker Hub](https://hub.docker.com/) instead.**
+
 ## How to
 
 ### Run Camel Routes
