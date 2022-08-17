@@ -25,6 +25,11 @@ async function monitorListingsUsingEventEmitter(client, mqttclient, topic, pipel
         console.log("Reading events starting from " + new Date(aftetTime.getHighBits() * 1000))
         console.log("Now is " + new Date())
         // watching the whole deplyoment https://www.mongodb.com/docs/manual/changeStreams/
+        // it could be possible to spin more instance of the notifier with different configuration to improve the performances
+        // EG: one notifier instance per database, one notifier per collection, ...
+        //
+        // in this case the logic to write checkpoints (flushCheckpoint, getCursor) 
+        // should be extended to reflet the information about which collection/database the checkpoint refers to
         const changeStream = client.watch(pipeline, { startAtOperationTime: aftetTime})
 
         let updating = false;
