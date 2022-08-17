@@ -64,19 +64,66 @@ docker exec odh-infrastructure-v2_mongodb1_1 mongo --eval "rs.initiate({
           })"
 ```
 
-`perimetral Mosquitto` exposet at: `localhost:1883`
+`perimetral Mosquitto` exposed at: `localhost:1883`
 
-`perimetral Rest` exposet at: `localhost:8080`
+`perimetral Rest` exposed at: `localhost:8080`
 
-`internal Mosquitto` exposet at: `localhost:1884`
+`internal Mosquitto` exposed at: `localhost:1884`
 
-`transformers Mosquitto` exposet at: `localhost:1885`
+`transformers Mosquitto` exposed at: `localhost:1885`
 
-`MongoDB` exposet at: `localhost:27017`
+`MongoDB` exposed at: `localhost:27017`
 
 *Note that when using docker compose, we are not deploying using **Camel K** but building a docker container in which a full Maven-Quarkus application runs.*
 
-*Docker compose deplyoment uses **Mosquitto** instad of **AmazonSNS***
+*Docker compose deplyoment uses **Mosquitto** instead of **AmazonSNS***
+
+# How to make Requests and check the dta flow
+To make and listen to the MQTT brokers (perimetral or internal) we suggest to use [MQTTX](https://mqttx.app/).
+To make REST requet we sugget to use [Insomnia](https://insomnia.rest/) or any other REST client.
+To connect to the MongoDB deplyoment we suggest to use [Compass](https://www.mongodb.com/products/compass). Be aware that being the deplyoment a `Replica Set`, the URI string must be properly configured ([Doc](https://www.mongodb.com/docs/manual/reference/connection-string/)) and you have to check **Direct Connection** in the **Advanced Connection Options** of Compass.
+
+## Doker
+When testing the docker deplyoment, we can make request direcly to the containers exposed by docker.
+
+`perimetral Mosquitto` exposed at: `localhost:1883`
+
+`perimetral Rest` exposed at: `localhost:8080`
+
+`internal Mosquitto` exposed at: `localhost:1884`
+
+`transformers Mosquitto` exposed at: `localhost:1885`
+
+`MongoDB` exposed at: `localhost:27017`
+
+## Cloud
+When testing against the Cloud deployment you have to need to port forward the pods connection to localhost, in order to connect to the instances
+
+```sh
+kubectl port-forward <pod-name> <localport>:<remote-port>
+```
+
+EG: to forward the `Internal Mosquitto` to the `1884` port type
+```sh
+kubectl port-forward <pod-name> 1884:1883
+```
+
+## What to do
+Once all connection are established, you can subscribe to the `MQTT Brokers` and watch for messages or send, send `REST request` and connect to the `MongoDB` instance.
+
+! All messages sent to the `Perimeter` **must be** valid JSON, ortherwise the `Integrator` will discard and log the message.
+
+! All messages sent with MQTT **must be** sent with `QoS2`.
+
+
+# Performances
+Being a PoC, the whole system is ment to give an overall insight and overview about the proposed architecture.
+Perfornamces can be greatly impoved using replicas, sharding, parallel programming, configuration tuning and polish.
+
+# Notifier
+The `notifier`, written in JS and running on Node, is a good example of possible bottleneck which can be greatly improved.
+Instead of having a single instance subscripted to the whole `MongDB deployment`, it could be splitted between multiple instance each one subscripted to a particular `MongoDB Database` or even to single `Collections`.
+This kind of polish can be done only once the team decides how to distribute the `RawData` coming from different **Datasources**.
 
 # Very important notes
 
