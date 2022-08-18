@@ -1,9 +1,18 @@
 # https://artifacthub.io/packages/helm/bitnami/mongodb
 fullnameOverride: mongodb
 
-# Workaround for https://github.com/bitnami/charts/issues/10843.
+################################################################################
+# BEGIN: Workaround for https://github.com/bitnami/charts/issues/10843.        #
+################################################################################
 image:
   tag: 4.4.13-debian-10-r48
+readinessProbe:
+  enabled: false
+livenessProbe:
+  enabled: false
+################################################################################
+# END: Workaround for https://github.com/bitnami/charts/issues/10843.          #
+################################################################################
 
 architecture: replicaset
 
