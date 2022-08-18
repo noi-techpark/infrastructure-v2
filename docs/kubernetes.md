@@ -12,7 +12,7 @@ In order to be able to managed Kubernetes orchestration, it is necessary to sati
 
 ## Dashboard
 
-On top of the dashboard provided by AWS EKS, a standard [Kuberenetes Dashboard](http://k8s-default-kubernet-62841e8dd0-301015478.eu-west-1.elb.amazonaws.com/) has been deployed with read-only access to resources within the cluster.
+On top of the dashboard provided by AWS EKS, a standard [Kuberenetes Dashboard](http://k8s-default-kubernet-62841e8dd0-731115856.eu-west-1.elb.amazonaws.com/) has been deployed with read-only access to resources within the cluster.
 
 **Warning: This dashboard is exposed through AWS ALB without authentication.**
 
