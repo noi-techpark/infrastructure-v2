@@ -66,6 +66,12 @@ async function main() {
 
     try {
         // Connect to the MongoDB cluster
+        // ! TODO THe client / application should implement some kind of
+        // ! checks to ensure the connection is alive, mongo is responsive and
+        // ! the changestream is open and ready
+
+        // ! it can happen that the nofier starts when the changestream is not ready
+        // ! and it won't subscribe until a restart
         console.log(`connecting to db ${process.env.MONGODB_CONNECTION_STRING}`)
         await client.connect();
 
