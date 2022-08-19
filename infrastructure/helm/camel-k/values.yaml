@@ -2,6 +2,10 @@
 platform:
   build:
     registry:
+      # !!! Amazon ECR is not supported yet by Kamel, use Docker Hub instead.
+      # address: 463112166163.dkr.ecr.eu-west-1.amazonaws.com
+      # secret: docker-secrets
+      # organization: kamel
       address: docker.io
-      secret: docker-hub-secrets
+      secret: docker-secrets
       organization: roggia

@@ -195,7 +195,7 @@ final class MqttConfigLogger {
         LOG.info("MQTT user: {}", user);
         LOG.info("MQTT password: {}", pass);
 
-        LOG.info("INTARNAL MQTT URL: {}", config.storage_url);
-        LOG.info("INTARNAL MQTT user: {}", config.storage_topic);
+        LOG.info("INTERNAL MQTT URL: {}", config.storage_url);
+        LOG.info("INTERNAL MQTT user: {}", config.storage_topic);
     }
 }

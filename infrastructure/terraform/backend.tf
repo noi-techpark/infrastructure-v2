@@ -7,7 +7,7 @@ terraform {
     organization = "noi-digital"
 
     workspaces {
-      name = "opendatahub-v2"
+      name = "opendatahub-development"
     }
   }
 
