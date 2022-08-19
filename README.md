@@ -118,7 +118,7 @@ Once all connection are established, you can subscribe to the `MQTT Brokers` and
 
 # Performances
 Being a PoC, the whole system is ment to give an overall insight and overview about the proposed architecture.
-Perfornamces can be greatly impoved using replicas, sharding, parallel programming, configuration tuning and polish.
+Performances can be greatly improved using replicas, sharding, parallel programming, configuration tuning and polish.
 
 # Notifier
 The `notifier`, written in JS and running on Node, is a good example of possible bottleneck which can be greatly improved.
