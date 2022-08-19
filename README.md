@@ -68,9 +68,9 @@ docker exec odh-infrastructure-v2_mongodb1_1 mongo --eval "rs.initiate({
 
 `perimetral Rest` exposed at: `localhost:8080`
 
-`internal Mosquitto` exposed at: `localhost:1884`
+`Storage Mosquitto` exposed at: `localhost:1884`
 
-`transformers Mosquitto` exposed at: `localhost:1885`
+`Notifier Mosquitto` exposed at: `localhost:1885`
 
 `MongoDB` exposed at: `localhost:27017`
 
@@ -90,9 +90,9 @@ When testing the docker deplyoment, we can make request direcly to the container
 
 `perimetral Rest` exposed at: `localhost:8080`
 
-`internal Mosquitto` exposed at: `localhost:1884`
+`Storage Mosquitto` exposed at: `localhost:1884`
 
-`transformers Mosquitto` exposed at: `localhost:1885`
+`Notifier Mosquitto` exposed at: `localhost:1885`
 
 `MongoDB` exposed at: `localhost:27017`
 
@@ -103,9 +103,9 @@ When testing against the Cloud deployment you have to need to port forward the p
 kubectl port-forward <pod-name> <localport>:<remote-port>
 ```
 
-EG: to forward the `Internal Mosquitto` to the `1884` port type
+EG: to forward the `Storage Mosquitto` to the `1884` port type
 ```sh
-kubectl port-forward <pod-name> 1884:1883
+kubectl port-forward mosquitto-storage-c79967d5d-kcjcb 1884:1883
 ```
 
 ## What to do
