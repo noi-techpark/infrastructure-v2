@@ -24,4 +24,4 @@ The Kubernetes cluster can be accessed from withing the [AWS Console](https://eu
 
 Users in EKS are not automatically managed by AWS IAM, it is therefore necessary to manually grant or revoke access to users and service accounts.
 
-In the [eks.tf](infrastructure/terraform/eks.tf) users and service accounts can be managed through the `aws_auth_users` map. Once changes have been made they can be applied through `terraform apply`.
+In the [eks.tf](../infrastructure/terraform/eks.tf) users and service accounts can be managed through the `aws_auth_users` map. Once changes have been made they can be applied through `terraform apply`.
