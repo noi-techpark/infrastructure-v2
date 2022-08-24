@@ -139,6 +139,37 @@ Using Mosquitto isn't done by properly publishing messages and establishing a **
 - ALL Subscribers in ALL pods must connect with a unique `clientId` which can't change at pod restart
 
 
+### Autoscaling
+To create a persistent session with Mosquitto, each replica of the Client (might it be the `inbound MQTT` or the `Writer`) **has** to generate a `ClientID`.
+This configuration property is particularly important when autoscaling is enabled.
+
+`MQTT Client instance 1` => ClientID = 1
+
+When autoscaling is performed
+
+`MQTT Client instance 1` => ClientID = 1
+
+`MQTT Client instance 2` => ClientID = 2
+
+If `MQTT Client instance 2` restarts, the **ClientID** must remain `2`
+
+***If two clients have the same ClientID, one will crash since the broker won't accept the connection. 
+if no ClientID is provided all messages received by the broker while no client is connected will be lost.***
+
+
+### Mosquitto Persistence
+
+To ensure sessions and messages are persisted even if the `Mosquitto` restarts or goes offline, we have to properly configure the nodes.
+
+in the `.conf` file provided to the mosquitto instance
+
+`persistence true` has to be present.
+
+other fields are available on the [man page](https://mosquitto.org/man/mosquitto-conf-5.html).
+
+in the cloud the mosquitto deployment has to be managed as `stateful set` to claim a volume where to write the database needed by mosquitto to create a persistent instance.
+
+
 ## MQTT Message ACK
 
 All service/routes relying on an MQTT queue as datasource MUST ensure the message is *Acknowledged* (**ACK**) only when it finishes processing the message.

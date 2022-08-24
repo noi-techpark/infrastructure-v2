@@ -118,8 +118,8 @@ public class MqttRoute extends RouteBuilder {
                     // if the payload is not a valid json
                     .when(header("validPayload").isEqualTo(false))
                     // we handle the request as invalid and forward the encapsulated payload to 
-                    // whatever mechanism we want to use to stored malformed data
-                    .log("ERROR NOT A VALID PAYLOAD, ROUTE TO FALIED STORAGE")
+                    // whatever mechanism we want to use to store malformed data
+                    .log("ERROR NOT A VALID PAYLOAD, ROUTE TO FAILED STORAGE")
                 .otherwise()
                     // otherwise we forward the encapsulated message to the 
                     // internal queue waiting to be written in rawDataTable
@@ -143,12 +143,12 @@ public class MqttRoute extends RouteBuilder {
     //      Publishers MUST publish with QoS >= 1
     //      Subscribers MUST connect with QoS >= 1
     //      Subscribers MUST connect with cleanStart = false
-    //      ALL Subscribers in ALL pods must connect with an unique clientId which can't change at pod restart
+    //      ALL Subscribers in ALL pods must connect with a unique clientId which can't change at pod restart
     //      Read https://www.hivemq.com/blog/mqtt-essentials-part-7-persistent-session-queuing-messages/
     //      https://stackoverflow.com/questions/52439954/get-all-messages-after-the-client-has-re-connected-to-the-mqtt-broker
     //      to know more aboutn Persistent COnnection 
     private String getMqttConnectionString() {
-        // paho-mqtt5 has some problem with the retained messages on startup
+        // paho-mqtt5 has some problems with the retained messages on startup
         // -> https://stackoverflow.com/questions/56248757/camel-paho-routes-not-receiving-offline-messages-while-connecting-back
 
         // therefore we use paho
@@ -163,10 +163,10 @@ public class MqttRoute extends RouteBuilder {
     }
 
     // When using Mosquitto
-    //      To ensure no message will be lost by the Writer, we have to publish all message with QoS >= 1
+    //      To ensure no message will be lost by the Writer, we have to publish all messages with QoS >= 1
     private String getInternalStorageQueueConnectionString() {
         // TODO use AmazonSNS uri if needed
-        // for testing purpose we use Mosquitto
+        // for testing purposes we use Mosquitto
         final StringBuilder uri = new StringBuilder(String.format("paho:%s?brokerUrl=%s&qos=2", 
         mqttConfig.storage_topic, mqttConfig.storage_url));
 

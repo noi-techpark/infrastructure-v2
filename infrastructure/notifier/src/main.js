@@ -11,7 +11,7 @@ const mqtt = require('mqtt');
  * 
  * You might want to customize the logic about where data is stored. in that case you have to deploy a notifier for each MongoDB deployment.
  * 
- * We also use the same MongoDB doplyment to store persistendt data about the checkpoint used to restart processing data in the case of network or application failure.
+ * We also use the same MongoDB deployment to store persistent data about the checkpoint used to restart processing data in the case of network or application failure.
  * checkpoint stored in admin/notifier_checkpoint.
  * 
  * You might want to store the checkpoint in a REDIS, filesystem, ...
@@ -70,7 +70,7 @@ async function main() {
         // ! checks to ensure the connection is alive, mongo is responsive and
         // ! the changestream is open and ready
 
-        // ! it can happen that the nofier starts when the changestream is not ready
+        // ! the nofier may starts when the changestream is not ready
         // ! and it won't subscribe until a restart
         console.log(`connecting to db ${process.env.MONGODB_CONNECTION_STRING}`)
         await client.connect();

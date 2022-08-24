@@ -57,7 +57,7 @@ public class WriterRoute extends RouteBuilder {
     public void configure() {
         WriterConfigLogger.log(config);
 
-        // Readt from Internal MQTT
+        // Read from Internal MQTT
         // Writes a valid BSON object to MongoDB
         // TODO Add throtling if needed
         // TODO If error occurs, don't ACK message
@@ -69,7 +69,7 @@ public class WriterRoute extends RouteBuilder {
                 // First we unmarshal the payload
                 Map<String, Object> body = (HashMap<String, Object>)exchange.getMessage().getBody(Map.class);
                 Object timestamp = body.get("timestamp");
-                // we convert the timestamp field in a valid BSON TimeStamp
+                // we convert the timestamp field into a valid BSON TimeStamp
                 if (timestamp != null)
                 {
                     Instant instant = Instant.parse((String)timestamp);
@@ -77,12 +77,12 @@ public class WriterRoute extends RouteBuilder {
                     body.put("bsontimestamp", dateTimestamp);
                 }
                 exchange.getMessage().setBody(body);
-                // we then compute the database connection isong the message body (in this case we only care bout the field `provider`)
+                // we then compute the database connection usong the message body (in this case we only care bout the field `provider`)
                 // and store the connection string in the `database` header to be used later
                 exchange.getMessage().setHeader("database", getDatabaseString((String)body.get("provider")));
             })
-            // we don't use `.to()` because the connection string is dynamic and we use the previousy set header `database`
-            // to send the data to te database
+            // we don't use `.to()` because the connection string is dynamic and we use the previously set header `database`
+            // to send the data to the database
             .recipientList(header("database"));
     }
 
@@ -90,7 +90,7 @@ public class WriterRoute extends RouteBuilder {
      * For the purpose of the PoC, we use a single MongoDB deployment as rawDataTable and we store data in {provider} db / {provider} collection
      * provider = flightdata -> data stored in flightdata/flightadata.
      * 
-     * If we need to use multiple deplyoments or custom paths, you should edit this function.
+     * If we need to use multiple deployments or custom paths, you should edit this function.
      * References:
      * https://camel.apache.org/camel-quarkus/2.10.x/reference/extensions/mongodb.html
      * https://quarkus.io/guides/mongodb
@@ -109,7 +109,7 @@ public class WriterRoute extends RouteBuilder {
     //      Publishers MUST publish with QoS >= 1
     //      Subscribers MUST connect with QoS >= 1
     //      Subscribers MUST connect with cleanStart = false
-    //      ALL Subscribers in ALL pods must connect with an unique clientId which can't change at pod restart
+    //      ALL Subscribers in ALL pods must connect with a unique clientId which can't change at pod restart
     //      Read https://www.hivemq.com/blog/mqtt-essentials-part-7-persistent-session-queuing-messages/
     //      https://stackoverflow.com/questions/52439954/get-all-messages-after-the-client-has-re-connected-to-the-mqtt-broker
     //      to know more aboutn Persistent COnnection 
