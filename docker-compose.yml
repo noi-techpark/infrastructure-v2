@@ -5,19 +5,25 @@ services:
     image: eclipse-mosquitto:2.0.12
     ports:
       - "${EXPOSED_MQTT_PORT}:1883"
-    command: "mosquitto -c /mosquitto-no-auth.conf"
+    volumes:
+      - ./mosquitto.conf:/mosquitto.conf
+    command: "mosquitto -c /mosquitto.conf"
 
   mosquittostorage:
     image: eclipse-mosquitto:2.0.12
     ports:
       - "${EXPOSED_MQTT_INTERNAL_STORAGE_PORT}:1883"
-    command: "mosquitto -c /mosquitto-no-auth.conf"
+    volumes:
+      - ./mosquitto.conf:/mosquitto.conf
+    command: "mosquitto -c /mosquitto.conf"
 
   mosquittonotifier:
     image: eclipse-mosquitto:2.0.12
     ports:
       - "${EXPOSED_MQTT_INTERNAL_NOTIFIER_PORT}:1883"
-    command: "mosquitto -c /mosquitto-no-auth.conf"
+    volumes:
+      - ./mosquitto.conf:/mosquitto.conf
+    command: "mosquitto -c /mosquitto.conf"
 
   mongodb1:
     image: mongo
