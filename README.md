@@ -167,7 +167,7 @@ in the `.conf` file provided to the mosquitto instance
 
 other fields are available on the [man page](https://mosquitto.org/man/mosquitto-conf-5.html).
 
-in the cloud the mosquitto deployment has to be managed as `stateful set` to claim a volume where to write the database needed by mosquitto to create a persistent instance.
+In the cloud the mosquitto deployment has to be managed as `stateful set` to claim a volume where to write the database needed by mosquitto to create a persistent instance.
 
 
 ## MQTT Message ACK
