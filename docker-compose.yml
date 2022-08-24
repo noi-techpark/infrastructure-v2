@@ -6,7 +6,8 @@ services:
     ports:
       - "${EXPOSED_MQTT_PORT}:1883"
     volumes:
-      - ./mosquitto.conf:/mosquitto.conf
+      - ./mosquitto.inbound.conf:/mosquitto.conf
+      - ./mosquitto/data:/mosquitto/data
     command: "mosquitto -c /mosquitto.conf"
 
   mosquittostorage:
@@ -14,7 +15,7 @@ services:
     ports:
       - "${EXPOSED_MQTT_INTERNAL_STORAGE_PORT}:1883"
     volumes:
-      - ./mosquitto.conf:/mosquitto.conf
+      - ./mosquitto.storage.conf:/mosquitto.conf
     command: "mosquitto -c /mosquitto.conf"
 
   mosquittonotifier:
@@ -22,7 +23,7 @@ services:
     ports:
       - "${EXPOSED_MQTT_INTERNAL_NOTIFIER_PORT}:1883"
     volumes:
-      - ./mosquitto.conf:/mosquitto.conf
+      - ./mosquitto.notifier.conf:/mosquitto.conf
     command: "mosquitto -c /mosquitto.conf"
 
   mongodb1:
