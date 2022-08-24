@@ -41,3 +41,11 @@ kamel run \
   --property internal_mqtt.topic=storage \
     infrastructure/writer/src/main/java/it/bz/opendatahub/writer/WriterRoute.java
 ```
+
+### Delete Camel Routes
+It's not possible to scale down the kamel integration from kubernetes.
+If we need to stop a route w have to tell kamel to delete the whole route, which reflects in deleting the kubernetes deployment.
+
+```
+kamel delete <route-name>
+```
