@@ -106,4 +106,5 @@ services:
     depends_on:
       - rabbitmq-outbound
     working_dir: /code
+    network_mode: host
     command: ["./mvnw -B compile quarkus:dev"]

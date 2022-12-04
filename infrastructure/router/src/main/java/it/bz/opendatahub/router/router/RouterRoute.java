@@ -19,12 +19,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.node.ContainerNode;
-
 import java.util.Optional;
 
 import org.eclipse.microprofile.config.ConfigProvider;
+
+import org.apache.camel.model.dataformat.JsonLibrary;
 
 
 /**
@@ -44,6 +43,12 @@ class RabbitMQConfig {
 
     // Password is optional and may not be set
     Optional<String> pass;
+}
+
+class Payload {
+    public String test;
+    public Integer lal;
+
 }
 
 /**
@@ -74,24 +79,16 @@ public class RouterRoute extends RouteBuilder {
         from(RabbitMQConnectionString)
                 .routeId("[Route: RabbitMQ subscription]")
                 .log("RabbitMQ| ${body}")
-                .log("RabbitMQ| ${headers}");
-                .unmarshal(new JacksonDataFormat())
+                .log("RabbitMQ| ${headers}")
+                .unmarshal().json(JsonLibrary.Jackson, Payload.class)
+                .log("RabbitMQ| ${body}")
                 .process(exchange -> {
+                    System.out.println(exchange.getMessage().getBody());
+
                     // First we unmarshal the payload
-                    Map<String, Object> body = (HashMap<String, Object>)exchange.getMessage().getBody(Map.class);
-                    Object timestamp = body.get("timestamp");
-                    // we convert the timestamp field into a valid BSON TimeStamp
-                    if (timestamp != null)
-                    {
-                        Instant instant = Instant.parse((String)timestamp);
-                        Date dateTimestamp = Date.from(instant);
-                        body.put("bsontimestamp", dateTimestamp);
-                    }
-                    exchange.getMessage().setBody(body);
-                    // we then compute the database connection usong the message body (in this case we only care bout the field `provider`)
-                    // and store the connection string in the `database` header to be used later
-                    exchange.getMessage().setHeader("database", getDatabaseString((String)body.get("provider")));
-                })
+                    //Map<String, Object> body = (HashMap<String, Object>)exchange.getMessage().getBody(Map.class);
+                    //Object timestamp = body.get("timestamp");
+                });
     }
 
     private String getRabbitMQConnectionString() {
