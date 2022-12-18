@@ -1,4 +1,4 @@
-package it.bz.opendatahub.writer;
+package it.bz.opendatahub;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -19,6 +19,5 @@ public class ErrorHandler extends RouteBuilder {
         onCompletion()
                 .onFailureOnly()
                 .process(exchange -> LOG.error("{}", exchange.getMessage().getBody()));
-        
     }
 }

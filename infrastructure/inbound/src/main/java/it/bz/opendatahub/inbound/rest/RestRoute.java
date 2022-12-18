@@ -7,6 +7,9 @@
 
 package it.bz.opendatahub.inbound.rest;
 
+import it.bz.opendatahub.RabbitMQConnection;
+import org.apache.camel.component.rabbitmq.RabbitMQConstants;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.rest.RestBindingMode;
@@ -23,49 +26,23 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.microprofile.config.ConfigProvider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
-
-/**
- * MQTT configuration as defined by Quarkus.
- * <p>
- * The data in this interface is taken from System properties, ENV variables,
- * .env file and more. Take a look at https://quarkus.io/guides/config-reference
- * to see how it works.
- */
-class RestConfig {
-    public String storage_url;
-    public String storage_topic;
-
-    public Optional<String> storage_user;
-    public Optional<String> storage_password;
-}
 
 /**
  * Route to read from REST.
  */
 @ApplicationScoped
 public class RestRoute extends RouteBuilder {
-    private final RestConfig restConfig;
+    private final RabbitMQConnection rabbitMQConfig;
 
     public RestRoute()
     {
-        this.restConfig = new RestConfig();
-
-        this.restConfig.storage_url = ConfigProvider.getConfig().getValue("internal_mqtt.url", String.class);
-        this.restConfig.storage_topic = ConfigProvider.getConfig().getValue("internal_mqtt.topic", String.class);
-        this.restConfig.storage_user = ConfigProvider.getConfig().getOptionalValue("internal_mqtt.user", String.class);
-        this.restConfig.storage_password = ConfigProvider.getConfig().getOptionalValue("internal_mqtt.password", String.class);
+        this.rabbitMQConfig = new RabbitMQConnection();
     } 
 
     @Override
     public void configure() {
-        RestConfigLogger.log(restConfig);
-        
         // Exposes REST connection
         // process and forward to the internal queue waiting to be written in rawDataTable
         restConfiguration()
@@ -98,8 +75,10 @@ public class RestRoute extends RouteBuilder {
                 map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
                 
                 exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
-                exchange.getMessage().setHeader("provider", exchange.getIn().getHeader("provider").toString());
-
+                //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
+                exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, "ingress.rest");
+                exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, "ingress.rest");
+                
                 if (isValidJSON(payload)) {
                     exchange.getMessage().setHeader("validPayload", true);
                 } else {
@@ -110,14 +89,14 @@ public class RestRoute extends RouteBuilder {
             .log("REST| ${headers}")
             .choice()
                 // if the payload is not a valid json
-                .when(header("validPayload").isEqualTo(false))
+            .when(header("validPayload").isEqualTo(false))
                 // we handle the request as invalid and forward the encapsulated payload to 
                 // whatever mechanism we want to use to store malformed data
-                .log("ERROR NOT A VALID PAYLOAD, ROUTE TO FAILED STORAGE")
+                .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterConnectionString())
             .otherwise()
                 // otherwise we forward the encapsulated message to the 
                 // internal queue waiting to be written in rawDataTable
-                .to(getInternalStorageQueueConnectionString())
+                .to(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
             .end()
 
             // reset and send responses
@@ -135,21 +114,6 @@ public class RestRoute extends RouteBuilder {
             return false;
         }
     }
-
-    // When using Mosquitto
-    //      To ensure no message will be lost by the Writer, we have to publish all message with QoS >= 1
-    private String getInternalStorageQueueConnectionString() {
-        // TODO use AmazonSNS uri if needed
-        // for testing purposes we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho:%s?brokerUrl=%s&qos=2", 
-        restConfig.storage_topic, restConfig.storage_url));
-
-        // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
-        restConfig.storage_user.ifPresent(user -> uri.append(String.format("&userName=%s", user)));
-        restConfig.storage_password.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-
-        return uri.toString();
-    }
 }
 
 final class RestConfigLogger {
@@ -158,10 +122,5 @@ final class RestConfigLogger {
 
     private RestConfigLogger() {
         // Private constructor, don't allow new instances
-    }
-    
-    public static void log(RestConfig config) {
-        LOG.info("INTERNAL MQTT URL: {}", config.storage_url);
-        LOG.info("INTERNAL MQTT user: {}", config.storage_topic);
     }
 }

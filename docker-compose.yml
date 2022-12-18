@@ -1,22 +1,22 @@
 version: "3.4"
 
 services:
-  # mosquitto:
-  #   image: eclipse-mosquitto:2.0.12
-  #   ports:
-  #     - "${EXPOSED_MQTT_PORT}:1883"
-  #   volumes:
-  #     - ./mosquitto.inbound.conf:/mosquitto.conf
-  #     - ./mosquitto/data:/mosquitto/data
-  #   command: "mosquitto -c /mosquitto.conf"
+  mosquitto:
+    image: eclipse-mosquitto:2.0.12
+    ports:
+      - "${EXPOSED_MQTT_PORT}:1883"
+    volumes:
+      - ./mosquitto.inbound.conf:/mosquitto.conf
+      - ./mosquitto/data:/mosquitto/data
+    command: "mosquitto -c /mosquitto.conf"
 
-  # mosquittostorage:
-  #   image: eclipse-mosquitto:2.0.12
-  #   ports:
-  #     - "${EXPOSED_MQTT_INTERNAL_STORAGE_PORT}:1883"
-  #   volumes:
-  #     - ./mosquitto.storage.conf:/mosquitto.conf
-  #   command: "mosquitto -c /mosquitto.conf"
+  mosquittostorage:
+    image: eclipse-mosquitto:2.0.12
+    ports:
+      - "${EXPOSED_MQTT_INTERNAL_STORAGE_PORT}:1883"
+    volumes:
+      - ./mosquitto.storage.conf:/mosquitto.conf
+    command: "mosquitto -c /mosquitto.conf"
 
   # mosquittonotifier:
   #   image: eclipse-mosquitto:2.0.12
@@ -37,33 +37,34 @@ services:
     healthcheck:
       test: nc -z localhost:5672
 
-  # mongodb1:
-  #   image: mongo
-  #   ports:
-  #     - 27017:27017
-  #   restart: always
-  #   volumes:
-  #     - ./mongo-replicaset.sh:/docker-entrypoint-initdb.d/mongo-replicaset.sh
-  #   command: --replSet rs0 --bind_ip localhost,mongodb1,127.0.0.1 --port 27017
+  mongodb1:
+    image: mongo
+    ports:
+      - 27017:27017
+    restart: always
+    volumes:
+      - ./mongo-replicaset.sh:/docker-entrypoint-initdb.d/mongo-replicaset.sh
+    command: --replSet rs0 --bind_ip localhost,mongodb1,127.0.0.1 --port 27017
       
-  # inbound:
-  #   build:
-  #     context: .
-  #     dockerfile: infrastructure/inbound/Dockerfile
-  #     target: dev
-  #   env_file:
-  #     - infrastructure/inbound/.env
-  #   volumes:
-  #     - ./infrastructure/inbound:/code
-  #     - ./.mvn:/code/.mvn
-  #   depends_on:
-  #     - mosquitto
-  #     - mosquittostorage
-  #   working_dir: /code
-  #   command: ["./mvnw -B compile quarkus:dev"]
-  #   ports:
-  #     - "${EXPOSED_DATACOLLECTOR_REST_PORT}:8080"
-  #     - "${EXPOSED_DATACOLLECTOR_WEBSOCKET_PORT}:8081"
+  inbound:
+    build:
+      context: .
+      dockerfile: infrastructure/inbound/Dockerfile
+      target: dev
+    env_file:
+      - infrastructure/inbound/.env
+    volumes:
+      - ./infrastructure/inbound:/code
+      - ./.mvn:/code/.mvn
+    depends_on:
+      - mosquitto
+      - mosquittostorage
+      - rabbitmq-outbound
+    working_dir: /code
+    command: ["./mvnw -B compile quarkus:dev"]
+    ports:
+      - "${EXPOSED_DATACOLLECTOR_REST_PORT}:8080"
+      - "${EXPOSED_DATACOLLECTOR_WEBSOCKET_PORT}:8081"
 
   # writer:
   #   build:
@@ -93,18 +94,18 @@ services:
   #   # working_dir: /code
   #   command: npm run start
 
-  router:
-    build:
-      context: .
-      dockerfile: infrastructure/router/Dockerfile
-      target: dev
-    env_file:
-      - infrastructure/router/.env
-    volumes:
-      - ./infrastructure/router:/code
-      - ./.mvn:/code/.mvn
-    depends_on:
-      - rabbitmq-outbound
-    working_dir: /code
-    network_mode: host
-    command: ["./mvnw -B compile quarkus:dev"]
+  # router:
+  #   build:
+  #     context: .
+  #     dockerfile: infrastructure/router/Dockerfile
+  #     target: dev
+  #   env_file:
+  #     - infrastructure/router/.env
+  #   volumes:
+  #     - ./infrastructure/router:/code
+  #     - ./.mvn:/code/.mvn
+  #   depends_on:
+  #     - rabbitmq-outbound
+  #   working_dir: /code
+  #   network_mode: host
+  #   command: ["./mvnw -B compile quarkus:dev"]

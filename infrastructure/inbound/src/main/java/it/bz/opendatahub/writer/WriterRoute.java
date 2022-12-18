@@ -79,7 +79,7 @@ public class WriterRoute extends RouteBuilder {
                 exchange.getMessage().setBody(body);
                 // we then compute the database connection usong the message body (in this case we only care bout the field `provider`)
                 // and store the connection string in the `database` header to be used later
-                exchange.getMessage().setHeader("database", getDatabaseString((String)body.get("provider")));
+                //exchange.getMessage().setHeader("database", getDatabaseString((String)body.get("provider")));
             })
             // we don't use `.to()` because the connection string is dynamic and we use the previously set header `database`
             // to send the data to the database
