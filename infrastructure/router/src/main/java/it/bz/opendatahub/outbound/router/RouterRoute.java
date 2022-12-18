@@ -4,9 +4,10 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
 
-package it.bz.opendatahub.inbound.router;
+package it.bz.opendatahub.outbound.router;
 
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.rabbitmq.RabbitMQConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +47,9 @@ class RabbitMQConfig {
 }
 
 class Payload {
-    public String test;
-    public Integer lal;
+    public String id;
+    public String db;
+    public String collection;
 
 }
 
@@ -83,12 +85,13 @@ public class RouterRoute extends RouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, Payload.class)
                 .log("RabbitMQ| ${body}")
                 .process(exchange -> {
-                    System.out.println(exchange.getMessage().getBody());
-
-                    // First we unmarshal the payload
-                    //Map<String, Object> body = (HashMap<String, Object>)exchange.getMessage().getBody(Map.class);
-                    //Object timestamp = body.get("timestamp");
-                });
+                    Payload payload = (Payload)exchange.getMessage().getBody();
+                    String routeKey = String.format("%s.%s", payload.db, payload.collection);
+                    exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
+                    exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
+                })
+                .marshal().json()
+                .to(getRabbitMQRoutedConnectionString());
     }
 
     private String getRabbitMQConnectionString() {
@@ -107,6 +110,36 @@ public class RouterRoute extends RouteBuilder {
         RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
         RabbitMQConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
 
+        System.out.println(uri.toString());
+
+        return uri.toString();
+    }
+
+    private String getRabbitMQRoutedConnectionString() {
+        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+            "addresses=%s"+
+            "&passive=false"+
+            "&skipExchangeDeclare=false"+
+            "&skipQueueBind=false"+
+            "&skipQueueDeclare=true"+
+            "&autoDelete=false"+
+            "&publisherAcknowledgements=false"+
+            "&exchangeType=topic"+
+            "&deadLetterExchange=%s"+
+            "&deadLetterQueue=%s"+
+            "&deadLetterExchangeType=fanout"+
+            "&arg.exchange.alternate-exchange=%s"+
+            "&declare=true", 
+            "routed", 
+            RabbitMQConfig.cluster, 
+            "routed-dl", "routed-dl-q", "routed-dl"
+            ));
+
+        // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
+        RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
+        RabbitMQConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
+
+        System.out.println(uri.toString());
         return uri.toString();
     }
 }

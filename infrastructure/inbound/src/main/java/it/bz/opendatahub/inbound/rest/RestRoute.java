@@ -70,14 +70,17 @@ public class RestRoute extends RouteBuilder {
                 // provider is populated using the uri path of the request (request on /flightdata -> flightdat)
                 // we might use a proper function to transform the request path into provider
 
-                map.put("provider", exchange.getIn().getHeader("provider").toString());
-                map.put("rawdata",payload);
+                String provider = exchange.getIn().getHeader("provider").toString();
+                String routeKey = String.format("ingress.%s", provider);
+
+                map.put("provider", provider);
+                map.put("rawdata", payload);
                 map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
                 
                 exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
                 //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
-                exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, "ingress.rest");
-                exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, "ingress.rest");
+                exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
+                exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
                 
                 if (isValidJSON(payload)) {
                     exchange.getMessage().setHeader("validPayload", true);
@@ -86,7 +89,7 @@ public class RestRoute extends RouteBuilder {
                 }
             })
             .log("REST| ${body}")
-            .log("REST| ${headers}")
+            // .log("REST| ${headers}")
             .choice()
                 // if the payload is not a valid json
             .when(header("validPayload").isEqualTo(false))

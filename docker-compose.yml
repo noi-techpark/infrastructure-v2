@@ -10,13 +10,13 @@ services:
       - ./mosquitto/data:/mosquitto/data
     command: "mosquitto -c /mosquitto.conf"
 
-  mosquittostorage:
-    image: eclipse-mosquitto:2.0.12
-    ports:
-      - "${EXPOSED_MQTT_INTERNAL_STORAGE_PORT}:1883"
-    volumes:
-      - ./mosquitto.storage.conf:/mosquitto.conf
-    command: "mosquitto -c /mosquitto.conf"
+  # mosquittostorage:
+  #   image: eclipse-mosquitto:2.0.12
+  #   ports:
+  #     - "${EXPOSED_MQTT_INTERNAL_STORAGE_PORT}:1883"
+  #   volumes:
+  #     - ./mosquitto.storage.conf:/mosquitto.conf
+  #   command: "mosquitto -c /mosquitto.conf"
 
   # mosquittonotifier:
   #   image: eclipse-mosquitto:2.0.12
@@ -58,13 +58,11 @@ services:
       - ./.mvn:/code/.mvn
     depends_on:
       - mosquitto
-      - mosquittostorage
       - rabbitmq-outbound
     working_dir: /code
     command: ["./mvnw -B compile quarkus:dev"]
     ports:
       - "${EXPOSED_DATACOLLECTOR_REST_PORT}:8080"
-      - "${EXPOSED_DATACOLLECTOR_WEBSOCKET_PORT}:8081"
 
   # writer:
   #   build:
@@ -82,30 +80,33 @@ services:
   #   working_dir: /code
   #   command: ["./mvnw -B compile quarkus:dev"]
 
-  # notifier:
-  #   build:
-  #     context: infrastructure/notifier/
-  #     dockerfile: Dockerfile
-  #   depends_on:
-  #     - mongodb1
-  #     - mosquittonotifier
-  #   env_file:
-  #     infrastructure/notifier/.env
-  #   # working_dir: /code
-  #   command: npm run start
+  notifier:
+    build:
+      context: infrastructure/notifier/
+      dockerfile: Dockerfile
+    depends_on:
+      - mongodb1
+      - rabbitmq-outbound
+    env_file:
+      infrastructure/notifier/.env
+    # working_dir: /code
+    command: npm run start
 
-  # router:
-  #   build:
-  #     context: .
-  #     dockerfile: infrastructure/router/Dockerfile
-  #     target: dev
-  #   env_file:
-  #     - infrastructure/router/.env
-  #   volumes:
-  #     - ./infrastructure/router:/code
-  #     - ./.mvn:/code/.mvn
-  #   depends_on:
-  #     - rabbitmq-outbound
-  #   working_dir: /code
-  #   network_mode: host
-  #   command: ["./mvnw -B compile quarkus:dev"]
+  outbound:
+    build:
+      context: .
+      dockerfile: infrastructure/router/Dockerfile
+      target: dev
+    env_file:
+      - infrastructure/router/.env
+    volumes:
+      - ./infrastructure/router:/code
+      - ./.mvn:/code/.mvn
+    depends_on:
+      - rabbitmq-outbound
+    working_dir: /code
+    ports:
+      - "8081:8081"
+    ## with host we can connect using host machine address, otherwise we use service name host
+    # network_mode: host
+    command: ["./mvnw -B compile quarkus:dev"]

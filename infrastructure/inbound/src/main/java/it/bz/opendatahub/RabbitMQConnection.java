@@ -102,4 +102,25 @@ public class RabbitMQConnection {
 
         return uri.toString();
     }
+
+    public String getRabbitMQFastlineConnectionString() {
+        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+            "addresses=%s"+
+            // "&passive=true"+
+            "&autoAck=false"+
+            // "&skipExchangeDeclare=true"+
+            "&skipQueueBind=true"+
+            "&exchangeType=topic"+
+            "&exchangePattern=InOnly"+
+            "&autoDelete=false"+
+            "&declare=true", 
+            "fastline",
+            this.ingressConfig.cluster));
+
+        // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
+        this.ingressConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
+        this.ingressConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
+
+        return uri.toString();
+    }
 }

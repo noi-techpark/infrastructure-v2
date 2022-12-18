@@ -3,6 +3,7 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
+// camel-k: dependency=mvn:org.apache.commons:commons-lang3:3.12.0
 
 package it.bz.opendatahub.inbound.mqtt;
 
@@ -24,9 +25,14 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 import org.eclipse.microprofile.config.ConfigProvider;
 
+import it.bz.opendatahub.RabbitMQConnection;
+import org.apache.camel.component.rabbitmq.RabbitMQConstants;
+
+import org.apache.camel.component.jackson.JacksonDataFormat;
 
 /**
  * MQTT configuration as defined by Quarkus.
@@ -44,9 +50,6 @@ class MqttConfig {
     // Password is optional and may not be set
     Optional<String> pass;
 
-    public String storage_url;
-    public String storage_topic;
-
     public Optional<String> storage_user;
     public Optional<String> storage_password;
 }
@@ -57,6 +60,7 @@ class MqttConfig {
 @ApplicationScoped
 public class MqttRoute extends RouteBuilder {
     private MqttConfig mqttConfig;
+    private final RabbitMQConnection rabbitMQConfig;
 
     public MqttRoute()
     {
@@ -65,10 +69,7 @@ public class MqttRoute extends RouteBuilder {
         this.mqttConfig.user = ConfigProvider.getConfig().getOptionalValue("mqtt.user", String.class);
         this.mqttConfig.pass = ConfigProvider.getConfig().getOptionalValue("mqtt.pass", String.class);
 
-        this.mqttConfig.storage_url = ConfigProvider.getConfig().getValue("internal_mqtt.url", String.class);
-        this.mqttConfig.storage_topic = ConfigProvider.getConfig().getValue("internal_mqtt.topic", String.class);
-        this.mqttConfig.storage_user = ConfigProvider.getConfig().getOptionalValue("internal_mqtt.user", String.class);
-        this.mqttConfig.storage_password = ConfigProvider.getConfig().getOptionalValue("internal_mqtt.password", String.class);
+        this.rabbitMQConfig = new RabbitMQConnection();
     } 
 
     @Override
@@ -82,49 +83,72 @@ public class MqttRoute extends RouteBuilder {
         // TODO Add throtling if needed
         // TODO If error occurs, don't ACK message
         from(mqttConnectionString)
-                .routeId("[Route: MQTT subscription]")
-                .setHeader("topic", header(PahoConstants.MQTT_TOPIC))
-                .process(exchange -> {
-                    Map<String, Object> map = new HashMap<String, Object>();
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    
-                    String payload = exchange.getMessage().getBody(String.class);
+            .routeId("[Route: MQTT subscription]")
+            .log("MQTT| ${body}")
+            // .log("MQTT| ${headers}")
+            .process(exchange -> {
+                Map<String, Object> map = new HashMap<String, Object>();
+                ObjectMapper objectMapper = new ObjectMapper();
+                
+                String payload = exchange.getMessage().getBody(String.class);
 
-                    // We start encapsulating the payload in a new message where we have
-                    // {provider: ..., timestamp: ..., rawdata: ...}
-                    // timestamp indicates when we received the message
-                    // provider is the provided which sent the message
-                    // rawdata is the data sent
+                // We start encapsulating the payload in a new message where we have
+                // {provider: ..., timestamp: ..., rawdata: ...}
+                // timestamp indicates when we received the message
+                // provider is the provided which sent the message
+                // rawdata is the data sent
 
-                    // provider is populated using the topic `exchange.getMessage().getHeader("topic").toString()`
-                    // we might use a proper function to remove the first "/" and normalize subpaths (/open/test -> open_test)
-                    map.put("provider", exchange.getMessage().getHeader("topic").toString());
-                    map.put("rawdata", payload);
-                    map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
-                    exchange.getMessage().setHeader("provider", exchange.getMessage().getHeader("topic").toString());
-                    exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
+                // provider is populated using the topic `exchange.getMessage().getHeader(PahoConstants.MQTT_TOPIC).toString()`
+                // we might use a proper function to remove the first "/" and normalize subpaths (/open/test -> open_test)
+
+                String provider = exchange.getIn().getHeader(PahoConstants.MQTT_TOPIC).toString();
+                provider = StringUtils.stripStart(provider, "/");
+                String routeKey = String.format("ingress.%s", provider);
+
+                map.put("provider", provider);
+                map.put("rawdata", payload);
+                map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
+
+                exchange.getMessage().setHeader("provider", provider);
+                exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
+
+                //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
+                exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
+                exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
                     
-                    // We validate the payload checking it is a proper json
-                    if (isValidJSON(payload)) {
-                        exchange.getMessage().setHeader("validPayload", true);
-                    } else {
-                        exchange.getMessage().setHeader("validPayload", false);
+                // We validate the payload checking it is a proper json
+                if (isValidJSON(payload)) {
+                    exchange.getMessage().setHeader("validPayload", true);
+                    ObjectMapper mapper = new ObjectMapper();
+                    Map<String, Object> body = (HashMap<String, Object>)mapper.readValue(payload, Map.class);
+                   
+                    Object fastline = body.get("fastline");
+                    if (null != fastline && fastline instanceof Boolean && (Boolean)fastline == true) {
+                        exchange.getMessage().setHeader("fastline", true);
                     }
-                    
-                })
-                .log("MQTT| ${body}")
-                .log("MQTT| ${headers}")
-                .choice()
-                    // if the payload is not a valid json
-                    .when(header("validPayload").isEqualTo(false))
-                    // we handle the request as invalid and forward the encapsulated payload to 
-                    // whatever mechanism we want to use to store malformed data
-                    .log("ERROR NOT A VALID PAYLOAD, ROUTE TO FAILED STORAGE")
-                .otherwise()
-                    // otherwise we forward the encapsulated message to the 
-                    // internal queue waiting to be written in rawDataTable
-                    .to(getInternalStorageQueueConnectionString())
-                .end();
+                } else {
+                    exchange.getMessage().setHeader("validPayload", false);
+                }
+                
+            })
+            .choice()
+            // forward to fastline
+            .when(header("fastline").isEqualTo(true))
+                // we handle the request as invalid and forward the encapsulated payload to 
+                // whatever mechanism we want to use to store malformed data
+                .to(this.rabbitMQConfig.getRabbitMQFastlineConnectionString())
+            .end()
+            .choice()
+            // if the payload is not a valid json
+            .when(header("validPayload").isEqualTo(false))
+                // we handle the request as invalid and forward the encapsulated payload to 
+                // whatever mechanism we want to use to store malformed data
+                .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterConnectionString())
+            .otherwise()
+                // otherwise we forward the encapsulated message to the 
+                // internal queue waiting to be written in rawDataTable
+                .to(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
+            .end();
     }
 
     public boolean isValidJSON(final String json) {
@@ -162,20 +186,6 @@ public class MqttRoute extends RouteBuilder {
         return uri.toString();
     }
 
-    // When using Mosquitto
-    //      To ensure no message will be lost by the Writer, we have to publish all messages with QoS >= 1
-    private String getInternalStorageQueueConnectionString() {
-        // TODO use AmazonSNS uri if needed
-        // for testing purposes we use Mosquitto
-        final StringBuilder uri = new StringBuilder(String.format("paho:%s?brokerUrl=%s&qos=2", 
-        mqttConfig.storage_topic, mqttConfig.storage_url));
-
-        // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
-        mqttConfig.storage_user.ifPresent(user -> uri.append(String.format("&userName=%s", user)));
-        mqttConfig.storage_password.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-
-        return uri.toString();
-    }
 }
 
 final class MqttConfigLogger {
@@ -194,8 +204,5 @@ final class MqttConfigLogger {
         LOG.info("MQTT URL: {}", url);
         LOG.info("MQTT user: {}", user);
         LOG.info("MQTT password: {}", pass);
-
-        LOG.info("INTERNAL MQTT URL: {}", config.storage_url);
-        LOG.info("INTERNAL MQTT user: {}", config.storage_topic);
     }
 }
