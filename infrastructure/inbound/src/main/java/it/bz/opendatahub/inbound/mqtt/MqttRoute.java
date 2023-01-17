@@ -62,6 +62,14 @@ public class MqttRoute extends RouteBuilder {
     private MqttConfig mqttConfig;
     private final RabbitMQConnection rabbitMQConfig;
 
+    // TODO the topic should mimic an url 
+    // like 'provider/collection/...&params'
+    // the path will be used to compute db/collection where to store data & the routing key
+    // for the transformer
+    // while params can be used to annotate the messages like add &fastline=true
+    // to enable fastline broadcast
+    // queryParam parser: http://www.java2s.com/example/java-utility-method/url-query-parse/parsequerystring-string-querystring-86933.html
+    // url parser: https://docs.oracle.com/javase/tutorial/networking/urls/urlInfo.html
     public MqttRoute()
     {
         this.mqttConfig = new MqttConfig();

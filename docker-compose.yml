@@ -10,22 +10,6 @@ services:
       - ./mosquitto/data:/mosquitto/data
     command: "mosquitto -c /mosquitto.conf"
 
-  # mosquittostorage:
-  #   image: eclipse-mosquitto:2.0.12
-  #   ports:
-  #     - "${EXPOSED_MQTT_INTERNAL_STORAGE_PORT}:1883"
-  #   volumes:
-  #     - ./mosquitto.storage.conf:/mosquitto.conf
-  #   command: "mosquitto -c /mosquitto.conf"
-
-  # mosquittonotifier:
-  #   image: eclipse-mosquitto:2.0.12
-  #   ports:
-  #     - "${EXPOSED_MQTT_INTERNAL_NOTIFIER_PORT}:1883"
-  #   volumes:
-  #     - ./mosquitto.notifier.conf:/mosquitto.conf
-  #   command: "mosquitto -c /mosquitto.conf"
-
   rabbitmq-outbound:
     image: rabbitmq:3-management
     ports:
@@ -34,6 +18,8 @@ services:
       - "4369:4369"
       - "25672:25672"
       - "15672:15672"
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     healthcheck:
       test: nc -z localhost:5672
 
@@ -57,28 +43,13 @@ services:
       - ./infrastructure/inbound:/code
       - ./.mvn:/code/.mvn
     depends_on:
+      - mongodb1
       - mosquitto
       - rabbitmq-outbound
     working_dir: /code
     command: ["./mvnw -B compile quarkus:dev"]
     ports:
       - "${EXPOSED_DATACOLLECTOR_REST_PORT}:8080"
-
-  # writer:
-  #   build:
-  #     context: .
-  #     dockerfile: infrastructure/writer/Dockerfile
-  #     target: dev
-  #   depends_on:
-  #     - mongodb1
-  #     - mosquittostorage
-  #   env_file:
-  #      infrastructure/writer/.env
-  #   volumes:
-  #     - ./infrastructure/writer:/code
-  #     - ./.mvn:/code/.mvn
-  #   working_dir: /code
-  #   command: ["./mvnw -B compile quarkus:dev"]
 
   notifier:
     build:
@@ -107,6 +78,40 @@ services:
     working_dir: /code
     ports:
       - "8081:8081"
+    ## with host we can connect using host machine address, otherwise we use service name host
+    # network_mode: host
+    command: ["./mvnw -B compile quarkus:dev"]
+
+  transformer:
+    build:
+      context: .
+      dockerfile: infrastructure/transformer/Dockerfile
+      target: dev
+    env_file:
+      - infrastructure/transformer/.env
+    volumes:
+      - ./infrastructure/transformer:/code
+      - ./.mvn:/code/.mvn
+    depends_on:
+      - rabbitmq-outbound
+    working_dir: /code
+    ## with host we can connect using host machine address, otherwise we use service name host
+    # network_mode: host
+    command: ["./mvnw -B compile quarkus:dev"]
+
+  transformer2:
+    build:
+      context: .
+      dockerfile: infrastructure/transformer/Dockerfile
+      target: dev
+    env_file:
+      - infrastructure/transformer/.env
+    volumes:
+      - ./infrastructure/transformer:/code
+      - ./.mvn:/code/.mvn
+    depends_on:
+      - rabbitmq-outbound
+    working_dir: /code
     ## with host we can connect using host machine address, otherwise we use service name host
     # network_mode: host
     command: ["./mvnw -B compile quarkus:dev"]

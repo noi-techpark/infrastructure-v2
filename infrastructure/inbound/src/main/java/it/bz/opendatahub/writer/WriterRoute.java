@@ -53,10 +53,10 @@ public class WriterRoute extends RouteBuilder {
         // Read from Internal MQTT
         // Writes a valid BSON object to MongoDB
         // TODO Add throtling if needed
-        // TODO check how to handle write failure in mongodb (autoAck, reQueue)
         // https://camel.apache.org/components/3.18.x/rabbitmq-component.html
         from(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
-            .end()
+            .routeId("[Route: Writer]")
+            //.throttle(100).timePeriodMillis(10000)
             .log("WRITE| ${body}")
             .unmarshal(new JacksonDataFormat())
             .process(exchange -> {
@@ -77,7 +77,8 @@ public class WriterRoute extends RouteBuilder {
             })
             // we don't use `.to()` because the connection string is dynamic and we use the previously set header `database`
             // to send the data to the database
-            .recipientList(header("database"));
+            .recipientList(header("database"))
+            .end();
     }
 
     /**
