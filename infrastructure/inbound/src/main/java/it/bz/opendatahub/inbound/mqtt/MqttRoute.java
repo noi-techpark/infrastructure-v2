@@ -14,25 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
-
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.node.ContainerNode;
-
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import it.bz.opendatahub.RabbitMQConnection;
-import org.apache.camel.component.rabbitmq.RabbitMQConstants;
-
-import org.apache.camel.component.jackson.JacksonDataFormat;
+import it.bz.opendatahub.WrapperProcessor;
 
 /**
  * MQTT configuration as defined by Quarkus.
@@ -49,9 +36,6 @@ class MqttConfig {
 
     // Password is optional and may not be set
     Optional<String> pass;
-
-    public Optional<String> storage_user;
-    public Optional<String> storage_password;
 }
 
 /**
@@ -94,51 +78,7 @@ public class MqttRoute extends RouteBuilder {
             .routeId("[Route: MQTT subscription]")
             .log("MQTT| ${body}")
             // .log("MQTT| ${headers}")
-            .process(exchange -> {
-                Map<String, Object> map = new HashMap<String, Object>();
-                ObjectMapper objectMapper = new ObjectMapper();
-                
-                String payload = exchange.getMessage().getBody(String.class);
-
-                // We start encapsulating the payload in a new message where we have
-                // {provider: ..., timestamp: ..., rawdata: ...}
-                // timestamp indicates when we received the message
-                // provider is the provided which sent the message
-                // rawdata is the data sent
-
-                // provider is populated using the topic `exchange.getMessage().getHeader(PahoConstants.MQTT_TOPIC).toString()`
-                // we might use a proper function to remove the first "/" and normalize subpaths (/open/test -> open_test)
-
-                String provider = exchange.getIn().getHeader(PahoConstants.MQTT_TOPIC).toString();
-                provider = StringUtils.stripStart(provider, "/");
-                String routeKey = String.format("ingress.%s", provider);
-
-                map.put("provider", provider);
-                map.put("rawdata", payload);
-                map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
-
-                exchange.getMessage().setHeader("provider", provider);
-                exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
-
-                //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
-                exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
-                exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
-                    
-                // We validate the payload checking it is a proper json
-                if (isValidJSON(payload)) {
-                    exchange.getMessage().setHeader("validPayload", true);
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> body = (HashMap<String, Object>)mapper.readValue(payload, Map.class);
-                   
-                    Object fastline = body.get("fastline");
-                    if (null != fastline && fastline instanceof Boolean && (Boolean)fastline == true) {
-                        exchange.getMessage().setHeader("fastline", true);
-                    }
-                } else {
-                    exchange.getMessage().setHeader("validPayload", false);
-                }
-                
-            })
+            .process(exchange -> WrapperProcessor.process(exchange, exchange.getIn().getHeader(PahoConstants.MQTT_TOPIC).toString()))
             .choice()
             // forward to fastline
             .when(header("fastline").isEqualTo(true))
@@ -157,16 +97,6 @@ public class MqttRoute extends RouteBuilder {
                 // internal queue waiting to be written in rawDataTable
                 .to(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
             .end();
-    }
-
-    public boolean isValidJSON(final String json) {
-        try {
-            final ObjectMapper objectMapper = new ObjectMapper();
-            final JsonNode jsonNode = objectMapper.readTree(json);
-            return jsonNode instanceof ContainerNode;
-        } catch (Exception jpe) {
-            return false;
-        }
     }
 
     // When using Mosquitto
