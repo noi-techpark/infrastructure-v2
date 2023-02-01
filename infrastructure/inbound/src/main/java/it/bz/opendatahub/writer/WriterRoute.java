@@ -90,6 +90,8 @@ public class WriterRoute extends RouteBuilder {
      * https://camel.apache.org/camel-quarkus/2.10.x/reference/extensions/mongodb.html
      * https://quarkus.io/guides/mongodb
      */
+    // ! invalid collection name character (on linux deployment): /\. "$ 
+    // https://www.mongodb.com/docs/manual/reference/limits/#std-label-restrictions-on-db-names
     private String getDatabaseString(String provider) {
         final StringBuilder uri = new StringBuilder(String.format("mongodb://dummy?hosts=%s&database=%s&collection=%s&operation=insert", 
         this.mongoDBConnection.host, provider, provider));
