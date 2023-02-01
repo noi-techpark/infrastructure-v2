@@ -1,4 +1,4 @@
-package it.bz.opendatahub.inbound;
+package it.bz.opendatahub.outbound;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;

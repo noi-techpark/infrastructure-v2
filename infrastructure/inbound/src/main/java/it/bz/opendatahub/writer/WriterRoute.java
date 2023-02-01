@@ -57,7 +57,7 @@ public class WriterRoute extends RouteBuilder {
         from(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
             .routeId("[Route: Writer]")
             //.throttle(100).timePeriodMillis(10000)
-            .log("WRITE| ${body}")
+            // .log("WRITE| ${body}")
             .unmarshal(new JacksonDataFormat())
             .process(exchange -> {
                 // First we unmarshal the payload
@@ -93,6 +93,7 @@ public class WriterRoute extends RouteBuilder {
     // ! invalid collection name character (on linux deployment): /\. "$ 
     // https://www.mongodb.com/docs/manual/reference/limits/#std-label-restrictions-on-db-names
     private String getDatabaseString(String provider) {
+        System.out.println(provider);
         final StringBuilder uri = new StringBuilder(String.format("mongodb://dummy?hosts=%s&database=%s&collection=%s&operation=insert", 
         this.mongoDBConnection.host, provider, provider));
         System.out.println(uri.toString());

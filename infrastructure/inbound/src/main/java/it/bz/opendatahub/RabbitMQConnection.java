@@ -57,7 +57,7 @@ public class RabbitMQConnection {
             "&autoAck=false"+
             // setting reQueue=true + autoAck=false messages not processed because of exceptions get requeued
             "&reQueue=true"+ 
-            "&routingKey=ingress.*"+
+            "&routingKey=ingress.#"+
             // "&deadLetterExchange=%s"+
             "&passive=false"+
             // "&skipExchangeDeclare=true"+
