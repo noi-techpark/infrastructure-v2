@@ -1,0 +1,19 @@
+* text=auto
+
+# UNIX+Windows files.
+*.conf text
+*.java text
+*.js text
+*.json text
+*.md text
+*.properties text
+*.py text
+*.sh text
+*.txt text
+*.xml text
+*.yaml text
+*.yml text
+
+# Windows-specific files.
+*.bat text eol=crlf
+*.cmd text eol=crlf
