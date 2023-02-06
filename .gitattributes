@@ -1,21 +1,21 @@
 * text=lf
 
 # UNIX+Windows files.
-*.conf eol=lf
-*.java eol=lf
-*.js eol=lf
-*.json eol=lf
-*.md eol=lf
-*.properties eol=lf
-*.py eol=lf
-*.txt eol=lf
-*.xml eol=lf
-*.yaml eol=lf
-*.yml eol=lf
+*.java text
+*.js text
+*.json text
+*.md text
+*.properties text
+*.py text
+*.txt text
+*.xml text
+*.yaml text
+*.yml text
 
 # UNIX-specific files.
-mvnw eol=lf
-*.sh eol=lf
+mvnw text eol=lf
+*.sh text eol=lf
+*.conf text eol=lf
 
 # Windows-specific files.
 *.bat text eol=crlf
