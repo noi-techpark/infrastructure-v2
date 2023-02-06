@@ -2,6 +2,7 @@ const { MongoClient } = require('mongodb');
 const { monitorListingsUsingEventEmitter } = require('./changeStream');
 const dotenv = require("dotenv")
 const mqtt = require('mqtt');
+const amqplib = require('amqplib');
 
 /**
  * What are changestreams?: https://www.mongodb.com/docs/manual/changeStreams/
@@ -45,24 +46,47 @@ async function main() {
      * MQTT client for test env
      */
 
-    console.log(`connecting to mqtt ${process.env.NOTIFIER_QUEUE_URL}`)
+    // console.log(`connecting to mqtt ${process.env.NOTIFIER_QUEUE_URL}`)
 
-    const mqttclient  = mqtt.connect(process.env.NOTIFIER_QUEUE_URL)
-    const connect = new Promise(resolve => {
-        mqttclient.on('connect', function () {
-            console.log(`connected to mqtt ${process.env.NOTIFIER_QUEUE_URL}`)
-            mqttclient.subscribe(process.env.NOTIFIER_QUEUE_TOPIC, function (err) {
-                if (!err) {
-                    resolve();
-                } else {
-                    throw new Error(`Could not connect to topic ${process.env.NOTIFIER_QUEUE_TOPIC}`)
-                }
-              })
+    // const mqttclient  = mqtt.connect(process.env.NOTIFIER_QUEUE_URL)
+    // const connect = new Promise(resolve => {
+    //     mqttclient.on('connect', function () {
+    //         console.log(`connected to mqtt ${process.env.NOTIFIER_QUEUE_URL}`)
+    //         mqttclient.subscribe(process.env.NOTIFIER_QUEUE_TOPIC, function (err) {
+    //             if (!err) {
+    //                 resolve();
+    //             } else {
+    //                 throw new Error(`Could not connect to topic ${process.env.NOTIFIER_QUEUE_TOPIC}`)
+    //             }
+    //           })
             
-        });
+    //     });
+    // });
+
+    let conn = undefined;
+
+    while (!conn) {
+        conn = await amqplib.connect(`amqp://${process.env.RABBITMQ_CLUSTER_URL}`).catch(err => console.log(err));
+        await new Promise(r => setTimeout(r, 2000));
+    }
+    console.log(`connected to rabbitmq ${process.env.RABBITMQ_CLUSTER_URL}`);
+
+    const readyExchange = "ready";
+    const readyQueue = "ready-q"
+    const rabbitChannel = await conn.createChannel();
+    rabbitChannel.assertExchange(readyExchange, 'direct', {
+        durable: true
     });
+    rabbitChannel.assertQueue(readyQueue, {
+        durable: true
+    });
+
+    rabbitChannel.bindQueue(readyQueue, readyExchange, '');
+    const fnPublish = (data) =>  {
+        rabbitChannel.publish(readyExchange, "", Buffer.from(data));
+    }
     
-    await connect;
+    // await connect;
 
     try {
         // Connect to the MongoDB cluster
@@ -76,7 +100,7 @@ async function main() {
         await client.connect();
 
         // Make the appropriate DB calls
-        await monitorListingsUsingEventEmitter(client, mqttclient, process.env.NOTIFIER_QUEUE_TOPIC);
+        await monitorListingsUsingEventEmitter(client, fnPublish, process.env.NOTIFIER_QUEUE_TOPIC);
 
     } finally {
         // Close the connection to the MongoDB cluster

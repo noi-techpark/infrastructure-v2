@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 # Referennce at https://www.mongodb.com/community/forums/t/docker-compose-replicasets-getaddrinfo-enotfound/14301/4
 mongo --eval "rs.initiate({
           _id : 'rs0',

@@ -5,7 +5,7 @@ const { Timestamp } = require('mongodb');
  * matching the rule {"$match": {"operationType": "insert"}}, which filters out only new inserted documents
  * https://www.mongodb.com/docs/drivers/node/current/usage-examples/changeStream/
  */
-async function monitorListingsUsingEventEmitter(client, mqttclient, topic, pipeline = [
+async function monitorListingsUsingEventEmitter(client, fnPublish, topic, pipeline = [
     {"$match": {"operationType": "insert"}},
 ]) {
         // Get the last checkpoint, if any, otherwise start from timestamp 0 to process opLogs
@@ -50,11 +50,17 @@ async function monitorListingsUsingEventEmitter(client, mqttclient, topic, pipel
             }
 
             // publish {id, db and collection} to the queue the transformers will watch to know about new data
-            mqttclient.publish(topic, JSON.stringify({
-                id: next.documentKey._id.toString(),
-                db: next.ns.db,
-                collection: next.ns.coll
-            }))
+            // mqttclient.publish(topic, JSON.stringify({
+            //     id: next.documentKey._id.toString(),
+            //     db: next.ns.db,
+            //     collection: next.ns.coll
+            // }))
+
+            fnPublish(JSON.stringify({
+                     id: next.documentKey._id.toString(),
+                     db: next.ns.db,
+                     collection: next.ns.coll
+                }));
         });
     })
 };

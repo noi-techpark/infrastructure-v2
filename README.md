@@ -56,7 +56,7 @@ in the main folder. It will build and spin up all components.
 The first time we compose-up, we have to initialize MongoDB's replica set. To do so we have to run the command outside the cluster.
 
 ```sh
-docker exec odh-infrastructure-v2_mongodb1_1 mongo --eval "rs.initiate({
+docker exec odh-infrastructure-v2-mongodb1-1 mongosh --eval "rs.initiate({
             _id : 'rs0',
             members: [
               { _id : 0, host : 'mongodb1:27017' },
