@@ -37,7 +37,7 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 class RabbitMQConfig {
     String cluster;
 
-    String ingressQueue;
+    String readyQueue;
 
     // Username is optional and may not be set
     Optional<String> user;
@@ -64,7 +64,7 @@ public class RouterRoute extends RouteBuilder {
     {
         this.RabbitMQConfig = new RabbitMQConfig();
         this.RabbitMQConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
-        this.RabbitMQConfig.ingressQueue = ConfigProvider.getConfig().getValue("rabbitmq.ingress-queue", String.class);
+        this.RabbitMQConfig.readyQueue = ConfigProvider.getConfig().getValue("rabbitmq.ready-queue", String.class);
         this.RabbitMQConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
         this.RabbitMQConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
     } 
@@ -80,10 +80,10 @@ public class RouterRoute extends RouteBuilder {
         // Use RabbitMQ connection
         from(RabbitMQConnectionString)
                 .routeId("[Route: RabbitMQ subscription]")
-                .log("RabbitMQ| ${body}")
-                .log("RabbitMQ| ${headers}")
+                // .log("RabbitMQ| ${body}")
+                // .log("RabbitMQ| ${headers}")
                 .unmarshal().json(JsonLibrary.Jackson, Payload.class)
-                .log("RabbitMQ| ${body}")
+                // .log("RabbitMQ| ${body}")
                 .process(exchange -> {
                     Payload payload = (Payload)exchange.getMessage().getBody();
                     String routeKey = String.format("%s.%s", payload.db, payload.collection);
@@ -104,7 +104,7 @@ public class RouterRoute extends RouteBuilder {
             "&skipQueueBind=true"+
             "&autoDelete=false"+
             "&declare=false", 
-            RabbitMQConfig.cluster, RabbitMQConfig.ingressQueue));
+            RabbitMQConfig.cluster, RabbitMQConfig.readyQueue));
 
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
         RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
@@ -157,7 +157,7 @@ final class RabbitMQConfigLogger {
         String pass = config.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
 
         LOG.info("RabbitMQ cluster: {}", config.cluster);
-        LOG.info("RabbitMQ ingressQueue: {}", config.ingressQueue);
+        LOG.info("RabbitMQ readyQueue: {}", config.readyQueue);
         LOG.info("RabbitMQ user: {}", user);
         LOG.info("RabbitMQ password: {}", pass);
     }

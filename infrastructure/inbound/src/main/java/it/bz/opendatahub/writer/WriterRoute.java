@@ -26,7 +26,6 @@ import org.eclipse.microprofile.config.ConfigProvider;
 
 import it.bz.opendatahub.RabbitMQConnection;
 
-
 class MongoDBConnection {
     String host;
 }
@@ -50,7 +49,7 @@ public class WriterRoute extends RouteBuilder {
 
     @Override
     public void configure() {
-        // Read from Internal MQTT
+        // Read from RabbitMQ ingress
         // Writes a valid BSON object to MongoDB
         // TODO Add throtling if needed
         // https://camel.apache.org/components/3.18.x/rabbitmq-component.html
@@ -82,21 +81,27 @@ public class WriterRoute extends RouteBuilder {
     }
 
     /**
-     * For the purpose of the PoC, we use a single MongoDB deployment as rawDataTable and we store data in {provider} db / {provider} collection
-     * provider = flightdata -> data stored in flightdata/flightadata.
+     * For the purpose of the PoC, we use a single MongoDB deployment as rawDataTable.
+     * The db name is the first token of the provider uri
+     * The collection name is the second token of the provider uri
+     *      if there is only one token it will be used as collection as well
      * 
      * If we need to use multiple deployments or custom paths, you should edit this function.
      * References:
-     * https://camel.apache.org/camel-quarkus/2.10.x/reference/extensions/mongodb.html
+     * https://camel.apache.org/components/3.20.x/mongodb-component.html
      * https://quarkus.io/guides/mongodb
      */
-    // ! invalid collection name character (on linux deployment): /\. "$ 
+    // ! invalid collection & db characters (on linux deployment): /\. "$ 
     // https://www.mongodb.com/docs/manual/reference/limits/#std-label-restrictions-on-db-names
     private String getDatabaseString(String provider) {
-        System.out.println(provider);
+        String[] tokens = provider.split("/");
+        String db = tokens[0];
+        String collection = tokens[0];
+        if (tokens.length > 1) {
+            collection = tokens[1];
+        }
         final StringBuilder uri = new StringBuilder(String.format("mongodb://dummy?hosts=%s&database=%s&collection=%s&operation=insert", 
-        this.mongoDBConnection.host, provider, provider));
-        System.out.println(uri.toString());
+        this.mongoDBConnection.host, db, collection));
         return uri.toString();
     }
 }

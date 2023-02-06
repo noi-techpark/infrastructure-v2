@@ -34,7 +34,7 @@ public class RestRoute extends RouteBuilder {
     @Override
     public void configure() {
         // Exposes REST connection
-        // process and forward to the internal queue waiting to be written in rawDataTable
+        // wrap message and send to RabbitMQ ingress
         restConfiguration()
             .apiContextPath("/api-doc")
             .apiProperty("api.title", "ODH inbound REST API")
@@ -51,7 +51,7 @@ public class RestRoute extends RouteBuilder {
             // .log("REST| ${headers}")
             .choice()
                 // if the payload is not a valid json
-            .when(header("validPayload").isEqualTo(false))
+            .when(header("valid").isEqualTo(false))
                 // we handle the request as invalid and forward the encapsulated payload to 
                 // whatever mechanism we want to use to store malformed data
                 .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterConnectionString())

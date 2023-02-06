@@ -4,7 +4,7 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2.0.12
     ports:
-      - "${EXPOSED_MQTT_PORT}:1883"
+      - "${EXPOSED_INBOUND_MQTT_PORT}:1883"
     volumes:
       - ./mosquitto.inbound.conf:/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data
@@ -49,7 +49,7 @@ services:
     working_dir: /code
     command: ["./mvnw -B compile quarkus:dev"]
     ports:
-      - "${EXPOSED_DATACOLLECTOR_REST_PORT}:8080"
+      - "${EXPOSED_INBOUND_REST_PORT}:8080"
 
   notifier:
     build:
