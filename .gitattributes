@@ -8,11 +8,14 @@
 *.md text
 *.properties text
 *.py text
-*.sh text
 *.txt text
 *.xml text
 *.yaml text
 *.yml text
+
+# UNIX-specific files.
+mvnw eol=lf
+*.sh eol=lf
 
 # Windows-specific files.
 *.bat text eol=crlf
