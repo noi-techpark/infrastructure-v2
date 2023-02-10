@@ -29,3 +29,18 @@ In the [eks.tf](../infrastructure/terraform/eks.tf) users and service accounts c
 ## Tips
 
 A list of commonly used commands for Kubernetes can be found in the [official cheatsheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/).
+
+## Port Forwarding 
+
+When testing against the Kubernetes Cluster in the Cloud environment we have to need to port forward the pods connection to localhost in order to connect to the instances
+
+```sh
+kubectl port-forward <pod-name> <localport>:<remote-port>
+```
+
+EG: to forward the `Storage Mosquitto` to the `1884` port type
+```sh
+kubectl port-forward mosquitto-storage-c79967d5d-kcjcb 1884:1883
+```
+
+By doing so our `localhost:1884` forwards to the `pod's 1883 remote` port. 

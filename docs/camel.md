@@ -11,6 +11,28 @@ In order to run, compiled, and debug Camel routes, it is necessary to satisfy th
 
 **Amazon ECR is not supported yet by Kamel, use [Docker Hub](https://hub.docker.com/) instead.**
 
+## Camel K
+
+When deployed in Kubernetes the Camel routes are deployed using Camel K.
+Camel K does not deploy the whole Maven/Quarkus/Spring-boot project but only the route definition. To do so it needs a special syntax in the .java files to know which package to install.
+
+Example:
+```java
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho-mqtt5
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
+
+package it.bz.opendatahub.inbound.mqtt;
+
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.paho.mqtt5.PahoMqtt5Constants;
+```
+
+It's also recommended to keep the route in a single file.
+Reference: [Blog Article](https://piotrminkowski.com/2020/12/08/apache-camel-k-and-quarkus-on-kubernetes/).
+
 ## How to
 
 ### Run Camel Routes
