@@ -73,7 +73,7 @@ public class WrapperProcessor {
             exchange.getMessage().setHeader("fastline", true);
         }
 
-        map.put("provider", providerURI.getPath());
+        map.put("provider", providerURI.toString());
         exchange.getMessage().setBody(objectMapper.writeValueAsString(map));
 
         if (isValidJSON(payload)) {

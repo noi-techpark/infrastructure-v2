@@ -15,6 +15,8 @@ import javax.enterprise.context.ApplicationScoped;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.*;
 
 import org.apache.camel.component.jackson.JacksonDataFormat;
@@ -93,8 +95,8 @@ public class WriterRoute extends RouteBuilder {
      */
     // ! invalid collection & db characters (on linux deployment): /\. "$ 
     // https://www.mongodb.com/docs/manual/reference/limits/#std-label-restrictions-on-db-names
-    private String getDatabaseString(String provider) {
-        String[] tokens = provider.split("/");
+    private String getDatabaseString(String provider) throws URISyntaxException {
+        String[] tokens = new URI(provider).getPath().split("/");
         String db = tokens[0];
         String collection = tokens[0];
         if (tokens.length > 1) {
