@@ -15,6 +15,7 @@
 - [Kubernetes](docs/kubernetes.md)
 - [Helm](docs/helm.md)
 - [Camel](docs/camel.md)
+- [Provider URI](docs/inbound.md#provider-uri)
 
 --- 
 
@@ -127,50 +128,6 @@ Performances can be greatly improved using replicas, sharding, parallel programm
 The `notifier`, written in JS and running on Node, is a good example of a possible bottleneck that can be greatly improved.
 Instead of having a single instance subscripted to the whole `MongoDB deployment`, it could be split between multiple instances each one subscripted to a particular `MongoDB Database` or even to single `Collections`.
 This kind of polish can be done only once the team decides how to distribute the `RawData` coming from different **Datasources**.
-
-# Very important notes
-
-## MQTT
-
-We have to ensure that when an application disconnects, for any reason, from an MQTT / AmazonSNS broker, it gets all messages it missed while offline on reconnection.
-
-Using Mosquitto isn't done by properly publishing messages and establishing a **Persistent Connection** to the Broker in the client side:
-
-- Publishers MUST publish with `QoS` >= 1
-- Subscribers MUST connect with `QoS` >= 1
-- Subscribers MUST connect with `cleanStart` = false
-- ALL Subscribers in ALL pods must connect with a unique `clientId` which can't change at pod restart
-
-
-### Autoscaling
-To create a persistent session with Mosquitto, each replica of the Client (might it be the `inbound MQTT` or the `Writer`) **has** to generate a `ClientID`.
-This configuration property is particularly important when autoscaling is enabled.
-
-`MQTT Client instance 1` => ClientID = 1
-
-When autoscaling is performed
-
-`MQTT Client instance 1` => ClientID = 1
-
-`MQTT Client instance 2` => ClientID = 2
-
-If `MQTT Client instance 2` restarts, the **ClientID** must remain `2`
-
-***If two clients have the same ClientID, one will crash since the broker won't accept the connection. 
-if no ClientID is provided all messages received by the broker while no client is connected will be lost.***
-
-
-### Mosquitto Persistence
-
-To ensure sessions and messages are persisted even if the `Mosquitto` restarts or goes offline, we have to properly configure the nodes.
-
-in the `.conf` file provided to the mosquitto instance
-
-`persistence true` has to be present.
-
-other fields are available on the [man page](https://mosquitto.org/man/mosquitto-conf-5.html).
-
-In the cloud the mosquitto deployment has to be managed as `stateful set` to claim a volume where to write the database needed by mosquitto to create a persistent instance.
 
 ## MQTT Message Throttling
 
