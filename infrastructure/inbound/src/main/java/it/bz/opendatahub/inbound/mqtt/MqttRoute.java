@@ -89,16 +89,6 @@ public class MqttRoute extends RouteBuilder {
             .end();
     }
 
-    // When using Mosquitto
-    //      Connecting to the perimetral MQTT is not trivial and both publishers and subscribers follow a certain
-    //      agreement to ensure no message will be lost:
-    //      Publishers MUST publish with QoS >= 1
-    //      Subscribers MUST connect with QoS >= 1
-    //      Subscribers MUST connect with cleanStart = false
-    //      ALL Subscribers in ALL pods must connect with a unique clientId which can't change at pod restart
-    //      Read https://www.hivemq.com/blog/mqtt-essentials-part-7-persistent-session-queuing-messages/
-    //      https://stackoverflow.com/questions/52439954/get-all-messages-after-the-client-has-re-connected-to-the-mqtt-broker
-    //      to know more aboutn Persistent COnnection 
     private String getMqttConnectionString() {
         // paho-mqtt5 has some problems with the retained messages on startup
         // -> https://stackoverflow.com/questions/56248757/camel-paho-routes-not-receiving-offline-messages-while-connecting-back
