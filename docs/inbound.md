@@ -23,8 +23,8 @@ Example:
 skidata/carezza/paolina?fastline=true
 ```
 
-The `path` of the `URI` is used by the system to identify `provider` and eventual `subdomains`.
-There is no limit to the amount of `subdomains` and it could be omitted:
+The `path` of the `URI` is used by the system to identify `provider` and eventual `subdomains` (in this example `carezza/paolina`).
+There is no limit to the amount of `subdomains` that can be specified, `subdomains` are also optional and can be omitted:
 
 ```
 skidata?fastline=true

@@ -102,14 +102,14 @@ docker exec odh-infrastructure-v2_mongodb1_1 mongosh --eval "rs.initiate({
 
 | Service | Address |
 | - | - |
-| Perimetral Mosquitto | localhost:1883 |
-| Perimetral Rest | localhost:8080 |
+| Gateway Mosquitto | localhost:1883 |
+| Gateway Rest | localhost:8080 |
 | RabbitMQ Pannel | localhost:15672 |
 | RabbitMQ AMPQ 0-9-1 port | localhost:5672 |
 | MongoDB | localhost:27017 |
 
 # How to make Requests and check the data flow
-To make and listen to the MQTT brokers (perimetral or internal) we suggest using [MQTTX](https://mqttx.app/).
+To make and listen to the MQTT brokers (gateway or internal) we suggest using [MQTTX](https://mqttx.app/).
 To make REST requests we suggest using [Insomnia](https://insomnia.rest/) or any other REST client.
 To connect to the MongoDB deployment we suggest using [Compass](https://www.mongodb.com/products/compass). Be aware that being the deployment a `Replica Set`, the URI string must be properly configured ([Doc](https://www.mongodb.com/docs/manual/reference/connection-string/)) and you have to check **Direct Connection** in the **Advanced Connection Options** of Compass.
 

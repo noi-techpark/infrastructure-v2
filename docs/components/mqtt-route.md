@@ -2,9 +2,9 @@
 
 ![mqtt-route](../assets/mqtt-route.svg)
 
-MQTT Route is the Camel Route responsible for reading from the `Perimetral Mosquitto` ingesting the data in the architecture.
+MQTT Route is the Camel Route responsible for reading from the `Gateway Mosquitto` ingesting the data in the architecture.
 
-Providers will publish to `Perimetral Mosquitto`'s topics where **MQTT Route** is subscribed as consumer.
+Providers will publish to `Gateway Mosquitto`'s topics where **MQTT Route** is subscribed as consumer.
 
 ## Topic
 
