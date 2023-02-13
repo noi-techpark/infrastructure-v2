@@ -8,7 +8,6 @@
 *.iws
 *.iml
 *.ipr
-.vscode
 
 # Project
 /.env

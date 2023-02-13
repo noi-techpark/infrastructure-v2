@@ -8,11 +8,11 @@ To do so it uses [Camel RabbitMQ Component](https://camel.apache.org/components/
 
 ## Database and Collection
 
-One key feature of **Writer Route** is to chose the right `database` and `collection` where to store the data, give an [Provider URI](../inbound.md#provider-uri).
+One key feature of **Writer Route** is to choose the right `database` and `collection` where to store the data, given a [Provider URI](../inbound.md#provider-uri).
 
 To do that, it uses the **first** segment of Provider URIs **path** as `database`, and the second as `collection` if present.
 
-If the Provider URI has only one segment in the **path**, if will used for the `collection` as well.
+If the Provider URI has only one segment in the **path**, it will be used for the `collection` as well.
 
 | Provider URI | Database | Collection |
 | - | - | - |

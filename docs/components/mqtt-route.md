@@ -4,11 +4,11 @@
 
 MQTT Route is the Camel Route responsible for reading from the `Gateway Mosquitto` ingesting the data in the architecture.
 
-Providers will publish to `Gateway Mosquitto`'s topics where **MQTT Route** is subscribed as consumer.
+Providers will publish to `Gateway Mosquitto`'s topics where **MQTT Route** is subscribed as a consumer.
 
 ## Topic
 
-When subscribing to Mosquitto, the provider has to specify a **topic**. MQTT Route listnes to all topics, and topics are automatically created when a publish occurs.
+When subscribing to Mosquitto, the provider has to specify a **topic**. MQTT Route listens to all topics, and topics are automatically created when a publish occurs.
 
 *To publish to Mosquitto we suggest using [MQTTX](https://mqttx.app/).*
 
@@ -22,7 +22,7 @@ The topic where the provider pushes data is used as [Provider URI](../inbound.md
 
 To achieve a persistent connection, which is a connection where **Mosquitto** keeps the message until a consumer subscribes (in our case the **MQTT Route**), there are some guidelines Publishers, Consumers and Mosquitto have to follow:
 
-To achieve this behaviour the pulisher needs to properly publish messages and **MQTT Route** needs to establish a **Persistent Connection** with **Mosquitto**:
+To achieve this behavior the publisher needs to properly publish messages and **MQTT Route** needs to establish a **Persistent Connection** with **Mosquitto**:
 
 - Publishers MUST publish with `QoS` == 2
 - **MQTT Route** MUST connect with `QoS` == 2
@@ -37,7 +37,7 @@ in the `.conf` file provided to the mosquitto instance
 
 other fields are available on the [man page](https://mosquitto.org/man/mosquitto-conf-5.html).
 
-In the cloud the mosquitto deployment has to be managed as `stateful set` to claim a volume where to write the database needed by mosquitto to create a persistent instance.
+In the cloud, the mosquitto deployment has to be managed as `stateful set` to claim a volume where to write the database needed by mosquitto to create a persistent instance.
 
 More about `persistent connections` [here](https://www.hivemq.com/blog/mqtt-essentials-part-7-persistent-session-queuing-messages/) and [here](https://stackoverflow.com/questions/52439954/get-all-messages-after-the-client-has-re-connected-to-the-mqtt-broker)
 
@@ -54,7 +54,7 @@ When autoscaling is performed
 
 `MQTT Client instance 2` => ClientID = 2
 
-If `MQTT Client instance 2` restarts, the **ClientID** must remain `2`
+If `MQTT Client instance 2` restarts, the **ClientID** must remain `2`.
 
 ***If two clients have the same ClientID, one will crash since the broker won't accept the connection. 
 if no ClientID is provided all messages received by the broker while no client is connected will be lost.***

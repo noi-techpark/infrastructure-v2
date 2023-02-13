@@ -4,7 +4,7 @@
 
 **Router Route** is responsible for building the [Routing Key](../rabbitmq.md#routing-key) of a message after it has been written in the [Raw Data Table](../raw-data-table.md).
 
-For the sake of the PoC, we decided that the routing key is generated the `database` and the `collection` where the data has been inserted.
+For the sake of the PoC, we decided that the routing key is generated from the `database` and the `collection` where the data has been inserted.
 
 | Database | Collection | Routing Key |
 | - | - | - |

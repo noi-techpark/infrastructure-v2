@@ -2,10 +2,10 @@
 
 The **Raw Data Table** is a MongoDB cluster.
 
-We choose MOngoDB because it allows the system to insert non-structured data, it provides **replication** and **sharding** and also a mechanism to listen to any data change called `change stream`.
+We choose MongoDB because it allows the system to insert non-structured data, it provides **replication** and **sharding** and also a mechanism to listen to any data change called `change stream`.
 
 ## Replica Set
-To enable the `change stram`, the essential mechanism thanks to the [notifier](./components/notifier.md) is able to listen to any change in the database and promptly inform the right [transformer](./components/transformer.md), we need to deploy a MongoDB cluster in **replicaSet Mode**.
+To enable the `change stream`, the essential mechanism thanks to the [notifier](./components/notifier.md) is able to listen to any change in the database and promptly inform the right [transformer](./components/transformer.md), we need to deploy a MongoDB cluster in **replicaSet Mode**.
 
 Read the [manual](https://www.mongodb.com/docs/manual/tutorial/deploy-replica-set/) about replica sets.
 

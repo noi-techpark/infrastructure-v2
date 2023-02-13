@@ -2,15 +2,15 @@
 
 ![pull-route](../assets/pull-route.svg)
 
-**Pull Route** is actualy a set of routes.
+The **Pull Route** is defined as a set of routes.
 
-Some **provires** do not offer a push mechanism to inform the system about new data or changes in their remote databases. Therefore Open Data Hub has to **pull** or **collect** information actively from them.
+Some **providers** do not offer a push mechanism to inform the system about new data or changes in their remote databases. Therefore Open Data Hub has to **pull** or **collect** information actively from them.
 
-**Pull Routes** have the task to pull data from providers and **push** the data in Open Data Hub's system.
+**Pull Routes** have the task to pull data from providers and **push** the data to Open Data Hub's system.
 
-Providers could adopt different protocols (API, Websockets), different format (JSON; XML) and could be protected by different authentication methods (none, basic, OAuth2).
+Providers could adopt different protocols (API, Websockets) and formats (JSON; XML), and could be protected by different authentication methods (none, basic, OAuth2).
 
-Therefore we need to write some **templates** which accomodate the majority of the combination and *instantiate* one route for each provider.
+Therefore we need to write some **templates** which support the majority of the combination and *instantiate* one route for each provider.
 
 ## Example
 

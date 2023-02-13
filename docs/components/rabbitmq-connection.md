@@ -1,17 +1,17 @@
 # RabbitMQ Connection
 
-**RabbitConnection.java** is just an utils class to configure `Camel RabbitMQ components`.
+**RabbitConnection.java** is just a utility class to configure `Camel RabbitMQ components`.
 
-The configuration is made by a single string and allow Routes to communicate with Open Data Hub's core RabbitMQ cluster.
+The configuration is made by a single string and allows Routes to communicate with Open Data Hub's core RabbitMQ cluster.
 
-For the comprehensive documentation about the configuration, see [Apache Camel's RabbitMQ component documentation](https://camel.apache.org/components/3.20.x/spring-rabbitmq-component.html).
+For comprehensive documentation about the configuration, see [Apache Camel's RabbitMQ component documentation](https://camel.apache.org/components/3.20.x/spring-rabbitmq-component.html).
 
 ### Resources
 
 [ExchangePattern](https://stackoverflow.com/questions/14527185/activemq-i-cant-consume-a-message-sent-from-camel-using-inout-pattern)
 
 ## Example 
-Let's make a real world example:
+Let's make a real-world example:
 
 ```java
 public String getRabbitMQIngressConnectionString() {
