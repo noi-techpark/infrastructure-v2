@@ -5,7 +5,7 @@ In this page the specifications for the data pushed/pulled by the **Inbound Apis
 The concept illustrated applies both to data pushed by Providers onto Open Data Hub and to data pulled by Open Data Hub from providers regardless the protocol used (MQTT, REST, ...).
 
 ## Message wrapping
-Any data ingested thought the inbounds is incapsulated in a standardized message using [WrapperProcessor](componenets/wrapper-processor) and sent To RabbitMQ.
+Any data ingested thought the inbounds is incapsulated in a standardized message using [WrapperProcessor](components/wrapper-processor) and sent To RabbitMQ.
 
 ## Provider URI
 

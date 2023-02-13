@@ -4,9 +4,9 @@
 
 **Fastline Route** is an example of the flexibility of the new architecture.
 
-Some provider could request their data is both trasnformed and served using the standard flow, and served as-it-is in real-time.
+Some provider could request their data is both trasnformed and served using the standard flow, and served as-is in real-time.
 
-By specifying the `fastline=true` **query paramenter** of the [Provider URI](../inbound.md#provider-uri), the inbound APIs will directly transomt the data to a **Websocket** outbound API. Clients can connect to the Websocket and receive real-time as-it-is data.
+By specifying the `fastline=true` **query paramenter** of the [Provider URI](../inbound.md#provider-uri), the inbound APIs will directly transomt the data to a **Websocket** outbound API. Clients can connect to the Websocket and receive real-time as-is data.
 
 In parallel the data will also follow the standard flow, being written in the [Raw Data Table](../raw-data-table.md), routed, transformed and served.
 

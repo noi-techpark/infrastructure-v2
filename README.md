@@ -46,25 +46,25 @@ The PoC is designed and developed to run in two different environments:
 │   ├── inbound
 │   │   └── src/main/java/opendatahub
 │   │       ├── inbound
-│   │       │   ├── [mqtt/MqttRoute.java](./docs/componenets/mqtt-route)
-│   │       │   └── [rest/RestRoute.java](./docs/componenets/rest-route)
-│   │       ├── [pull/PullRoute.java](./docs/componenets/pull-route)
-│   │       ├── [writer/WriterRoute.java](./docs/componenets/writer-route)
-│   │       ├── [RabbitMQConnection.java](./docs/componenets/rabbitmq-connection)
-│   │       └── [WrapperProcessor.java](./docs/componenets/wrapper-processor)
+│   │       │   ├── [mqtt/MqttRoute.java](./docs/components/mqtt-route)
+│   │       │   └── [rest/RestRoute.java](./docs/components/rest-route)
+│   │       ├── [pull/PullRoute.java](./docs/components/pull-route)
+│   │       ├── [writer/WriterRoute.java](./docs/components/writer-route)
+│   │       ├── [RabbitMQConnection.java](./docs/components/rabbitmq-connection)
+│   │       └── [WrapperProcessor.java](./docs/components/wrapper-processor)
 │   ├── notifier
 │   │   └── src
-│   │       ├── [changeStream.js](./docs/componenets/notifier#change-stream)
-│   │       └── [main.js](./docs/componenets/notifier#main)
+│   │       ├── [changeStream.js](./docs/components/notifier#change-stream)
+│   │       └── [main.js](./docs/components/notifier#main)
 │   ├── router
 │   │   └── src/main/java/opendatahub/outbound
-│   │       ├── [fastline/FastlineRoute.java](./docs/componenets/fastline-route)
-│   │       └── [router/RouterRoute.java](./docs/componenets/router-route)
+│   │       ├── [fastline/FastlineRoute.java](./docs/components/fastline-route)
+│   │       └── [router/RouterRoute.java](./docs/components/router-route)
 │   ├── transformer
 │   │   └── src/main/java/opendatahub/transformer
-│   │       ├── [ConsumerImpl.java](./docs/componenets/transformer#consumer)
+│   │       ├── [ConsumerImpl.java](./docs/components/transformer#consumer)
 │   │       ├── Main.java
-│   │       └── [Poller.java](./docs/componenets/transformer#poller)
+│   │       └── [Poller.java](./docs/components/transformer#poller)
 </pre></normal>
 
 ## Local Quickstart
