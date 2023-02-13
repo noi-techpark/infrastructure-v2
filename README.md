@@ -15,6 +15,7 @@
 - [Kubernetes](docs/kubernetes.md)
 - [Helm](docs/helm.md)
 - [Camel](docs/camel.md)
+- [RabbitMQ](docs/rabbitmq.md)
 - [Provider URI](docs/inbound.md#provider-uri)
 
 --- 
@@ -129,28 +130,9 @@ The `notifier`, written in JS and running on Node, is a good example of a possib
 Instead of having a single instance subscripted to the whole `MongoDB deployment`, it could be split between multiple instances each one subscripted to a particular `MongoDB Database` or even to single `Collections`.
 This kind of polish can be done only once the team decides how to distribute the `RawData` coming from different **Datasources**.
 
-## MQTT Message Throttling
-
-When the pipeline fails to process a message, we have to make a decision:
-
-- Send it to a special Storage if failure is related to a critical error (malformed JSON, unrecognized payload....)
-- Retried if the failure is the responsibility of the infrastructure itself (MQTT broker offline, broken logic, ...).
-
-To retry the message we have to introduce some **throttling** logic to delay the next time the message is pulled from the queue.
-
 ## Change Stream
 To use the Change Stream feature, the MongoDB deployment MUST be deployed as `ReplicaSet`
 
 ## Notifier connection
 The notifier subscribes to the MongoDB deployment and starts listening for changes.
 In the case that the MongoDB deployment restarts / goes offline, the *Notifier* **MUST** implement a mechanism to check that the connection is alive and start reconnecting until the MongoDB deployment returns online.
-
-## Writer and RawDataTable configuration
-For the purpose of the PoC, we use a single MongoDB deployment as `rawDataTable` and we store data in `{provider}` **db** / `{provider}` **collection**
-Example: provider = `flightdata` -> data stored in `flightdata/flightadata`.
-
-If we need to use multiple deployments or custom paths, you have to write your own logic to connect and build connection strings in the **Writer**.
-
-References:
-- https://camel.apache.org/camel-quarkus/2.10.x/reference/extensions/mongodb.html
-- https://quarkus.io/guides/mongodb
