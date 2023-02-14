@@ -7,7 +7,7 @@ services:
       - "${EXPOSED_INBOUND_MQTT_PORT}:1883"
     volumes:
       - ./mosquitto.inbound.conf:/mosquitto.conf
-      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/data:/mosquitto/data:Z
     command: "mosquitto -c /mosquitto.conf"
 
   rabbitmq-outbound:
@@ -40,8 +40,8 @@ services:
     env_file:
       - infrastructure/inbound/.env
     volumes:
-      - ./infrastructure/inbound:/code
-      - ./.mvn:/code/.mvn
+      - ./infrastructure/inbound:/code:Z
+      - ./.mvn:/code/.mvn:Z
     depends_on:
       - mongodb1
       - mosquitto
@@ -71,8 +71,8 @@ services:
     env_file:
       - infrastructure/router/.env
     volumes:
-      - ./infrastructure/router:/code
-      - ./.mvn:/code/.mvn
+      - ./infrastructure/router:/code:Z
+      - ./.mvn:/code/.mvn:Z
     depends_on:
       - rabbitmq-outbound
     working_dir: /code
@@ -90,8 +90,8 @@ services:
     env_file:
       - infrastructure/transformer/.env
     volumes:
-      - ./infrastructure/transformer:/code
-      - ./.mvn:/code/.mvn
+      - ./infrastructure/transformer:/code:Z
+      - ./.mvn:/code/.mvn:Z
     depends_on:
       - rabbitmq-outbound
     working_dir: /code
@@ -107,8 +107,8 @@ services:
     env_file:
       - infrastructure/transformer/.env
     volumes:
-      - ./infrastructure/transformer:/code
-      - ./.mvn:/code/.mvn
+      - ./infrastructure/transformer:/code:Z
+      - ./.mvn:/code/.mvn:Z
     depends_on:
       - rabbitmq-outbound
     working_dir: /code
