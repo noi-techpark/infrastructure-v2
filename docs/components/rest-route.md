@@ -1,5 +1,11 @@
 # REST Route
 
+| From | To | Note |
+| - | - | - |
+| External provider | RabbitMQ `ingress` exchange ([WriterRoute](writer-route.md)) | If valid payload |
+| - | RabbitMQ `ingress-dl` exchange | if invalid payload |
+| - | RabbitMQ `fastline` exchange ([FastlineRout](fastline-route.md)) | If Provider URI requests fastline |
+
 ![rest-route](../assets/mqtt-route.svg)
 
 REST Route is the Camel Route responsible for listening to REST API calls on the perimeter.

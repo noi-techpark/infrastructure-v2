@@ -39,6 +39,15 @@ The PoC is designed and developed to run in two different environments:
   - The `notifier` is a **dockerized Node.js** application
   - `RabbitMQ` is deployed using **RabbitMQ Cluster Operator for Kubernetes**
 
+### Flow
+
+Follow the data flow by entrying in one of the inbound.
+
+- [REST inboun](./docs/components/rest-route.md)
+- [MQTT inbound](./docs/components/mqtt-route.md)
+- [Pull inbound](./docs/components/pull-route.md)
+
+componentscomponents
 ## Repository structure
 
 <normal><pre>
