@@ -70,22 +70,22 @@ public class MqttRoute extends RouteBuilder {
             // .log("MQTT| ${headers}")
             .process(exchange -> WrapperProcessor.process(exchange, exchange.getIn().getHeader(PahoConstants.MQTT_TOPIC).toString()))
             .choice()
-            // forward to fastline
-            .when(header("fastline").isEqualTo(true))
-                // we handle the request as invalid and forward the encapsulated payload to 
-                // whatever mechanism we want to use to store malformed data
-                .to(this.rabbitMQConfig.getRabbitMQFastlineConnectionString())
+                // forward to fastline
+                .when(header("fastline").isEqualTo(true))
+                    // we handle the request as invalid and forward the encapsulated payload to 
+                    // whatever mechanism we want to use to store malformed data
+                    .to(this.rabbitMQConfig.getRabbitMQFastlineConnectionString())
             .end()
             .choice()
             // if the payload is not a valid json
             .when(header("valid").isEqualTo(false))
                 // we handle the request as invalid and forward the encapsulated payload to 
                 // whatever mechanism we want to use to store malformed data
-                .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterConnectionString())
+                .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterTo())
             .otherwise()
                 // otherwise we forward the encapsulated message to the 
                 // internal queue waiting to be written in rawDataTable
-                .to(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
+                .to(this.rabbitMQConfig.getRabbitMQIngressTo())
             .end();
     }
 

@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.component.rabbitmq.RabbitMQConstants;
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,15 +28,8 @@ public class WrapperProcessor {
 
         String payload = exchange.getIn().getBody(String.class);
 
-        String routeKey = String.format("ingress", provider);
-        System.out.println("routing to routeKey " +  routeKey);
-
         map.put("rawdata", payload);
         map.put("timestamp", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ISO_INSTANT));
-        
-        //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
-        exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
-        exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
 
         // We start encapsulating the payload in a new message where we have
         // {provider: ..., timestamp: ..., rawdata: ...}
@@ -51,7 +45,7 @@ public class WrapperProcessor {
         Map<String, String> query = null;
         Boolean validProvider = true;
         try {
-            providerURI = new URI(provider);
+            providerURI = new URI(StringUtils.strip(provider, "/"));
             query = parseQuerystring(providerURI.getQuery());
         } catch (URISyntaxException e) {
             validProvider = false;
@@ -67,10 +61,20 @@ public class WrapperProcessor {
             return;
         }
 
+        // setting up provider routeKey
+        String routeKey = providerURI.getPath().replaceAll("/", ".");
+        System.out.println("routing to routeKey " +  routeKey);
+        System.out.println("provider " +  provider);
+
+        //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
+        exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
+        //exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
+
         // if the provider specifies the fastline=true param
         // set the header
-        if (query.containsKey("fastline") && query.get("fastline") == "true") {
+        if (query.containsKey("fastline") && query.get("fastline").equals("true")) {
             exchange.getMessage().setHeader("fastline", true);
+            System.out.println("is fastline!");
         }
 
         map.put("provider", providerURI.toString());

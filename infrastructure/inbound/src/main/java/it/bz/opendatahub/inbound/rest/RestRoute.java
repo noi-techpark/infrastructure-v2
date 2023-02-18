@@ -45,26 +45,41 @@ public class RestRoute extends RouteBuilder {
             .port(8080);
             
 
-        from("rest:post:/{provider}")
-            .process(exchange -> WrapperProcessor.process(exchange, exchange.getIn().getHeader("provider").toString()))
-            .log("REST| ${body}")
+        from("rest:post:/*")
+            // rest query params are passed as headers
+            // therefore we have to delete reserved header names
+            .removeHeaders("fastline")
+            .removeHeaders("valid")
+
+            .process(exchange -> WrapperProcessor.process(exchange, 
+                exchange.getIn().getHeader(Exchange.HTTP_URI).toString()))
+            // .log("REST| ${body}")
             // .log("REST| ${headers}")
+            // we clear all CamelHttp since they could create problem
+            // with other components
+            .removeHeaders("CamelHttp*")
+            .choice()
+                // forward to fastline
+                .when(header("fastline").isEqualTo(true))
+                    // we handle the request as invalid and forward the encapsulated payload to 
+                    // whatever mechanism we want to use to store malformed data
+                    .to(this.rabbitMQConfig.getRabbitMQFastlineConnectionString())
+            .end()
             .choice()
                 // if the payload is not a valid json
             .when(header("valid").isEqualTo(false))
                 // we handle the request as invalid and forward the encapsulated payload to 
                 // whatever mechanism we want to use to store malformed data
-                .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterConnectionString())
+                .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterTo())
             .otherwise()
                 // otherwise we forward the encapsulated message to the 
                 // internal queue waiting to be written in rawDataTable
-                .to(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
+                .to(this.rabbitMQConfig.getRabbitMQIngressTo())
             .end()
-
             // reset and send responses
-            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200))
             .setBody(constant(null))
-            /*.endRest()*/;
+            .removeHeaders("*")
+            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(200));
     }
 }
 

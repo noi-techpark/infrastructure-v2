@@ -99,6 +99,7 @@ public class RouterRoute extends RouteBuilder {
             "addresses=%s"+
             "&passive=true"+
             "&queue=%s"+
+            "&exchangePattern=InOnly"+
             "&autoAck=false"+
             "&skipExchangeDeclare=true"+
             "&skipQueueBind=true"+

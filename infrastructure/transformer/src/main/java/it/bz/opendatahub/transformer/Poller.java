@@ -5,6 +5,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.AMQP.Queue.DeclareOk;
+import com.rabbitmq.client.BuiltinExchangeType;
 import java.io.IOException;
 
 import io.quarkus.runtime.QuarkusApplication;
@@ -14,12 +15,13 @@ import io.quarkus.runtime.Quarkus;
 // RabbitMQ package doc: https://rabbitmq.github.io/rabbitmq-java-client/api/current/index.html
 public class Poller implements QuarkusApplication {
 
-  private static final String EXCHANGE_NAME = "skidata";
-  private static final String QUEUE_NAME = "skidataq";
-  private static final String ROUTING_KEY = "skidata.*";
+  private static final String EXCHANGE_NAME = "routed";
+  private static final String QUEUE_NAME = "suedtirol.wein2";
+  private static final String ROUTING_KEY = "suedtirol.wein2";
 
   private static final String POSTHOOK_EXCHANGE = "push.update";
-  private static final String POSTHOOK_ROUTING_KEY = "update.skidata";
+  private static final String POSTHOOK_QUEUE = "push.update-q";
+  private static final String POSTHOOK_ROUTING_KEY = "suedtirol.wein2";
 
   @Override
   public int run(String... args) throws Exception {
@@ -36,15 +38,18 @@ public class Poller implements QuarkusApplication {
       channel.basicQos(10, true);
       Channel postHookChannel = connection.createChannel();
   
-      channel.exchangeDeclare(EXCHANGE_NAME, "topic", true);
+      channel.exchangeDeclarePassive(EXCHANGE_NAME);
       DeclareOk ok =  channel.queueDeclare(QUEUE_NAME, true, false, false, null);
       channel.queueBind(ok.getQueue(), EXCHANGE_NAME, ROUTING_KEY);
-      postHookChannel.exchangeDeclarePassive(POSTHOOK_EXCHANGE);
+
+      postHookChannel.exchangeDeclare(POSTHOOK_EXCHANGE, BuiltinExchangeType.TOPIC, true, false, false, null);
+      DeclareOk okPostHook =  postHookChannel.queueDeclare(POSTHOOK_QUEUE, true, false, false, null);
+      postHookChannel.queueBind(okPostHook.getQueue(), POSTHOOK_EXCHANGE, "#");
   
       System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 
       ConsumerImpl consumer = new ConsumerImpl(ok.getQueue(), channel);
-      consumer.setPostHook(postHookChannel, EXCHANGE_NAME, POSTHOOK_ROUTING_KEY);
+      consumer.setPostHook(postHookChannel, POSTHOOK_EXCHANGE, POSTHOOK_ROUTING_KEY);
       consumer.setBatch(10, 40000 /*40sec*/);
 
       channel.basicConsume(ok.getQueue(), false, consumer);

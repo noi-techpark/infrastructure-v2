@@ -158,7 +158,7 @@ public class PullRoute extends RouteBuilder {
 
     @Override
     public void configure() {
-        from("cron:tab?schedule=0/10+*+*+*+*+?")
+        from("cron:tab?schedule=0/30+*+*+*+*+?")
                 .routeId("[Route: Pull]" + this.provider)
                 .setBody(simple("${null}"))
                 .log("received")
@@ -167,17 +167,22 @@ public class PullRoute extends RouteBuilder {
                 .log("done")
                 // .to("file:bar?doneFileName=done")
                 .choice()
-                // if the payload is not a valid json
-                .when(header("failed").isEqualTo(true))
-                // we handle the request as invalid and forward the encapsulated payload to
-                // whatever mechanism we want to use to store malformed data
-                .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterConnectionString())
-                .otherwise()
-                // otherwise we forward the encapsulated message to the
-                // internal queue waiting to be written in rawDataTable
-                .to(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
+                    // forward to fastline
+                    .when(header("fastline").isEqualTo(true))
+                        // we handle the request as invalid and forward the encapsulated payload to 
+                        // whatever mechanism we want to use to store malformed data
+                        .to(this.rabbitMQConfig.getRabbitMQFastlineConnectionString())
                 .end()
-                // .to(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
+                .choice()
+                    // if the payload is not a valid json
+                    .when(header("failed").isEqualTo(true))
+                        // we handle the request as invalid and forward the encapsulated payload to
+                        // whatever mechanism we want to use to store malformed data
+                        .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterTo())
+                    .otherwise()
+                        // otherwise we forward the encapsulated message to the
+                        // internal queue waiting to be written in rawDataTable
+                        .to(this.rabbitMQConfig.getRabbitMQIngressTo())
                 .end();
     }
 }

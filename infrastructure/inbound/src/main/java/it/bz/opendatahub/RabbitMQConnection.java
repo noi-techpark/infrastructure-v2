@@ -50,29 +50,7 @@ public class RabbitMQConnection {
         LOG.info("RabbitMQ password: {}", pass);
     }
 
-    public String getRabbitMQIngressConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
-            "addresses=%s"+
-            "&queue=%s"+
-            "&autoAck=false"+
-            // setting reQueue=true + autoAck=false messages not processed because of exceptions get requeued
-            "&reQueue=true"+ 
-            "&routingKey=ingress.#"+
-            // "&deadLetterExchange=%s"+
-            "&passive=false"+
-            // "&skipExchangeDeclare=true"+
-            // "&skipQueueBind=true"+
-            "&autoDelete=false"+
-            "&publisherAcknowledgements=false"+
-            "&exchangeType=topic"+
-            // https://stackoverflow.com/questions/14527185/activemq-i-cant-consume-a-message-sent-from-camel-using-inout-pattern
-            "&exchangePattern=InOnly"+
-            "&declare=true",
-            this.ingressConfig.ingressTopic,
-            this.ingressConfig.cluster,
-            this.ingressConfig.ingressQueue/*,
-            this.ingressConfig.ingressDLTopic*/));
-
+    private String setAuth(StringBuilder uri) {
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
         this.ingressConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
         this.ingressConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
@@ -81,16 +59,52 @@ public class RabbitMQConnection {
         return uri.toString();
     }
 
-    public String getRabbitMQIngressDeadletterConnectionString() {
+    public String getRabbitMQIngressFrom() {
+        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:?"+
+            "addresses=%s"+
+            "&queue=%s"+
+            "&autoAck=false"+
+            // setting reQueue=true + autoAck=false messages not processed because of exceptions get requeued
+            "&reQueue=true"+ 
+            "&autoDelete=false"+
+            "&publisherAcknowledgements=false"+
+            // https://stackoverflow.com/questions/14527185/activemq-i-cant-consume-a-message-sent-from-camel-using-inout-pattern
+            // https://camel.apache.org/manual/exchange-pattern.html
+            // we are using Event messages, therefore we have to specify the InOnly pattern
+            // otherwise the component expects a reply
+            "&exchangePattern=InOnly"+
+            "&skipExchangeDeclare=true"+
+            "&skipQueueBind=true"+
+            "&declare=true",
+            this.ingressConfig.cluster,
+            this.ingressConfig.ingressQueue));
+
+        return this.setAuth(uri);
+    }
+
+    public String getRabbitMQIngressTo() {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
-            // "&passive=true"+
+            "&queue=%s"+
+            "&passive=false"+
+            "&autoDelete=false"+
+            "&publisherAcknowledgements=false"+
+            "&exchangePattern=InOnly"+
+            "&exchangeType=fanout"+
+            "&declare=true",
+            this.ingressConfig.ingressTopic,
+            this.ingressConfig.cluster,
+            this.ingressConfig.ingressQueue));
+
+        return this.setAuth(uri);
+    }
+
+    public String getRabbitMQIngressDeadletterTo() {
+        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+            "addresses=%s"+
             "&queue=%s"+
             "&routingKey=ingress.*"+
-            "&autoAck=false"+
-            // "&skipExchangeDeclare=true"+
-            // "&skipQueueBind=true"+
-            "&exchangeType=topic"+
+            "&exchangeType=fanout"+
             "&exchangePattern=InOnly"+
             "&autoDelete=false"+
             "&declare=true", 
@@ -98,31 +112,23 @@ public class RabbitMQConnection {
             this.ingressConfig.cluster,
             this.ingressConfig.ingressDLQueue));
 
-        // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
-        this.ingressConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
-        this.ingressConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-
-        return uri.toString();
+        return this.setAuth(uri);
     }
 
     public String getRabbitMQFastlineConnectionString() {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
-            // "&passive=true"+
-            "&autoAck=false"+
-            // "&skipExchangeDeclare=true"+
-            "&skipQueueBind=true"+
+            "&passive=false"+
+            "&queue=%s"+
+            "&routingKey=#"+ // any routing key
             "&exchangeType=topic"+
+            "&skipQueueBind=false"+
+            "&publisherAcknowledgements=false"+
             "&exchangePattern=InOnly"+
             "&autoDelete=false"+
             "&declare=true", 
-            "fastline",
-            this.ingressConfig.cluster));
+            "fastline", this.ingressConfig.cluster, "fastline-q"));
 
-        // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
-        this.ingressConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
-        this.ingressConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-
-        return uri.toString();
+        return this.setAuth(uri);
     }
 }

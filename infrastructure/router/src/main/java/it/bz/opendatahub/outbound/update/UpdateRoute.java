@@ -4,7 +4,7 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
 
-package it.bz.opendatahub.outbound.fastline;
+package it.bz.opendatahub.outbound.update;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.rabbitmq.RabbitMQConstants;
@@ -32,10 +32,10 @@ class RabbitMQConfig {
  * Route to read from RabbitMQ.
  */
 @ApplicationScoped
-public class FastlineRoute extends RouteBuilder {
+public class UpdateRoute extends RouteBuilder {
     private RabbitMQConfig RabbitMQConfig;
 
-    public FastlineRoute()
+    public UpdateRoute()
     {
         this.RabbitMQConfig = new RabbitMQConfig();
         this.RabbitMQConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
@@ -51,10 +51,10 @@ public class FastlineRoute extends RouteBuilder {
 
         // Use RabbitMQ connection
         from(RabbitMQConnectionString)
-            .routeId("[Route: fastline]")
+            .routeId("[Route: update]")
             .process(exchange -> {
-                String destination = String.format("websocket://0.0.0.0:8081/fastline?sendToAll=true,"+
-                    "websocket://0.0.0.0:8081/fastline/%s?sendToAll=true",
+                String destination = String.format("websocket://0.0.0.0:8082/update?sendToAll=true,"+
+                    "websocket://0.0.0.0:8082/update/%s?sendToAll=true",
                     exchange.getMessage().getHeader(RabbitMQConstants.ROUTING_KEY).
                         toString().
                         replaceAll("\\.", "/")
@@ -76,7 +76,7 @@ public class FastlineRoute extends RouteBuilder {
             "&skipQueueBind=false"+
             "&autoDelete=false"+
             "&declare=true", 
-            "fastline", RabbitMQConfig.cluster, "fastline-q"));
+            "push.update", RabbitMQConfig.cluster, "push.update-q"));
 
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
         RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));

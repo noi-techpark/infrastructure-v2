@@ -55,7 +55,7 @@ public class WriterRoute extends RouteBuilder {
         // Writes a valid BSON object to MongoDB
         // TODO Add throtling if needed
         // https://camel.apache.org/components/3.18.x/rabbitmq-component.html
-        from(this.rabbitMQConfig.getRabbitMQIngressConnectionString())
+        from(this.rabbitMQConfig.getRabbitMQIngressFrom())
             .routeId("[Route: Writer]")
             //.throttle(100).timePeriodMillis(10000)
             // .log("WRITE| ${body}")
