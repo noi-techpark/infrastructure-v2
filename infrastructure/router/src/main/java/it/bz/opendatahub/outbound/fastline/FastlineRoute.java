@@ -33,6 +33,9 @@ class RabbitMQConfig {
  */
 @ApplicationScoped
 public class FastlineRoute extends RouteBuilder {
+    static final String RABBITMQ_FASTLINE_QUEUE = "fastline-q";
+    static final String RABBITMQ_FASTLINE_EXCHANGE = "fastline";
+
     private RabbitMQConfig RabbitMQConfig;
 
     public FastlineRoute()
@@ -46,8 +49,6 @@ public class FastlineRoute extends RouteBuilder {
     @Override
     public void configure() {
         String RabbitMQConnectionString = getRabbitMQConnectionString();
-
-        System.out.println(RabbitMQConnectionString);
 
         // Use RabbitMQ connection
         from(RabbitMQConnectionString)
@@ -69,14 +70,11 @@ public class FastlineRoute extends RouteBuilder {
     private String getRabbitMQConnectionString() {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
-            "&passive=false"+
             "&queue=%s"+
             "&routingKey=#"+ // any routing key
             "&exchangeType=topic"+
-            "&skipQueueBind=false"+
-            "&autoDelete=false"+
-            "&declare=true", 
-            "fastline", RabbitMQConfig.cluster, "fastline-q"));
+            "&autoDelete=false", 
+            RABBITMQ_FASTLINE_EXCHANGE, RabbitMQConfig.cluster, RABBITMQ_FASTLINE_QUEUE));
 
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
         RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));

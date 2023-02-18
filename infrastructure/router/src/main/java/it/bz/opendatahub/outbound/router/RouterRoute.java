@@ -37,8 +37,6 @@ import org.apache.camel.model.dataformat.JsonLibrary;
 class RabbitMQConfig {
     String cluster;
 
-    String readyQueue;
-
     // Username is optional and may not be set
     Optional<String> user;
 
@@ -58,13 +56,19 @@ class Payload {
  */
 @ApplicationScoped
 public class RouterRoute extends RouteBuilder {
+    static final String RABBITMQ_READY_QUEUE = "ready-q";
+    static final String RABBITMQ_READY_EXCHANGE = "ready";
+    static final String RABBITMQ_ROUTED_QUEUE = "routed-q";
+    static final String RABBITMQ_ROUTED_EXCHANGE = "routed";
+    static final String RABBITMQ_UNROUTABLE_QUEUE = "routed-dl-q";
+    static final String RABBITMQ_UNROUTABLE_EXCHANGE = "routed-dl";
+
     private RabbitMQConfig RabbitMQConfig;
 
     public RouterRoute()
     {
         this.RabbitMQConfig = new RabbitMQConfig();
         this.RabbitMQConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
-        this.RabbitMQConfig.readyQueue = ConfigProvider.getConfig().getValue("rabbitmq.ready-queue", String.class);
         this.RabbitMQConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
         this.RabbitMQConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
     } 
@@ -74,8 +78,6 @@ public class RouterRoute extends RouteBuilder {
         RabbitMQConfigLogger.log(RabbitMQConfig);
 
         String RabbitMQConnectionString = getRabbitMQConnectionString();
-
-        System.out.println(RabbitMQConnectionString);
 
         // Use RabbitMQ connection
         from(RabbitMQConnectionString)
@@ -95,17 +97,12 @@ public class RouterRoute extends RouteBuilder {
     }
 
     private String getRabbitMQConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:?"+
+        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
-            "&passive=true"+
             "&queue=%s"+
-            "&exchangePattern=InOnly"+
             "&autoAck=false"+
-            "&skipExchangeDeclare=true"+
-            "&skipQueueBind=true"+
-            "&autoDelete=false"+
-            "&declare=false", 
-            RabbitMQConfig.cluster, RabbitMQConfig.readyQueue));
+            "&autoDelete=false", 
+            RABBITMQ_READY_EXCHANGE, RabbitMQConfig.cluster, RABBITMQ_READY_QUEUE));
 
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
         RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
@@ -119,21 +116,18 @@ public class RouterRoute extends RouteBuilder {
     private String getRabbitMQRoutedConnectionString() {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
-            "&passive=false"+
-            "&skipExchangeDeclare=false"+
-            "&skipQueueBind=false"+
             "&skipQueueDeclare=true"+
             "&autoDelete=false"+
-            "&publisherAcknowledgements=false"+
             "&exchangeType=topic"+
             "&deadLetterExchange=%s"+
             "&deadLetterQueue=%s"+
             "&deadLetterExchangeType=fanout"+
-            "&arg.exchange.alternate-exchange=%s"+
-            "&declare=true", 
-            "routed", 
+            "&arg.exchange.alternate-exchange=%s", 
+            RABBITMQ_ROUTED_EXCHANGE, 
             RabbitMQConfig.cluster, 
-            "routed-dl", "routed-dl-q", "routed-dl"
+            RABBITMQ_UNROUTABLE_EXCHANGE, 
+            RABBITMQ_UNROUTABLE_QUEUE, 
+            RABBITMQ_UNROUTABLE_EXCHANGE
             ));
 
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
@@ -158,7 +152,6 @@ final class RabbitMQConfigLogger {
         String pass = config.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
 
         LOG.info("RabbitMQ cluster: {}", config.cluster);
-        LOG.info("RabbitMQ readyQueue: {}", config.readyQueue);
         LOG.info("RabbitMQ user: {}", user);
         LOG.info("RabbitMQ password: {}", pass);
     }

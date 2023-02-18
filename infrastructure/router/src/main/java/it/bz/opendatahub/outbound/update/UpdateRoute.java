@@ -19,8 +19,6 @@ import org.apache.camel.component.websocket.WebsocketComponent;
 class RabbitMQConfig {
     String cluster;
 
-    String ingressQueue;
-
     // Username is optional and may not be set
     Optional<String> user;
 
@@ -33,6 +31,9 @@ class RabbitMQConfig {
  */
 @ApplicationScoped
 public class UpdateRoute extends RouteBuilder {
+    static final String RABBITMQ_UPDATE_QUEUE = "push.update-q";
+    static final String RABBITMQ_UPDATE_EXCHANGE = "push.update";
+
     private RabbitMQConfig RabbitMQConfig;
 
     public UpdateRoute()
@@ -69,14 +70,11 @@ public class UpdateRoute extends RouteBuilder {
     private String getRabbitMQConnectionString() {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
-            "&passive=false"+
             "&queue=%s"+
             "&routingKey=#"+ // any routing key
             "&exchangeType=topic"+
-            "&skipQueueBind=false"+
-            "&autoDelete=false"+
-            "&declare=true", 
-            "push.update", RabbitMQConfig.cluster, "push.update-q"));
+            "&autoDelete=false", 
+            RABBITMQ_UPDATE_EXCHANGE, RabbitMQConfig.cluster, RABBITMQ_UPDATE_QUEUE));
 
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
         RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));

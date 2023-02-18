@@ -72,16 +72,10 @@ async function main() {
     console.log(`connected to rabbitmq ${process.env.RABBITMQ_CLUSTER_URL}`);
 
     const readyExchange = "ready";
-    const readyQueue = "ready-q"
     const rabbitChannel = await conn.createChannel();
     rabbitChannel.assertExchange(readyExchange, 'direct', {
         durable: true
     });
-    rabbitChannel.assertQueue(readyQueue, {
-        durable: true
-    });
-
-    rabbitChannel.bindQueue(readyQueue, readyExchange, '');
     const fnPublish = (data) =>  {
         rabbitChannel.publish(readyExchange, "", Buffer.from(data));
     }

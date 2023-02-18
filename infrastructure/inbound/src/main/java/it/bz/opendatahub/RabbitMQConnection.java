@@ -10,12 +10,6 @@ import org.slf4j.LoggerFactory;
 class RabbitMQConfig {
     String cluster;
 
-    String ingressQueue;
-    String ingressTopic;
-
-    String ingressDLQueue;
-    String ingressDLTopic;
-
     // Username is optional and may not be set
     Optional<String> user;
 
@@ -25,16 +19,18 @@ class RabbitMQConfig {
 
 public class RabbitMQConnection {
 
+    static final String RABBITMQ_INGRESS_QUEUE = "ingress-q";
+    static final String RABBITMQ_INGRESS_EXCHANGE = "ingress";
+    static final String RABBITMQ_INGRESS_DEADLETTER_QUEUE = "ingress-dl-q";
+    static final String RABBITMQ_INGRESS_DEADLETTER_EXCHANGE = "ingress-dl";
+    static final String RABBITMQ_FASTLINE_EXCHANGE = "fastline";
+
     private static Logger LOG = LoggerFactory.getLogger(RabbitMQConnection.class);
     private RabbitMQConfig ingressConfig;
 
     public RabbitMQConnection() {
         this.ingressConfig = new RabbitMQConfig();
         this.ingressConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
-        this.ingressConfig.ingressQueue = ConfigProvider.getConfig().getValue("rabbitmq.ingress-queue", String.class);
-        this.ingressConfig.ingressTopic = ConfigProvider.getConfig().getValue("rabbitmq.ingress-topic", String.class);
-        this.ingressConfig.ingressDLQueue = ConfigProvider.getConfig().getValue("rabbitmq.ingress-dl-queue", String.class);
-        this.ingressConfig.ingressDLTopic = ConfigProvider.getConfig().getValue("rabbitmq.ingress-dl-topic", String.class);
         this.ingressConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
         this.ingressConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
 
@@ -42,10 +38,6 @@ public class RabbitMQConnection {
         String pass = this.ingressConfig.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
 
         LOG.info("RabbitMQ cluster: {}", this.ingressConfig.cluster);
-        LOG.info("RabbitMQ ingressTopic: {}", this.ingressConfig.ingressTopic);
-        LOG.info("RabbitMQ ingressQueue: {}", this.ingressConfig.ingressQueue);
-        LOG.info("RabbitMQ ingressDLTopic: {}", this.ingressConfig.ingressDLTopic);
-        LOG.info("RabbitMQ ingressDLQueue: {}", this.ingressConfig.ingressDLQueue);
         LOG.info("RabbitMQ user: {}", user);
         LOG.info("RabbitMQ password: {}", pass);
     }
@@ -67,17 +59,11 @@ public class RabbitMQConnection {
             // setting reQueue=true + autoAck=false messages not processed because of exceptions get requeued
             "&reQueue=true"+ 
             "&autoDelete=false"+
-            "&publisherAcknowledgements=false"+
-            // https://stackoverflow.com/questions/14527185/activemq-i-cant-consume-a-message-sent-from-camel-using-inout-pattern
-            // https://camel.apache.org/manual/exchange-pattern.html
-            // we are using Event messages, therefore we have to specify the InOnly pattern
-            // otherwise the component expects a reply
-            "&exchangePattern=InOnly"+
             "&skipExchangeDeclare=true"+
             "&skipQueueBind=true"+
-            "&declare=true",
+            "&skipQueueDeclare=true",
             this.ingressConfig.cluster,
-            this.ingressConfig.ingressQueue));
+            RABBITMQ_INGRESS_QUEUE));
 
         return this.setAuth(uri);
     }
@@ -86,15 +72,16 @@ public class RabbitMQConnection {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
-            "&passive=false"+
             "&autoDelete=false"+
-            "&publisherAcknowledgements=false"+
+            // https://stackoverflow.com/questions/14527185/activemq-i-cant-consume-a-message-sent-from-camel-using-inout-pattern
+            // https://camel.apache.org/manual/exchange-pattern.html
+            // we are using Event messages, therefore we have to specify the InOnly pattern
+            // otherwise the component expects a reply
             "&exchangePattern=InOnly"+
-            "&exchangeType=fanout"+
-            "&declare=true",
-            this.ingressConfig.ingressTopic,
+            "&exchangeType=fanout",
+            RABBITMQ_INGRESS_EXCHANGE,
             this.ingressConfig.cluster,
-            this.ingressConfig.ingressQueue));
+            RABBITMQ_INGRESS_QUEUE));
 
         return this.setAuth(uri);
     }
@@ -106,11 +93,10 @@ public class RabbitMQConnection {
             "&routingKey=ingress.*"+
             "&exchangeType=fanout"+
             "&exchangePattern=InOnly"+
-            "&autoDelete=false"+
-            "&declare=true", 
-            this.ingressConfig.ingressDLTopic,
+            "&autoDelete=false", 
+            RABBITMQ_INGRESS_DEADLETTER_EXCHANGE,
             this.ingressConfig.cluster,
-            this.ingressConfig.ingressDLQueue));
+            RABBITMQ_INGRESS_DEADLETTER_QUEUE));
 
         return this.setAuth(uri);
     }
@@ -118,16 +104,14 @@ public class RabbitMQConnection {
     public String getRabbitMQFastlineConnectionString() {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
-            "&passive=false"+
-            "&queue=%s"+
-            "&routingKey=#"+ // any routing key
+            "&passive=true"+
             "&exchangeType=topic"+
-            "&skipQueueBind=false"+
-            "&publisherAcknowledgements=false"+
+            "&skipQueueBind=true"+
+            "&skipQueueDeclare=true"+
             "&exchangePattern=InOnly"+
             "&autoDelete=false"+
             "&declare=true", 
-            "fastline", this.ingressConfig.cluster, "fastline-q"));
+            RABBITMQ_FASTLINE_EXCHANGE, this.ingressConfig.cluster));
 
         return this.setAuth(uri);
     }
