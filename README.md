@@ -43,7 +43,7 @@ The PoC is designed and developed to run in two different environments:
 
 Follow the data flow by entrying in one of the inbound.
 
-- [REST inboun](./docs/components/rest-route.md)
+- [REST inbound](./docs/components/rest-route.md)
 - [MQTT inbound](./docs/components/mqtt-route.md)
 - [Pull inbound](./docs/components/pull-route.md)
 

@@ -4,7 +4,7 @@
 | - | - | - |
 | External provider | RabbitMQ `ingress` exchange ([WriterRoute](writer-route.md)) | If valid payload |
 | - | RabbitMQ `ingress-dl` exchange | if invalid payload |
-| - | RabbitMQ `fastline` exchange ([FastlineRout](fastline-route.md)) | If Provider URI requests fastline |
+| - | RabbitMQ `fastline` exchange ([FastlineRoute](fastline-route.md)) | If Provider URI requests fastline |
 
 ![rest-route](../assets/mqtt-route.svg)
 
