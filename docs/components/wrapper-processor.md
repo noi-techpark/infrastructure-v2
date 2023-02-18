@@ -16,7 +16,7 @@ For the purpose of the PoC, we decided to wrap the data in a simple structure de
 
 To know more about **Provider URI** read its [associated documentation](../inbound.md#provider-uri).
 
-The above message will be then written as it is in the [Raw Data Table](../raw-data-table) by the [Writer Route](write-route).
+The above message will be then written as it is in the [Raw Data Table](../raw-data-table) by the [Writer Route](./writer-route.md).
 
 
 The logic of the **Wrapper Processor** can be modified to include more or fewer fields, depending on the further development of the architecture.

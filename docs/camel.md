@@ -11,6 +11,20 @@ In order to run, compiled, and debug Camel routes, it is necessary to satisfy th
 
 **Amazon ECR is not supported yet by Kamel, use [Docker Hub](https://hub.docker.com/) instead.**
 
+## Exchange Pattern
+
+There are two *Message Exchange Patterns* you can use in messaging.
+
+From there Enterprise Integration Patterns they are:
+
+- Event Message (or one-way)
+
+- Request Reply
+
+In Camel we have an org.apache.camel.ExchangePattern enumeration which can be configured on the exchangePattern property on the Message Exchange indicating if a message exchange is a one way Event Message (**InOnly**) or a Request Reply message exchange (**InOut**).
+
+More information in the [official documentation](https://camel.apache.org/manual/exchange-pattern.html).
+
 ## Camel K
 
 When deployed in Kubernetes the Camel routes are deployed using Camel K.

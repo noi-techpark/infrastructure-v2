@@ -46,25 +46,25 @@ The PoC is designed and developed to run in two different environments:
 │   ├── inbound
 │   │   └── src/main/java/opendatahub
 │   │       ├── inbound
-│   │       │   ├── [mqtt/MqttRoute.java](./docs/components/mqtt-route)
-│   │       │   └── [rest/RestRoute.java](./docs/components/rest-route)
-│   │       ├── [pull/PullRoute.java](./docs/components/pull-route)
-│   │       ├── [writer/WriterRoute.java](./docs/components/writer-route)
-│   │       ├── [RabbitMQConnection.java](./docs/components/rabbitmq-connection)
-│   │       └── [WrapperProcessor.java](./docs/components/wrapper-processor)
+│   │       │   ├── [mqtt/MqttRoute.java](./docs/components/mqtt-route.md)
+│   │       │   └── [rest/RestRoute.java](./docs/components/rest-route.md)
+│   │       ├── [pull/PullRoute.java](./docs/components/pull-route.md)
+│   │       ├── [writer/WriterRoute.java](./docs/components/writer-route.md)
+│   │       ├── [RabbitMQConnection.java](./docs/components/rabbitmq-connection.md)
+│   │       └── [WrapperProcessor.java](./docs/components/wrapper-processor.md)
 │   ├── notifier
 │   │   └── src
-│   │       ├── [changeStream.js](./docs/components/notifier#change-stream)
-│   │       └── [main.js](./docs/components/notifier#main)
+│   │       ├── [changeStream.js](./docs/components/notifier.md#change-stream)
+│   │       └── [main.js](./docs/components/notifier.md#main)
 │   ├── router
 │   │   └── src/main/java/opendatahub/outbound
-│   │       ├── [fastline/FastlineRoute.java](./docs/components/fastline-route)
-│   │       └── [router/RouterRoute.java](./docs/components/router-route)
+│   │       ├── [fastline/FastlineRoute.java](./docs/components/fastline-route.md)
+│   │       └── [router/RouterRoute.java](./docs/components/router-route.md)
 │   ├── transformer
 │   │   └── src/main/java/opendatahub/transformer
-│   │       ├── [ConsumerImpl.java](./docs/components/transformer#consumer)
+│   │       ├── [ConsumerImpl.java](./docs/components/transformer.md#consumer)
 │   │       ├── Main.java
-│   │       └── [Poller.java](./docs/components/transformer#poller)
+│   │       └── [Poller.java](./docs/components/transformer.md#poller)
 </pre></normal>
 
 ## Local Quickstart
@@ -76,21 +76,16 @@ docker-compose up
 ```
 in the main folder. It will build and spin up all components.
 
-The first time we compose-up, we have to initialize MongoDB's replica set. To do so we have to run the following command outside the cluster.
+The first time we compose-up, we have to initialize MongoDB's replica set. To do so firstly identify the MongoDB docker container by running
 
-On linux machines:
 ```sh
-docker exec odh-infrastructure-v2-mongodb1-1 mongosh --eval "rs.initiate({
-            _id : 'rs0',
-            members: [
-              { _id : 0, host : 'mongodb1:27017' },
-            ]
-          })"
+docker ps
 ```
 
-Using Docker Desktop on Windows:
+then copy the MongoDB container name (should be something like `odh-infrastructure-v2_mongodb1_1`) and run
+
 ```sh
-docker exec odh-infrastructure-v2_mongodb1_1 mongosh --eval "rs.initiate({
+docker exec <mongodb-container-name> mongosh --eval "rs.initiate({
             _id : 'rs0',
             members: [
               { _id : 0, host : 'mongodb1:27017' },

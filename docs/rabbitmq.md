@@ -35,6 +35,10 @@ In the most common configuration, an **exchange** is **bounded** to a `queue`.
 
 In this way, messages published to the exchange are not thrown away on the fly; but persisted in a `queue` waiting to be processed.
 
+### **Queue size limit**
+
+By default queues do not have a limit (message number or bytes). For more information about Queue's length limit read the [official documentation](https://www.rabbitmq.com/maxlength.html).
+
 ## Bind
 
 Bindings are the glue between `exchanges` and `queues`.
