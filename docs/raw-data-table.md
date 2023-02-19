@@ -1,5 +1,9 @@
 # MongoDB Raw Data Table
 
+| From | To | Note |
+| - | - | - |
+| [WriterRoute](./components/writer-route.md) | [Notifier](./components/notifier.md) |  |
+
 The **Raw Data Table** is a MongoDB cluster.
 
 We choose MongoDB because it allows the system to insert non-structured data, it provides **replication** and **sharding** and also a mechanism to listen to any data change called `change stream`.

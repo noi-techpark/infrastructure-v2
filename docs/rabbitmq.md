@@ -39,6 +39,24 @@ In this way, messages published to the exchange are not thrown away on the fly; 
 
 By default queues do not have a limit (message number or bytes). For more information about Queue's length limit read the [official documentation](https://www.rabbitmq.com/maxlength.html).
 
+## Message Acknowledgment
+
+When a Route or [Transformer](./components/transformer.md) pulls a message, it becomes responsible to tell RabbitMQ how the message process went.
+
+It has a timeout (configure [consumer_timout docs](https://www.rabbitmq.com/consumers.html#acknowledgement-timeout)) to give a response about the message. After the timeout RabbitMQ flags the consumer as **non-responsive**, disconnects it and sends the messages he was responsible for to other consumers.
+
+There are 3 types of aknowledgement:
+
+- `ack`\
+    deletes the message from the system, since it has been successfully processed
+
+- `reject`\
+    deletes the message from the system syem because a permanent error occurred.\
+    If a [dead letter exchange](https://www.rabbitmq.com/dlx.html#routing) is configured, all rejected messages will forwarded to that exchange
+
+- `nack` (negative ack)\
+    There was a retriable error in the process, therefore the message is requeued to further retry.
+
 ## Bind
 
 Bindings are the glue between `exchanges` and `queues`.

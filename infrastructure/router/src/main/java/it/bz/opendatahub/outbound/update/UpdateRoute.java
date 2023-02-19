@@ -31,8 +31,8 @@ class RabbitMQConfig {
  */
 @ApplicationScoped
 public class UpdateRoute extends RouteBuilder {
-    static final String RABBITMQ_UPDATE_QUEUE = "push.update-q";
-    static final String RABBITMQ_UPDATE_EXCHANGE = "push.update";
+    static final String RABBITMQ_UPDATE_QUEUE = "push-update-q";
+    static final String RABBITMQ_UPDATE_EXCHANGE = "push-update";
 
     private RabbitMQConfig RabbitMQConfig;
 

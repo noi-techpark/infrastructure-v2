@@ -1,5 +1,9 @@
 # Writer Route
 
+| From | To | Note |
+| - | - | - |
+| RabbitMQ `ingress-q` queue (any of the inbound [RESTRoute](rest-route.md), [MQTTRoute](mqtt-route.md), [PullRoute](pull-route.md)) | [Raw Data Table](../raw-data-table.md) |  |
+
 ![writer route](../assets/writer-route.svg)
 
 **Writer Route** has the task to pull messages from [RabbitMQ](../rabbitmq.md), more precisely from the **queue** bounded to the `ingress` exchange using `ingress.#` as [Routing Key](../rabbitmq.md#routing-key), and write them in the [Raw Data Table](../raw-data-table.md).

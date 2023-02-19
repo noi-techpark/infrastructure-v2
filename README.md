@@ -68,6 +68,7 @@ componentscomponents
 │   ├── router
 │   │   └── src/main/java/opendatahub/outbound
 │   │       ├── [fastline/FastlineRoute.java](./docs/components/fastline-route.md)
+│   │       ├── [update/UpdateRoute.java](./docs/components/push-update-route.md)
 │   │       └── [router/RouterRoute.java](./docs/components/router-route.md)
 │   ├── transformer
 │   │   └── src/main/java/opendatahub/transformer

@@ -19,8 +19,7 @@ public class Poller implements QuarkusApplication {
   private static final String QUEUE_NAME = "suedtirol.wein2";
   private static final String ROUTING_KEY = "suedtirol.wein2";
 
-  private static final String POSTHOOK_EXCHANGE = "push.update";
-  private static final String POSTHOOK_QUEUE = "push.update-q";
+  private static final String POSTHOOK_EXCHANGE = "push-update";
   private static final String POSTHOOK_ROUTING_KEY = "suedtirol.wein2";
 
   @Override
@@ -43,8 +42,6 @@ public class Poller implements QuarkusApplication {
       channel.queueBind(ok.getQueue(), EXCHANGE_NAME, ROUTING_KEY);
 
       postHookChannel.exchangeDeclare(POSTHOOK_EXCHANGE, BuiltinExchangeType.TOPIC, true, false, false, null);
-      DeclareOk okPostHook =  postHookChannel.queueDeclare(POSTHOOK_QUEUE, true, false, false, null);
-      postHookChannel.queueBind(okPostHook.getQueue(), POSTHOOK_EXCHANGE, "#");
   
       System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
 

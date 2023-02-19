@@ -1,5 +1,11 @@
 # MQTT Route
 
+| From | To | Note |
+| - | - | - |
+| External provider | RabbitMQ `ingress` exchange ([WriterRoute](writer-route.md)) | If valid payload |
+| - | RabbitMQ `ingress-dl` exchange | if invalid payload |
+| - | RabbitMQ `fastline` exchange ([FastlineRoute](fastline-route.md)) | If Provider URI requests fastline |
+
 ![mqtt-route](../assets/mqtt-route.svg)
 
 MQTT Route is the Camel Route responsible for reading from the `Gateway Mosquitto` ingesting the data in the architecture.
