@@ -91,7 +91,7 @@ The first time we compose-up, we have to initialize MongoDB's replica set. To do
 docker ps
 ```
 
-then copy the MongoDB container name (should be something like `odh-infrastructure-v2_mongodb1_1`) and run
+then copy the MongoDB container name (should be something like `odh-infrastructure-v2_mongodb1_1` or `odh-infrastructure-v2-mongodb1-1` depending on the [version](https://stackoverflow.com/questions/69464001/docker-compose-container-name-use-dash-instead-of-underscore) of `docker-compose`) and run
 
 ```sh
 docker exec <mongodb-container-name> mongosh --eval "rs.initiate({
@@ -140,3 +140,17 @@ To use the Change Stream feature, the MongoDB deployment MUST be deployed as `Re
 ## Notifier connection
 The notifier subscribes to the MongoDB deployment and starts listening for changes.
 In the case that the MongoDB deployment restarts / goes offline, the *Notifier* **MUST** implement a mechanism to check that the connection is alive and start reconnecting until the MongoDB deployment returns online.
+
+# Troubleshooting
+
+The following section is dedicated to the troubleshooting of known or common issues.
+
+## Docker Compose
+
+There are a number of common issues related to docker-compose that might prevent the correct setup of the local environment. Verify the following configurations to be appropriate depending on your local runtime environment and operating system:
+
+- The `docker` and `docker-compose` versions are up-to-date
+- The `docker` caches are not interfering with a newer configuration (run `docker system prune --all` to delete all volumes, images, and containers)
+- The branch is up-to-date (run `git pull`)
+- The permissions assigned to the mounted volumes (folders) on your host are valid (MongoDB is especially known to generate issues with the permissions)
+- Windows line endings are not interfering with bash scripts and tools configurations (run `git rm --cached -r . && git reset --hard` to force line endings normalization) - this issue usually affects only builds on Windows systems, please read visit the official Git documentation to learn more about [gitattributes](https://git-scm.com/docs/gitattributes) and line endings normalization.
