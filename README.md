@@ -47,7 +47,6 @@ Follow the data flow by entrying in one of the inbound.
 - [MQTT inbound](./docs/components/mqtt-route.md)
 - [Pull inbound](./docs/components/pull-route.md)
 
-componentscomponents
 ## Repository structure
 
 <normal><pre>
