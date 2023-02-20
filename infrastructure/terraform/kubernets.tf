@@ -3,6 +3,9 @@
 ## https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs
 ################################################################################
 
+# NOTE: before enabling the kubernetes provider the EKS cluster must be running.
+# https://github.com/hashicorp/terraform-provider-kubernetes/issues/1391
+
 data "aws_eks_cluster" "default" {
   name = "aws-main-eu-01"
 }

@@ -1,11 +1,11 @@
 ################################################################################
 ## This file contains the VPC primarily provisioned for the EKS cluster.
-## https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.14.2
+## https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/3.19.0
 ################################################################################
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 3.14"
+  version = "~> 3.19"
 
   name = "internal-vpc"
   cidr = "10.0.0.0/16"

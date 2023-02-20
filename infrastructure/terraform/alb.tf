@@ -255,6 +255,9 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller_attach_iam_p
   policy_arn = aws_iam_policy.load_balancer_controller_iam_policy.arn
 }
 
+# NOTE: before creating the following manifest the EKS cluster must be running.
+# https://github.com/hashicorp/terraform-provider-kubernetes/issues/1391
+
 resource "kubernetes_manifest" "load_balancer_controller_service_account" {
   manifest = {
     "apiVersion" = "v1"

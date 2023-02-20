@@ -1,17 +1,22 @@
 ################################################################################
 ## This file contains the EKS cluster.
-## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/18.26.6
+## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/19.10.0
 ################################################################################
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 18.27"
+  version = "~> 19.10"
 
   # ----------------------------------------------------------------------------
   # General
   # ----------------------------------------------------------------------------
   cluster_name    = "aws-main-eu-01"
-  cluster_version = "1.22"
+  cluster_version = "1.24"
+
+  # ----------------------------------------------------------------------------
+  # Control Plane Access
+  # ----------------------------------------------------------------------------
+  cluster_endpoint_public_access = true
 
   # ----------------------------------------------------------------------------
   # Network
@@ -20,9 +25,9 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   # ----------------------------------------------------------------------------
-  # Logging
+  # Addons
   # ----------------------------------------------------------------------------
-  create_cloudwatch_log_group = false # We are missing IAM permission.
+  cluster_addons = {}
 
   # ----------------------------------------------------------------------------
   # Authentication - this has to be managed manually.
@@ -45,18 +50,18 @@ module "eks" {
       username = "animeshon"
       groups   = ["system:masters"]
     },
-    # # Simon Dalvai.
-    # {
-    #   userarn  = "arn:aws:iam::463112166163:user/sdalvai"
-    #   username = "simon-dalvai"
-    #   groups   = ["system:masters"]
-    # },
-    # # Rudolf Thoeni.
-    # {
-    #   userarn  = "arn:aws:iam::463112166163:user/Rudi"
-    #   username = "rudolf-thoeni"
-    #   groups   = ["system:masters"]
-    # },
+    # Simon Dalvai.
+    {
+      userarn  = "arn:aws:iam::463112166163:user/s.dalvai-dev-cli"
+      username = "s.dalvai-dev-cli"
+      groups   = ["system:masters"]
+    },
+    # Rudolf Thoeni.
+    {
+      userarn  = "arn:aws:iam::463112166163:user/r.thoeni-dev-cli"
+      username = "r.thoeni-dev-cli"
+      groups   = ["system:masters"]
+    },
   ]
 
   aws_auth_accounts = []
@@ -91,46 +96,8 @@ module "eks" {
   # ----------------------------------------------------------------------------
   # Security Groups
   # ----------------------------------------------------------------------------
-  node_security_group_additional_rules = {
-    ingress_allow_access_from_control_plane = {
-      type                          = "ingress"
-      protocol                      = "tcp"
-      from_port                     = 9443
-      to_port                       = 9443
-      source_cluster_security_group = true
-      description                   = "Allow access from control plane to webhook port of AWS load balancer controller"
-    }
-
-    ingress_self_all = {
-      description = "Node to node all ports/protocols"
-      protocol    = "-1"
-      from_port   = 0
-      to_port     = 0
-      type        = "ingress"
-      self        = true
-    }
-
-    egress_all = {
-      description      = "Node all egress"
-      protocol         = "-1"
-      from_port        = 0
-      to_port          = 0
-      type             = "egress"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
-    }
-  }
-
-  cluster_security_group_additional_rules = {
-    egress_nodes_ephemeral_ports_tcp = {
-      description                = "To node 1025-65535"
-      protocol                   = "tcp"
-      from_port                  = 1025
-      to_port                    = 65535
-      type                       = "egress"
-      source_node_security_group = true
-    }
-  }
+  node_security_group_additional_rules    = {}
+  cluster_security_group_additional_rules = {}
 
   # ----------------------------------------------------------------------------
   # Tags
