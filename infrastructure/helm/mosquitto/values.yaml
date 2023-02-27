@@ -1,0 +1,12 @@
+# https://artifacthub.io/packages/helm/naps/mosquitto
+fullnameOverride: mosquitto
+
+mosquitto:
+  config: |
+    autosave_interval 60
+    autosave_on_changes false
+    allow_anonymous true
+
+  persistence:
+    enabled: true
+    path: /mosquitto/data

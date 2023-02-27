@@ -62,6 +62,19 @@ helm upgrade --install mongodb bitnami/mongodb \
   --values infrastructure/helm/mongodb/values.yaml
 ```
 
+### RabbitMQ
+
+```sh
+helm repo add bitnami https://charts.bitnami.com/bitnami
+```
+
+**Reminder: update the `hostname` configuration value of the ingress.**
+
+```sh
+helm upgrade --install rabbitmq bitnami/rabbitmq \
+  --values infrastructure/helm/rabbitmq/values.yaml
+```
+
 ### Camel K
 
 **Reminder: update the following credentials `[USER]` and `[TOKEN]` with valid docker registry credentials.**
@@ -94,18 +107,12 @@ helm upgrade --install camel-k camel-k/camel-k \
 ### Mosquitto
 
 ```sh
-helm repo add k8s-at-home https://k8s-at-home.com/charts/
+helm repo add naps https://naps.github.io/helm-charts/
 ```
 
 ```sh
-helm upgrade --install mosquitto-edge k8s-at-home/mosquitto \
-  --values infrastructure/helm/mosquitto/values-edge.yaml
-
-helm upgrade --install mosquitto-notifier k8s-at-home/mosquitto \
-  --values infrastructure/helm/mosquitto/values-notifier.yaml
-
-helm upgrade --install mosquitto-storage k8s-at-home/mosquitto \
-  --values infrastructure/helm/mosquitto/values-storage.yaml
+helm upgrade --install mosquitto naps/mosquitto \
+  --values infrastructure/helm/mosquitto/values.yaml
 ```
 
 ### Notifier
@@ -113,6 +120,8 @@ helm upgrade --install mosquitto-storage k8s-at-home/mosquitto \
 **Reminder: update the following repository `[REPOSITORY]` with a valid docker registry repository.**
 
 **Reminder: authenticate to docker via `docker login` before invoking the `docker push` command.**
+
+**Reminder: update the `image.repository` configuration value.**
 
 ```sh
 docker build -t [REPOSITORY]/notifier:latest .

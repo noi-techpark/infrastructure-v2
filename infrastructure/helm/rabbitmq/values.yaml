@@ -1,0 +1,20 @@
+# https://artifacthub.io/packages/helm/bitnami/rabbitmq
+fullnameOverride: rabbitmq
+
+# Set up the ALB ingress for the RabbitMQ Management Console (UI).
+ingress:
+  enabled: true
+
+  # Workaround: a host is currently required and wildcards are not accepted.
+  hostname: "k8s-default-rabbitmq-41f0d76183-4454913.eu-west-1.elb.amazonaws.com"
+
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+  
+  ingressClassName: alb
+
+  path: "/*"
+
+extraConfiguration: |
+  consumer_timeout = 60000
