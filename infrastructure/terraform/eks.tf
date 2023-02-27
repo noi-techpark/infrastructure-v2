@@ -27,7 +27,21 @@ module "eks" {
   # ----------------------------------------------------------------------------
   # Addons
   # ----------------------------------------------------------------------------
-  cluster_addons = {}
+  cluster_addons = {
+    coredns = {
+      most_recent = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
+    vpc-cni = {
+      most_recent = true
+    }
+    aws-ebs-csi-driver = {
+      most_recent = true
+      service_account_role_arn = "arn:aws:iam::${local.account_id}:role/${module.eks.cluster_name}-ebs-csi-controller"
+    }
+  }
 
   # ----------------------------------------------------------------------------
   # Authentication - this has to be managed manually.
