@@ -1,8 +1,10 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
+// camel-k: dependency=mvn:io.quarkus:quarkus-websockets
 
 package it.bz.opendatahub.outbound.fastline;
 
@@ -12,6 +14,9 @@ import org.apache.camel.component.rabbitmq.RabbitMQConstants;
 import javax.enterprise.context.ApplicationScoped;
 
 import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.apache.camel.component.websocket.WebsocketComponent;
@@ -84,5 +89,17 @@ public class FastlineRoute extends RouteBuilder {
 
         return uri.toString();
     }
+}
 
+@ApplicationScoped
+class ErrorHandler extends RouteBuilder {
+
+    private Logger LOG = LoggerFactory.getLogger(ErrorHandler.class);
+
+    @Override
+    public void configure() throws Exception {
+        onCompletion()
+                .onFailureOnly()
+                .process(exchange -> LOG.error("{}", exchange.getMessage().getBody()));
+    }
 }

@@ -90,6 +90,7 @@ public class RouterRoute extends RouteBuilder {
                 .process(exchange -> {
                     Payload payload = (Payload)exchange.getMessage().getBody();
                     String routeKey = String.format("%s.%s", payload.db, payload.collection);
+                    LOG.info("routeKey: {}", routeKey);
                     exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
                     exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
                 })
@@ -155,5 +156,18 @@ final class RabbitMQConfigLogger {
         LOG.info("RabbitMQ cluster: {}", config.cluster);
         LOG.info("RabbitMQ user: {}", user);
         LOG.info("RabbitMQ password: {}", pass);
+    }
+}
+
+@ApplicationScoped
+class ErrorHandler extends RouteBuilder {
+
+    private Logger LOG = LoggerFactory.getLogger(ErrorHandler.class);
+
+    @Override
+    public void configure() throws Exception {
+        onCompletion()
+                .onFailureOnly()
+                .process(exchange -> LOG.error("{}", exchange.getMessage().getBody()));
     }
 }

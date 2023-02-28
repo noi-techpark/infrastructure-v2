@@ -53,28 +53,71 @@ Reference: [Blog Article](https://piotrminkowski.com/2020/12/08/apache-camel-k-a
 ```
 kamel run \
   --name mqtt-route \
-  --property mqtt.url=tcp://mosquitto-edge:1883 \
-  --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
-  --property internal_mqtt.topic=storage \
+  --property mqtt.url='tcp://mosquitto:1883' \
+  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+  --property rabbitmq.user='user' \
+  --property rabbitmq.pass='90SK1AeldgRh7TzE' \
     infrastructure/inbound/src/main/java/it/bz/opendatahub/inbound/mqtt/MqttRoute.java
 ```
 
 ```
 kamel run \
   --name rest-route \
-  --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
-  --property internal_mqtt.topic=storage \
+  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+  --property rabbitmq.user='user' \
+  --property rabbitmq.pass='90SK1AeldgRh7TzE' \
     infrastructure/inbound/src/main/java/it/bz/opendatahub/inbound/rest/RestRoute.java
 ```
 
 ```
 kamel run \
   --name writer-route \
-  --property quarkus.mongodb.connection-string=mongodb://mongodb-0.mongodb-headless.default.svc.cluster.local:27017 \
+  --property quarkus.mongodb.connection-string='mongodb://mongodb-0.mongodb-headless.default.svc.cluster.local:27017' \
   --property quarkus.mongodb.devservices.enabled=false \
-  --property internal_mqtt.url=tcp://mosquitto-storage.default.svc.cluster.local:1883 \
-  --property internal_mqtt.topic=storage \
-    infrastructure/writer/src/main/java/it/bz/opendatahub/writer/WriterRoute.java
+  --property mongodb.host='mongodb-0.mongodb-headless.default.svc.cluster.local:27017' \
+  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+  --property rabbitmq.user='user' \
+  --property rabbitmq.pass='90SK1AeldgRh7TzE' \
+    infrastructure/inbound/src/main/java/it/bz/opendatahub/writer/WriterRoute.java
+```
+
+```
+kamel run \
+  --name pull-route \
+  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+  --property rabbitmq.user='user' \
+  --property rabbitmq.pass='90SK1AeldgRh7TzE' \
+  --property pull.provider='suedtirol/wein2?fastline=false' \
+  --property pull.endpoints='https://suedtirolwein.secure.consisto.net/companies.ashx,https://suedtirolwein.secure.consisto.net/awards.ashx' \
+  --property pull.endpointKeys='companies,awards' \
+    infrastructure/inbound/src/main/java/it/bz/opendatahub/pull/PullRoute.java
+```
+
+```
+kamel run \
+  --name fastline-route \
+  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+  --property rabbitmq.user='user' \
+  --property rabbitmq.pass='90SK1AeldgRh7TzE' \
+    infrastructure/router/src/main/java/it/bz/opendatahub/outbound/fastline/FastlineRoute.java
+```
+
+```
+kamel run \
+  --name router-route \
+  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+  --property rabbitmq.user='user' \
+  --property rabbitmq.pass='90SK1AeldgRh7TzE' \
+    infrastructure/router/src/main/java/it/bz/opendatahub/outbound/router/RouterRoute.java
+```
+
+```
+kamel run \
+  --name update-route \
+  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+  --property rabbitmq.user='user' \
+  --property rabbitmq.pass='90SK1AeldgRh7TzE' \
+    infrastructure/router/src/main/java/it/bz/opendatahub/outbound/update/UpdateRoute.java
 ```
 
 ### Delete Camel Routes
