@@ -15,13 +15,12 @@ In order to run, compiled, and debug Camel routes, it is necessary to satisfy th
 
 There are two *Message Exchange Patterns* you can use in messaging.
 
-From there Enterprise Integration Patterns they are:
+According to the Enterprise Integration Patterns, they are:
 
 - Event Message (or one-way)
+- Request-Reply
 
-- Request Reply
-
-In Camel we have an org.apache.camel.ExchangePattern enumeration which can be configured on the exchangePattern property on the Message Exchange indicating if a message exchange is a one way Event Message (**InOnly**) or a Request Reply message exchange (**InOut**).
+In Camel, we have an org.apache.camel.ExchangePattern enumeration which can be configured on the exchangePattern property on the Message Exchange indicating if a message exchange is a one-way Event Message (**InOnly**) or a Request-Reply message exchange (**InOut**).
 
 More information in the [official documentation](https://camel.apache.org/manual/exchange-pattern.html).
 
@@ -79,8 +78,8 @@ kamel run \
 ```
 
 ### Delete Camel Routes
-It's not possible to scale down the kamel integration from kubernetes.
-If we need to stop a route w have to tell kamel to delete the whole route, which reflects in deleting the kubernetes deployment.
+It's not possible to scale down the Kamel integration from Kubernetes.
+If we need to stop a route we have to tell Kamel to delete the whole route, which reflects in deleting the Kubernetes deployment.
 
 ```
 kamel delete <route-name>

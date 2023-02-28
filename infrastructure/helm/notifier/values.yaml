@@ -8,4 +8,4 @@ env:
   - name: MONGODB_CONNECTION_REPLICA_SET
     value: rs0
   - name: RABBITMQ_CLUSTER_URL
-    value: rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672
+    value: user:90SK1AeldgRh7TzE@rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672

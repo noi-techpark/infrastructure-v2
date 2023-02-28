@@ -123,6 +123,8 @@ helm upgrade --install mosquitto naps/mosquitto \
 
 **Reminder: update the `image.repository` configuration value.**
 
+**Reminder: update the `RABBITMQ_CLUSTER_URL` environment variable with valid RabbitMQ credentials.**
+
 ```sh
 docker build -t [REPOSITORY]/notifier:latest .
 docker push [REPOSITORY]/notifier:latest
