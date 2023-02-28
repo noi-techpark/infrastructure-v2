@@ -1,8 +1,9 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
 
 package it.bz.opendatahub.outbound.router;
 

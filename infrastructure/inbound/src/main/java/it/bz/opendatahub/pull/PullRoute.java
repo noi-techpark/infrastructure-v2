@@ -1,9 +1,11 @@
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-jackson
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-mongodb
 // camel-k: dependency=mvn:io.quarkus:quarkus-mongodb-client
 // camel-k: dependency=mvn:org.apache.camel:camel-jackson:3.6.0
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-jackson
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-mongodb
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
+// camel-k: dependency=mvn:org.apache.commons:commons-lang3:3.12.0
 
 package it.bz.opendatahub.pull;
 
@@ -158,7 +160,7 @@ public class PullRoute extends RouteBuilder {
 
     @Override
     public void configure() {
-        from("cron:tab?schedule=0/30+*+*+*+*+?")
+        from("cron:tab?schedule=0+*+*+*+*+?")
                 .routeId("[Route: Pull]" + this.provider)
                 .setBody(simple("${null}"))
                 .log("received")

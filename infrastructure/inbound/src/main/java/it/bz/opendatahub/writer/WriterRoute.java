@@ -1,9 +1,11 @@
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-jackson
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-mongodb
 // camel-k: dependency=mvn:io.quarkus:quarkus-mongodb-client
 // camel-k: dependency=mvn:org.apache.camel:camel-jackson:3.6.0
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-jackson
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-mongodb
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
+// camel-k: dependency=mvn:org.apache.commons:commons-lang3:3.12.0
 
 
 package it.bz.opendatahub.writer;
@@ -102,7 +104,7 @@ public class WriterRoute extends RouteBuilder {
         if (tokens.length > 1) {
             collection = tokens[1];
         }
-        final StringBuilder uri = new StringBuilder(String.format("mongodb://dummy?hosts=%s&database=%s&collection=%s&operation=insert", 
+        final StringBuilder uri = new StringBuilder(String.format("mongodb:dummy?hosts=%s&database=%s&collection=%s&operation=insert", 
         this.mongoDBConnection.host, db, collection));
         return uri.toString();
     }
