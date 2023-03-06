@@ -72,7 +72,7 @@ public class RouterRoute extends RouteBuilder {
         this.RabbitMQConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
         this.RabbitMQConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
         this.RabbitMQConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
-    } 
+    }
 
     @Override
     public void configure() {
@@ -102,7 +102,7 @@ public class RouterRoute extends RouteBuilder {
             "addresses=%s"+
             "&queue=%s"+
             "&autoAck=false"+
-            "&autoDelete=false", 
+            "&autoDelete=false",
             RABBITMQ_READY_EXCHANGE, RabbitMQConfig.cluster, RABBITMQ_READY_QUEUE));
 
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
@@ -117,18 +117,18 @@ public class RouterRoute extends RouteBuilder {
     private String getRabbitMQRoutedConnectionString() {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
-            "&skipQueueBind=true"+
-            "&skipQueueDeclare=true"+
+            "&queue=%s"+
             "&autoDelete=false"+
             "&exchangeType=topic"+
             "&deadLetterExchange=%s"+
             "&deadLetterQueue=%s"+
             "&deadLetterExchangeType=fanout"+
-            "&arg.exchange.alternate-exchange=%s", 
-            RABBITMQ_ROUTED_EXCHANGE, 
-            RabbitMQConfig.cluster, 
-            RABBITMQ_UNROUTABLE_EXCHANGE, 
-            RABBITMQ_UNROUTABLE_QUEUE, 
+            "&arg.exchange.alternate-exchange=%s",
+            RABBITMQ_ROUTED_EXCHANGE,
+            RabbitMQConfig.cluster,
+            RABBITMQ_ROUTED_QUEUE,
+            RABBITMQ_UNROUTABLE_EXCHANGE,
+            RABBITMQ_UNROUTABLE_QUEUE,
             RABBITMQ_UNROUTABLE_EXCHANGE
             ));
 
