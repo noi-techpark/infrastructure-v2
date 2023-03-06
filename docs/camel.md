@@ -4,7 +4,7 @@
 
 In order to run, compiled, and debug Camel routes, it is necessary to satisfy the following prerequisites:
 
-- Installation of [Kamel CLI](https://camel.apache.org/camel-k/1.9.x/cli/cli.html) (1.9.x)
+- Installation of [Kamel CLI](https://github.com/apache/camel-k/releases) (1.12+)
 - Prerequisites of [Kubernetes](kubernetes.md#Prerequisites)
 
 ## Known Limitations

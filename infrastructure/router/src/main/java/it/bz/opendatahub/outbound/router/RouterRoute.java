@@ -90,7 +90,6 @@ public class RouterRoute extends RouteBuilder {
                 .process(exchange -> {
                     Payload payload = (Payload)exchange.getMessage().getBody();
                     String routeKey = String.format("%s.%s", payload.db, payload.collection);
-                    LOG.info("routeKey: {}", routeKey);
                     exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
                     exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
                 })
@@ -118,6 +117,7 @@ public class RouterRoute extends RouteBuilder {
     private String getRabbitMQRoutedConnectionString() {
         final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
             "addresses=%s"+
+            "&skipQueueBind=true"+
             "&skipQueueDeclare=true"+
             "&autoDelete=false"+
             "&exchangeType=topic"+
