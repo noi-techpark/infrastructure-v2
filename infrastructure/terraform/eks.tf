@@ -76,6 +76,12 @@ module "eks" {
       username = "r.thoeni-dev-cli"
       groups   = ["system:masters"]
     },
+    # Clemens Zagler.
+    {
+      userarn  = "arn:aws:iam::463112166163:user/c.zagler-dev-cli"
+      username = "c.zagler-dev-cli"
+      groups   = ["system:masters"]
+    },
   ]
 
   aws_auth_accounts = []
