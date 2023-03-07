@@ -87,6 +87,7 @@ kubectl create secret docker-registry docker-secrets \
   --docker-password=[TOKEN]
 
 # !!! Amazon ECR is not supported yet by Kamel, use Docker Hub instead.
+# !!! See https://github.com/apache/camel-k/issues/4107.
 
 # kubectl create secret docker-registry docker-secrets \
 #   --docker-server=463112166163.dkr.ecr.eu-west-1.amazonaws.com \
