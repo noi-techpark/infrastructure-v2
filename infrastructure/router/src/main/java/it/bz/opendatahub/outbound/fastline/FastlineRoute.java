@@ -6,6 +6,9 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-vertx-websocket
 
+// camel-k: trait=ingress.enabled=false
+// camel-k: trait=service.enabled=true trait=service.type=NodePort
+
 package it.bz.opendatahub.outbound.fastline;
 
 import org.apache.camel.builder.RouteBuilder;
