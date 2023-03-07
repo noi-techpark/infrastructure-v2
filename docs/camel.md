@@ -9,7 +9,9 @@ In order to run, compiled, and debug Camel routes, it is necessary to satisfy th
 
 ## Known Limitations
 
-**Amazon ECR is not supported yet by Kamel, use [Docker Hub](https://hub.docker.com/) instead.**
+- **Amazon ECR is not supported yet by Kamel, use [Docker Hub](https://hub.docker.com/) instead.**
+- **Only one Java source file is supported. This limitation can be bypassed by building dependencies locally as `.jar`.**
+  - Example: `kamel run -d file://path/to/dependency.jar Route.java`
 
 ## Exchange Pattern
 
@@ -140,3 +142,8 @@ If we need to stop a route we have to tell Kamel to delete the whole route, whic
 ```
 kamel delete <route-name>
 ```
+
+## Useful Resources
+
+- [Camel Quarkus Extensions](https://camel.apache.org/camel-quarkus/2.16.x/reference/index.html)
+- [Camel K Traits](https://camel.apache.org/camel-k/1.12.x/traits/traits.html)
