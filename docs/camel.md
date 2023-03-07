@@ -46,9 +46,9 @@ import org.apache.camel.component.paho.mqtt5.PahoMqtt5Constants;
 It's also recommended to keep the route in a single file.
 Reference: [Blog Article](https://piotrminkowski.com/2020/12/08/apache-camel-k-and-quarkus-on-kubernetes/).
 
-## How to
+## How to deploy routes via Camel K CLI
 
-### Run Camel Routes
+### Run the **MQTT Route**
 
 ```
 kamel run \
@@ -60,6 +60,8 @@ kamel run \
     infrastructure/inbound/src/main/java/it/bz/opendatahub/inbound/mqtt/MqttRoute.java
 ```
 
+### Run the **REST Route (REST and WebSocket)**
+
 ```
 kamel run \
   --name rest-route \
@@ -68,6 +70,8 @@ kamel run \
   --property rabbitmq.pass='guest' \
     infrastructure/inbound/src/main/java/it/bz/opendatahub/inbound/rest/RestRoute.java
 ```
+
+### Run the **Writer Route (MongoDB)**
 
 ```
 kamel run \
@@ -81,6 +85,8 @@ kamel run \
     infrastructure/inbound/src/main/java/it/bz/opendatahub/writer/WriterRoute.java
 ```
 
+### Run the **Sample Pull Route (Südtirol Wine)**
+
 ```
 kamel run \
   --name pull-route \
@@ -93,6 +99,8 @@ kamel run \
     infrastructure/inbound/src/main/java/it/bz/opendatahub/pull/PullRoute.java
 ```
 
+### Run the **Fastline Route (WebSocket)**
+
 ```
 kamel run \
   --name fastline-route \
@@ -101,6 +109,8 @@ kamel run \
   --property rabbitmq.pass='guest' \
     infrastructure/router/src/main/java/it/bz/opendatahub/outbound/fastline/FastlineRoute.java
 ```
+
+### Run the **Router Route (RabbitMQ)**
 
 ```
 kamel run \
@@ -111,6 +121,8 @@ kamel run \
     infrastructure/router/src/main/java/it/bz/opendatahub/outbound/router/RouterRoute.java
 ```
 
+### Run the **Update Route**
+
 ```
 kamel run \
   --name update-route \
@@ -120,7 +132,8 @@ kamel run \
     infrastructure/router/src/main/java/it/bz/opendatahub/outbound/update/UpdateRoute.java
 ```
 
-### Delete Camel Routes
+## Delete Camel Routes
+
 It's not possible to scale down the Kamel integration from Kubernetes.
 If we need to stop a route we have to tell Kamel to delete the whole route, which reflects in deleting the Kubernetes deployment.
 
