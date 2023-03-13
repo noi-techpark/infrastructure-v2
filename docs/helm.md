@@ -118,22 +118,20 @@ helm upgrade --install mosquitto naps/mosquitto \
 
 ### Notifier
 
-**Reminder: update the following repository `[REPOSITORY]` with a valid docker registry repository.**
+**Reminder: authenticate to docker via `aws ecr get-login-password` and `docker login` before invoking the `docker push` command.**
 
-**Reminder: authenticate to docker via `docker login` before invoking the `docker push` command.**
+See [https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html](Using Amazon ECR with the AWS CLI).
 
 **Reminder: update the `image.repository` configuration value.**
 
 **Reminder: update the `RABBITMQ_CLUSTER_URL` environment variable with valid RabbitMQ credentials.**
 
 ```sh
-docker build -t [REPOSITORY]/notifier:latest .
-docker push [REPOSITORY]/notifier:latest
+aws ecr get-login-password --region [REGION] | docker login --username AWS --password-stdin [ACCOUNT].dkr.ecr.[REGION].amazonaws.com
+# See https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html for more information.
 
-# aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 463112166163.dkr.ecr.eu-west-1.amazonaws.com
-#
-# docker build -t 463112166163.dkr.ecr.eu-west-1.amazonaws.com/notifier:latest .
-# docker push 463112166163.dkr.ecr.eu-west-1.amazonaws.com/notifier:latest
+docker build -t [ACCOUNT].dkr.ecr.[REGION].amazonaws.com/notifier:latest .
+docker push [ACCOUNT].dkr.ecr.[REGION].amazonaws.com/notifier:latest
 ```
 
 ```sh
