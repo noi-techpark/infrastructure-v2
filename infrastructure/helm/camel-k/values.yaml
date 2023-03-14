@@ -10,3 +10,15 @@ platform:
       address: docker.io
       secret: docker-secrets
       organization: roggia
+
+# Before deploying Camel-K remember to create the required docker secrets:
+#
+# kubectl create secret docker-registry docker-secrets \                 
+#   --docker-username="..." \                                             
+#   --docker-password="..."
+#
+# or you can add this step to the GitHub Actions pipeline:
+#
+# kubectl create secret docker-registry docker-secrets \                 
+#   --docker-username="${{ secrets.DOCKER_REGISTRY_USERNAME }}" \                                             
+#   --docker-password="${{ secrets.DOCKER_REGISTRY_PASSWORD }}"
