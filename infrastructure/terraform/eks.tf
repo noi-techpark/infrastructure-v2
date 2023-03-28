@@ -82,6 +82,18 @@ module "eks" {
       username = "c.zagler-dev-cli"
       groups   = ["system:masters"]
     },
+    # Stefano Seppi.
+    {
+      userarn  = "arn:aws:iam::463112166163:user/s.seppi-dev-cli"
+      username = "s.seppi-dev-cli"
+      groups   = ["system:masters"]
+    },
+    # Martin Rabanser.
+    {
+      userarn  = "arn:aws:iam::463112166163:user/m.rabanser-dev-cli"
+      username = "m.rabanser-dev-cli"
+      groups   = ["system:masters"]
+    },
   ]
 
   aws_auth_accounts = []
