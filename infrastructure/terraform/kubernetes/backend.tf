@@ -7,7 +7,7 @@ terraform {
     organization = "noi-digital"
 
     workspaces {
-      name = "opendatahub-development"
+      name = "opendatahub-kubernetes-development"
     }
   }
 
@@ -26,5 +26,10 @@ terraform {
   }
 
   # The required version of Terraform itself.
-  required_version = "~> 1.3"
+  required_version = "~> 1.4"
+}
+
+data "tfe_outputs" "compute" {
+  organization = "noi-digital"
+  workspace    = "opendatahub-compute-development"
 }

@@ -3,6 +3,10 @@
 ## https://docs.aws.amazon.com/eks/latest/userguide/network-load-balancing.html
 ################################################################################
 
+locals {
+  oidc_provider = replace(data.aws_eks_cluster.default.identity[0].oidc[0].issuer, "https://", "")
+}
+
 resource "aws_iam_policy" "load_balancer_controller_iam_policy" {
   name = "AWSLoadBalancerControllerIAMPolicy"
 
@@ -236,13 +240,13 @@ resource "aws_iam_role" "load_balancer_controller_role" {
       {
         "Effect" : "Allow",
         "Principal" : {
-          "Federated" : "arn:aws:iam::${local.account_id}:oidc-provider/${module.eks.oidc_provider}"
+          "Federated" : "arn:aws:iam::${local.account_id}:oidc-provider/${local.oidc_provider}"
         },
         "Action" : "sts:AssumeRoleWithWebIdentity",
         "Condition" : {
           "StringEquals" : {
-            "${module.eks.oidc_provider}:aud" : "sts.amazonaws.com",
-            "${module.eks.oidc_provider}:sub" : "system:serviceaccount:kube-system:aws-load-balancer-controller"
+            "${local.oidc_provider}:aud" : "sts.amazonaws.com",
+            "${local.oidc_provider}:sub" : "system:serviceaccount:kube-system:aws-load-balancer-controller"
           }
         }
       }
@@ -255,10 +259,12 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller_attach_iam_p
   policy_arn = aws_iam_policy.load_balancer_controller_iam_policy.arn
 }
 
-# NOTE: before creating the following manifest the EKS cluster must be running.
-# https://github.com/hashicorp/terraform-provider-kubernetes/issues/1391
-
 resource "kubernetes_manifest" "load_balancer_controller_service_account" {
+  depends_on = [
+    kubernetes_config_map.aws_auth,
+    kubernetes_config_map_v1_data.aws_auth,
+  ]
+
   manifest = {
     "apiVersion" = "v1"
     "kind"       = "ServiceAccount"
