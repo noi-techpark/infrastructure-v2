@@ -4,7 +4,7 @@
 ################################################################################
 
 locals {
-  oidc_provider = replace(aws_eks_cluster.default.identity[0].oidc[0].issuer, "https://", "")
+  oidc_provider = replace(data.aws_eks_cluster.default.identity[0].oidc[0].issuer, "https://", "")
 }
 
 resource "aws_iam_policy" "load_balancer_controller_iam_policy" {
@@ -259,10 +259,12 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller_attach_iam_p
   policy_arn = aws_iam_policy.load_balancer_controller_iam_policy.arn
 }
 
-# NOTE: before creating the following manifest the EKS cluster must be running.
-# https://github.com/hashicorp/terraform-provider-kubernetes/issues/1391
-
 resource "kubernetes_manifest" "load_balancer_controller_service_account" {
+  depends_on = [
+    kubernetes_config_map.aws_auth,
+    kubernetes_config_map_v1_data.aws_auth,
+  ]
+
   manifest = {
     "apiVersion" = "v1"
     "kind"       = "ServiceAccount"

@@ -24,7 +24,7 @@ The Kubernetes cluster can be accessed from withing the [AWS Console](https://eu
 
 Users in EKS are not automatically managed by AWS IAM, it is therefore necessary to manually grant or revoke access to users and service accounts.
 
-In the [eks.tf](../infrastructure/terraform/eks.tf) users and service accounts can be managed through the `aws_auth_users` map. Once changes have been made they can be applied through `terraform apply`.
+In the [eks.tf](../infrastructure/terraform/compute/eks.tf) users and service accounts can be managed through the `aws_auth_users` map. Once changes have been made they can be applied through `terraform apply`.
 
 ## Tips
 
@@ -32,7 +32,7 @@ A list of commonly used commands for Kubernetes can be found in the [official ch
 
 ## Port Forwarding 
 
-When testing against the Kubernetes Cluster in the Cloud environment we have to need to port forward the pods connection to localhost in order to connect to the instances
+When testing against the Kubernetes Cluster in the Cloud environment we can open an tunnel between the local machine and the workload running in the cluster with the following `port-forward` command:
 
 ```sh
 kubectl port-forward <pod-name> <localport>:<remote-port>

@@ -14,7 +14,7 @@ module "ebs_csi_controller_role" {
 
   create_role                   = true
   role_name                     = "${data.aws_eks_cluster.default.id}-ebs-csi-controller"
-  provider_url                  = replace(data.aws_eks_cluster.default.identity.oidc.issuer, "https://", "")
+  provider_url                  = replace(data.aws_eks_cluster.default.identity[0].oidc[0].issuer, "https://", "")
   role_policy_arns              = [aws_iam_policy.ebs_csi_controller.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:${local.ebs_csi_service_account_namespace}:${local.ebs_csi_service_account_name}"]
 }
