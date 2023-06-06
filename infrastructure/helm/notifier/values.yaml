@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 image:
   repository: 463112166163.dkr.ecr.eu-west-1.amazonaws.com/notifier
   tag: latest

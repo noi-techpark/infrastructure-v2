@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Helm
 
 Helm is used within the Open-Data Hub orchestration management as package manager for Kubernetes resources.

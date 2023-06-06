@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Terraform
 
 The Open-Data Hub infrastructure is provisioned through Terraform and its state is stored in [Terraform Cloud](https://app.terraform.io/app/noi-digital/workspaces/opendatahub-v2).

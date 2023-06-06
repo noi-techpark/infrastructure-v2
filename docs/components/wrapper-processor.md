@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Wrapper Processor
 
 The **Wrapper Procesor** is a custom `camel processor` implementation shared by all inbound routes (MQTT, REST and Pull). By "processor" we mean it's a portion of code run whenever some data enter any of the inbound routes. This code is therefore an extension of those routes.

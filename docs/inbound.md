@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Inbounds
 
 In this page the specifications for the data pushed/pulled by the **Inbound Apis** will be explained.

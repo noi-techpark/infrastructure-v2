@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream

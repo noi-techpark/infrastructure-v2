@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 import pika
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('127.0.0.1'))

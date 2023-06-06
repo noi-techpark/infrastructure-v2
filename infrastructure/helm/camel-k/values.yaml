@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 # https://artifacthub.io/packages/helm/camel-k/camel-k
 platform:
   build:
