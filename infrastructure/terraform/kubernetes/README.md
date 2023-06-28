@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2023 NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Terraform Cloud Workspace
 
 This workspace contains all resources associated with kubernetes infrastructure (addons, authentication, load balancing, and so on).

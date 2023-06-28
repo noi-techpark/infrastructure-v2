@@ -6,7 +6,7 @@ Source: https://github.com/noi-techpark/odh-infrastructure-v2
 Files: .mvn/* .vscode/* docs/assets/* .env.example .gitattributes .gitignore *.conf
        infrastructure/*/.env infrastructure/*/.gitignore infrastructure/*/Dockerfile infrastructure/*/env.example infrastructure/*/mvnw infrastructure/*/mvnw.cmd infrastructure/*/*.properties infrastructure/*/package-lock.json infrastructure/*/package.json
        infrastructure/helm/notifier/notifier/templates/_helpers.tpl infrastructure/helm/notifier/notifier/templates/NOTES.txt infrastructure/helm/notifier/notifier/.helmignore
-       infrastructure/terraform/*.hcl infrastructure/terraform/aws-ebs-csi-driver-policy.json
+       infrastructure/terraform/*.hcl infrastructure/terraform/kubernetes/aws-ebs-csi-driver-policy.json
 Copyright: (c) NOI Techpark <digital@noi.bz.it>
 License: CC0-1.0
 
