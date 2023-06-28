@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: CC0-1.0
 
 image:
-  repository: 463112166163.dkr.ecr.eu-west-1.amazonaws.com/notifier
+  repository: 828408288281.dkr.ecr.eu-west-1.amazonaws.com/notifier
   pullPolicy: Always # Workaround: this is necessary since we are using the `latest` tag.
   tag: latest # Woraround: ideally here we should use the image `sha256` unique hash.
 
