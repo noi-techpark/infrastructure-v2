@@ -7,7 +7,7 @@ terraform {
     organization = "noi-digital"
 
     workspaces {
-      name = "opendatahub-kubernetes-development"
+      name = "opendatahub-ingress-kubernetes-dev"
     }
   }
 
@@ -31,5 +31,5 @@ terraform {
 
 data "tfe_outputs" "compute" {
   organization = "noi-digital"
-  workspace    = "opendatahub-compute-development"
+  workspace    = "opendatahub-ingress-compute-dev"
 }

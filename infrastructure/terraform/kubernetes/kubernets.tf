@@ -30,44 +30,44 @@ locals {
   aws_auth_users = [
     # Terraform.
     {
-      userarn  = "arn:aws:iam::463112166163:user/odh-v2-terraform"
+      userarn  = "arn:aws:iam::828408288281:user/odh-v2-terraform"
       username = "terraform"
       groups   = ["system:masters"]
     },
     # Animeshon.
     {
-      userarn  = "arn:aws:iam::463112166163:user/animeshon"
+      userarn  = "arn:aws:iam::828408288281:user/animeshon"
       username = "animeshon"
       groups   = ["system:masters"]
     },
     # Simon Dalvai.
     {
-      userarn  = "arn:aws:iam::463112166163:user/s.dalvai-dev-cli"
-      username = "s.dalvai-dev-cli"
+      userarn  = "arn:aws:iam::828408288281:user/s.dalvai"
+      username = "s.dalvai"
       groups   = ["system:masters"]
     },
     # Rudolf Thoeni.
     {
-      userarn  = "arn:aws:iam::463112166163:user/r.thoeni-dev-cli"
-      username = "r.thoeni-dev-cli"
+      userarn  = "arn:aws:iam::828408288281:user/r.thoeni"
+      username = "r.thoeni"
       groups   = ["system:masters"]
     },
     # Clemens Zagler.
     {
-      userarn  = "arn:aws:iam::463112166163:user/c.zagler-dev-cli"
-      username = "c.zagler-dev-cli"
+      userarn  = "arn:aws:iam::828408288281:user/c.zagler"
+      username = "c.zagler"
       groups   = ["system:masters"]
     },
     # Stefano Seppi.
     {
-      userarn  = "arn:aws:iam::463112166163:user/s.seppi-dev-cli"
-      username = "s.seppi-dev-cli"
+      userarn  = "arn:aws:iam::828408288281:user/s.seppi"
+      username = "s.seppi"
       groups   = ["system:masters"]
     },
     # Martin Rabanser.
     {
-      userarn  = "arn:aws:iam::463112166163:user/m.rabanser-dev-cli"
-      username = "m.rabanser-dev-cli"
+      userarn  = "arn:aws:iam::828408288281:user/m.rabanser"
+      username = "m.rabanser"
       groups   = ["system:masters"]
     },
   ]

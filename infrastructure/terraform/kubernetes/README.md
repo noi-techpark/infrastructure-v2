@@ -16,3 +16,6 @@ The Terraform Cloud Workspace must define the following two environment variable
 
 - `AWS_ACCESS_KEY_ID` (sensitive)
 - `AWS_SECRET_ACCESS_KEY` (sensitive)
+
+### Worspace state sharing
+The compute workspace must share it's state with this workspace (settings/Remote state sharing/Share with specific workspaces)
