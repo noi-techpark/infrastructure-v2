@@ -7,7 +7,7 @@ terraform {
     organization = "noi-digital"
 
     workspaces {
-      name = "opendatahub-development"
+      name = "opendatahub-ingress-compute-dev"
     }
   }
 
@@ -17,14 +17,8 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4.55"
     }
-
-    # The configuration of the kubernetes provider and its required version.
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.18"
-    }
   }
 
   # The required version of Terraform itself.
-  required_version = "~> 1.3"
+  required_version = "~> 1.4"
 }

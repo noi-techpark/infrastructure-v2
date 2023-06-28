@@ -1,11 +1,11 @@
 ################################################################################
 ## This file contains the EKS cluster.
-## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/19.10.0
+## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/19.13.0
 ################################################################################
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.10"
+  version = "~> 19.13"
 
   # ----------------------------------------------------------------------------
   # General
@@ -25,66 +25,15 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   # ----------------------------------------------------------------------------
-  # Addons
+  # Addons - managed in the kubernetes workspace (see addons.tf).
   # ----------------------------------------------------------------------------
-  cluster_addons = {
-    coredns = {
-      most_recent = true
-    }
-    kube-proxy = {
-      most_recent = true
-    }
-    vpc-cni = {
-      most_recent = true
-    }
-    aws-ebs-csi-driver = {
-      most_recent = true
-      service_account_role_arn = "arn:aws:iam::${local.account_id}:role/${module.eks.cluster_name}-ebs-csi-controller"
-    }
-  }
+  cluster_addons = {}
 
   # ----------------------------------------------------------------------------
-  # Authentication - this has to be managed manually.
+  # Authentication - managed in the kubernetes workspace (see auth.tf).
   # ----------------------------------------------------------------------------
-  create_aws_auth_configmap = true
-  manage_aws_auth_configmap = true
-
-  aws_auth_roles = []
-
-  aws_auth_users = [
-    # Terraform.
-    {
-      userarn  = "arn:aws:iam::463112166163:user/odh-v2-terraform"
-      username = "terraform"
-      groups   = ["system:masters"]
-    },
-    # Animeshon.
-    {
-      userarn  = "arn:aws:iam::463112166163:user/animeshon"
-      username = "animeshon"
-      groups   = ["system:masters"]
-    },
-    # Simon Dalvai.
-    {
-      userarn  = "arn:aws:iam::463112166163:user/s.dalvai-dev-cli"
-      username = "s.dalvai-dev-cli"
-      groups   = ["system:masters"]
-    },
-    # Rudolf Thoeni.
-    {
-      userarn  = "arn:aws:iam::463112166163:user/r.thoeni-dev-cli"
-      username = "r.thoeni-dev-cli"
-      groups   = ["system:masters"]
-    },
-    # Clemens Zagler.
-    {
-      userarn  = "arn:aws:iam::463112166163:user/c.zagler-dev-cli"
-      username = "c.zagler-dev-cli"
-      groups   = ["system:masters"]
-    },
-  ]
-
-  aws_auth_accounts = []
+  create_aws_auth_configmap = false
+  manage_aws_auth_configmap = false
 
   # ----------------------------------------------------------------------------
   # Node Groups
@@ -98,9 +47,6 @@ module "eks" {
   }
 
   self_managed_node_groups = {
-    # Turn off the default node group.
-    default_node_group = {}
-
     main = {
       name = "main-pool"
 
@@ -110,6 +56,9 @@ module "eks" {
 
       # Node instances.
       instance_type = "t3.medium"
+
+      # IAM roles.
+      iam_role_use_name_prefix = false
     }
   }
 
@@ -123,7 +72,6 @@ module "eks" {
   # Tags
   # ----------------------------------------------------------------------------
   tags = {
-    Environment = "proof-of-concept"
-    Terraform   = "true"
+    Terraform = "true"
   }
 }

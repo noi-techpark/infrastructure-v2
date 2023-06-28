@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-vertx-websocket
 
 package it.bz.opendatahub.outbound.update;
 
@@ -17,8 +19,11 @@ import javax.enterprise.context.ApplicationScoped;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.eclipse.microprofile.config.ConfigProvider;
-import org.apache.camel.component.websocket.WebsocketComponent;
+import org.apache.camel.component.vertx.websocket.VertxWebsocketConstants;
 
 class RabbitMQConfig {
     String cluster;
@@ -39,6 +44,7 @@ public class UpdateRoute extends RouteBuilder {
     static final String RABBITMQ_UPDATE_EXCHANGE = "push-update";
 
     private RabbitMQConfig RabbitMQConfig;
+    private Optional<Boolean> isLocal;
 
     public UpdateRoute()
     {
@@ -46,6 +52,7 @@ public class UpdateRoute extends RouteBuilder {
         this.RabbitMQConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
         this.RabbitMQConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
         this.RabbitMQConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
+        this.isLocal = ConfigProvider.getConfig().getOptionalValue("local", Boolean.class);
     } 
 
     @Override
@@ -58,12 +65,24 @@ public class UpdateRoute extends RouteBuilder {
         from(RabbitMQConnectionString)
             .routeId("[Route: update]")
             .process(exchange -> {
-                String destination = String.format("websocket://0.0.0.0:8082/update?sendToAll=true,"+
-                    "websocket://0.0.0.0:8082/update/%s?sendToAll=true",
-                    exchange.getMessage().getHeader(RabbitMQConstants.ROUTING_KEY).
-                        toString().
-                        replaceAll("\\.", "/")
-                );
+
+                String destination = "";
+                String route = exchange.getMessage().getHeader(RabbitMQConstants.ROUTING_KEY).
+                    toString().
+                    replaceAll("\\.", "/");
+                if (this.isLocal.isPresent()) {
+                    destination = String.format("websocket://0.0.0.0:8082/update?sendToAll=true,"+
+                        "websocket://0.0.0.0:8082/update/%s?sendToAll=true",
+                        route
+                    );
+                } else {
+                    // Kamel
+                    exchange.getMessage().setHeader(VertxWebsocketConstants.SEND_TO_ALL, true);
+                    destination = String.format("vertx-websocket://0.0.0.0:8082/update,"+
+                        "vertx-websocket://0.0.0.0:8082/update/%s",
+                        route
+                    );
+                }
                 
                 System.out.println(destination);
                 exchange.getMessage().setHeader("destination", destination);
@@ -88,5 +107,17 @@ public class UpdateRoute extends RouteBuilder {
 
         return uri.toString();
     }
+}
 
+@ApplicationScoped
+class ErrorHandler extends RouteBuilder {
+
+    private Logger LOG = LoggerFactory.getLogger(ErrorHandler.class);
+
+    @Override
+    public void configure() throws Exception {
+        onCompletion()
+                .onFailureOnly()
+                .process(exchange -> LOG.error("{}", exchange.getMessage().getBody()));
+    }
 }

@@ -17,5 +17,6 @@
 .settings
 .project
 .classpath
+infrastructure/router/bin
 
 *.db
