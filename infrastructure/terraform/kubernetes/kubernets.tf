@@ -30,7 +30,7 @@ locals {
   aws_auth_users = [
     # Terraform.
     {
-      userarn  = "arn:aws:iam::828408288281:user/odh-v2-terraform"
+      userarn  = "arn:aws:iam::828408288281:user/terraform-ingress"
       username = "terraform"
       groups   = ["system:masters"]
     },
