@@ -16,7 +16,7 @@ ingress:
   enabled: true
 
   # Workaround: a host is currently required and wildcards are not accepted.
-  hostname: "k8s-default-rabbitmq-41f0d76183-167965946.eu-west-1.elb.amazonaws.com"
+  hostname: "k8s-default-rabbitmq-41f0d76183-1481013304.eu-west-1.elb.amazonaws.com"
 
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing

@@ -50,9 +50,12 @@ module "eks" {
     main = {
       name = "main-pool"
 
+      avaliability_zones = ["eu-west-1b"]
+
       # Node group autoscaling.
-      max_size     = 1
-      desired_size = 1
+      max_size     = 3
+      desired_size = 2
+      min_size     = 2
 
       # Node instances.
       instance_type = "t3.medium"
