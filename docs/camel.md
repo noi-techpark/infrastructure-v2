@@ -84,9 +84,9 @@ kamel run \
 ```
 kamel run \
   --name writer-route \
-  --property quarkus.mongodb.connection-string='mongodb://mongodb-0.mongodb-headless.default.svc.cluster.local:27017' \
+  --property quarkus.mongodb.connection-string='mongodb://mongodb-headless.default.svc.cluster.local:27017' \
   --property quarkus.mongodb.devservices.enabled=false \
-  --property mongodb.host='mongodb-0.mongodb-headless.default.svc.cluster.local:27017' \
+  --property mongodb.host='mongodb-headless.default.svc.cluster.local:27017' \
   --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
   --property rabbitmq.user='guest' \
   --property rabbitmq.pass='guest' \
