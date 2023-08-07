@@ -22,7 +22,7 @@ module "eks" {
   # Network
   # ----------------------------------------------------------------------------
   vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  subnet_ids = module.vpc.private_subnets 
 
   # ----------------------------------------------------------------------------
   # Addons - managed in the kubernetes workspace (see addons.tf).
@@ -50,9 +50,13 @@ module "eks" {
     main = {
       name = "main-pool"
 
+      # Force single AZ because pods always have to be in same AZ as their persistent volumes
+      subnet_ids = [module.vpc.private_subnets[1]]
+
       # Node group autoscaling.
-      max_size     = 1
+      max_size     = 3
       desired_size = 1
+      min_size     = 1
 
       # Node instances.
       instance_type = "t3.medium"

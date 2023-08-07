@@ -106,8 +106,10 @@ helm repo add camel-k https://apache.github.io/camel-k/charts
 ```
 
 ```sh
+
 helm upgrade --install camel-k camel-k/camel-k \
   --values infrastructure/helm/camel-k/values.yaml
+  --version 0.13.1
 ```
 
 

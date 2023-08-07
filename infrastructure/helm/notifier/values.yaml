@@ -6,10 +6,11 @@ image:
   repository: 828408288281.dkr.ecr.eu-west-1.amazonaws.com/notifier
   pullPolicy: Always # Workaround: this is necessary since we are using the `latest` tag.
   tag: latest # Woraround: ideally here we should use the image `sha256` unique hash.
+  imagePullSecrets: ecr-secrets
 
 env:
   - name: MONGODB_CONNECTION_STRING
-    value: mongodb://mongodb-0.mongodb-headless.default.svc.cluster.local:27017
+    value: mongodb://mongodb-headless.default.svc.cluster.local:27017
   - name: MONGODB_CONNECTION_REPLICA_SET
     value: rs0
   - name: RABBITMQ_CLUSTER_URL
