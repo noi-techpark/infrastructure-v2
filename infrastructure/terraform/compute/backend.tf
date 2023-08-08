@@ -17,6 +17,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4.55"
     }
+    random = {
+      source = "hashicorp/random"
+      version = "~>3.5"
+    }
   }
 
   # The required version of Terraform itself.
