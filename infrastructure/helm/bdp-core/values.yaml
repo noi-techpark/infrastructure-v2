@@ -1,0 +1,38 @@
+# Default values for bdp-core.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/noi-techpark/bdp-core/bdp-core-app
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+nameOverride: "bdp-core"
+fullnameOverride: "bdp-core"
+  
+service:
+  port: 8999
+  type: ClusterIP
+  
+health:
+  port: 8999
+  path: /actuator/health
+  delay: 30
+    
+env: 
+  SERVER_PORT: 8999
+  ### Security
+  SECURITY_ALLOWED_ORIGINS: "*"
+  KEYCLOAK_URL: https://auth.opendatahub.testingmachine.eu/auth
+  KEYCLOAK_SSL_REQUIRED: none
+  KEYCLOAK_REALM: noi
+  KEYCLOAK_CLIENT_ID: odh-mobility-writer-development
+  POSTGRES_SERVER: odh-postgres.czracduepxal.eu-west-1.rds.amazonaws.com
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: bdp
+  POSTGRES_SCHEMA: intimev2
+  POSTGRES_USERNAME: bdp
+  POSTGRES_PASSWORD: <pass by commandline>
