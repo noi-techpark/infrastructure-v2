@@ -21,6 +21,10 @@ terraform {
       source = "hashicorp/random"
       version = "~>3.5"
     }
+    postgresql = {
+      source = "cyrilgdn/postgresql"
+      version = "1.20.0"
+    }
   }
 
   # The required version of Terraform itself.
