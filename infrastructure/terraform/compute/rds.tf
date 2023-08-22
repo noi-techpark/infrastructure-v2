@@ -122,11 +122,20 @@ resource "postgresql_grant" "bdp_all" {
     privileges = ["CREATE", "USAGE"]
 }
 
-resource "postgresql_grant" "bdp_readonly" {
+resource "postgresql_grant" "bdp_readonly_schema" {
     provider = postgresql.odh-postgres
     database = postgresql_database.bdp.name
     role = postgresql_role.bdp_readonly.name
     schema = postgresql_schema.intimev2.name
     object_type = "schema"
     privileges = ["USAGE"]
+}
+resource "postgresql_grant" "bdp_readonly_tables" {
+    provider = postgresql.odh-postgres
+    database = postgresql_database.bdp.name
+    role = postgresql_role.bdp_readonly.name
+    schema = postgresql_schema.intimev2.name
+    object_type = "table"
+    objects = [] # empty means all
+    privileges = ["SELECT"]
 }

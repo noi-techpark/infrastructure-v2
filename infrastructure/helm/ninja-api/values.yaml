@@ -71,4 +71,4 @@ env:
   DB_USERNAME: bdp_readonly
   DB_PASSWORD: <pass by commandline>
 
-  JAVA_OPTIONS: -Xms2g -Xmx6g
+  #JAVA_OPTIONS: -Xms2g -Xmx6g
