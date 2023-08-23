@@ -14,16 +14,14 @@ nameOverride: "bdp-core"
 fullnameOverride: "bdp-core"
   
 service:
-  port: 8999
+  port: 8080
   type: ClusterIP
   
 health:
-  port: 8999
-  path: /actuator/health
   delay: 30
     
 env: 
-  SERVER_PORT: 8999
+  SERVER_PORT: 8080
   ### Security
   SECURITY_ALLOWED_ORIGINS: "*"
   KEYCLOAK_URL: https://auth.opendatahub.testingmachine.eu/auth

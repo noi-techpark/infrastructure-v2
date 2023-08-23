@@ -39,18 +39,15 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
-            - name: probe
-              containerPort: {{ .Values.health.port }}
-              protocol: TCP
           livenessProbe:
             httpGet:
-              path: {{ .Values.health.path }}
-              port: {{ .Values.health.port }}
+              path: /actuator/health
+              port: http
             initialDelaySeconds: {{ .Values.health.delay }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.health.path }}
-              port: {{ .Values.health.port }}
+              path: /actuator/health
+              port: http
             initialDelaySeconds: {{ .Values.health.delay }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
