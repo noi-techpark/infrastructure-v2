@@ -83,3 +83,12 @@ resource "postgresql_grant" "bdp_readonly_tables" {
     objects = [] # empty means all
     privileges = ["SELECT"]
 }
+resource "postgresql_default_privileges" "bdp_readonly_tables" {
+    provider = postgresql.odh-postgres
+    database = postgresql_database.bdp.name
+    schema = postgresql_schema.intimev2.name
+    role = postgresql_role.bdp_readonly.name
+    owner = postgresql_role.bdp.name
+    object_type = "table"
+    privileges = ["SELECT"]
+}
