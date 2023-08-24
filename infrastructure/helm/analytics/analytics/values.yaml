@@ -1,14 +1,14 @@
-# Default values for ninja-api.
+# Default values for analytics.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
 image:
-  repository: ghcr.io/noi-techpark/it.bz.opendatahub.api.mobility-ninja/it.bz.opendatahub.api.mobility-ninja-app
+  repository: ghcr.io/noi-techpark/it.bz.opendatahub.analytics/it.bz.opendatahub.analytics
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "ae61d80f49456cbeaef7b2f56909c4f31d8b437d"
+  tag: "304fff844b192a501a0251881cb16cc245c67864"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -35,6 +35,10 @@ securityContext: {}
   # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+
+health:
+  port: 8081
+  path: /
 
 service:
   type: ClusterIP
