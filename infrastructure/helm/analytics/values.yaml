@@ -15,7 +15,7 @@ fullnameOverride: "analytics"
 
 service:
   type: NodePort
-  port: 8081
+  port: 80
 
 ingress:
   enabled: true
