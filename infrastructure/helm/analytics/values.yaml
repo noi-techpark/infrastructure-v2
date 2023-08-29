@@ -8,7 +8,7 @@ image:
   repository: ghcr.io/noi-techpark/it.bz.opendatahub.analytics/it.bz.opendatahub.analytics
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "304fff844b192a501a0251881cb16cc245c67864"
+  tag: "6b984ebe28d00019a59e4e805254b888183db994"
 
 nameOverride: "analytics"
 fullnameOverride: "analytics"
@@ -29,3 +29,4 @@ ingress:
   paths: 
     - path: "/*"
       pathType: ImplementationSpecific
+      port: 80
