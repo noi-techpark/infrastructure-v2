@@ -59,7 +59,7 @@ module "eks" {
       min_size     = 1
 
       # Node instances.
-      instance_type = "t3.large"
+      instance_type = "t3.medium"
 
       # IAM roles.
       iam_role_use_name_prefix = false
