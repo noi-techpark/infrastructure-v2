@@ -55,11 +55,11 @@ module "eks" {
 
       # Node group autoscaling.
       max_size     = 3
-      desired_size = 1
+      desired_size = 2
       min_size     = 1
 
       # Node instances.
-      instance_type = "t3.medium"
+      instance_type = "t3.large"
 
       # IAM roles.
       iam_role_use_name_prefix = false
