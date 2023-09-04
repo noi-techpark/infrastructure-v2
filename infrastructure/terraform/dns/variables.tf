@@ -14,3 +14,7 @@ variable "AWS_SECRET_ACCESS_KEY" {
   default = ""
 }
 
+variable "main-zone" {
+  type = string
+  default = "dev.testingmachine.eu"
+}
