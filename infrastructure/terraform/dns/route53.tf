@@ -11,9 +11,10 @@ resource "aws_route53_zone" "main" {
 #     records = aws_route53_zone.main.name_servers
 # }
 
-resource "aws_route53_record" "ninja" {
-  zone_id = data.aws_route53_zone.main.zone_id
+resource "aws_route53_record" "mobility-ninja" {
+  zone_id = aws_route53_zone.main.zone_id
   name    = "mobility.api"
   type    = "A"
-  ttl     = "7200"
-  records = ["115.146.85.100"]
+  ttl     = "30"
+  records = [aws_eip.eks-ingress-a.public_ip, aws_eip.eks-ingress-b.public_ip, aws_eip.eks-ingress-c.public_ip]
+}

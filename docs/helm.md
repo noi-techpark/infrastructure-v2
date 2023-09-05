@@ -146,3 +146,14 @@ docker push [ACCOUNT].dkr.ecr.[REGION].amazonaws.com/notifier:latest
 helm upgrade --install notifier ./infrastructure/helm/notifier/notifier \
   --values infrastructure/helm/notifier/values.yaml
 ```
+
+### Nginx ingress
+TODO: values.yaml contains hardcoded coordinates of dev environment.
+```sh
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace \
+  --values infrastructure/helm/nginx-ingress/values.yaml \
+  --set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations='eipalloc-0352b56d6da041575\,eipalloc-0b84603c6d3f425bf\,eipalloc-010c74d6fe6f17525'"
+
+```
