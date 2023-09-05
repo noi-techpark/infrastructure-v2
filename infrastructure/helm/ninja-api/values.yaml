@@ -31,8 +31,8 @@ ingress:
   hosts:
     - host: mobility.api.dev.testingmachine.eu
       paths: 
-        - path: "/*"
-          pathType: ImplementationSpecific
+        - path: "/"
+          pathType: Prefix
 
 env: 
   SERVER_PORT: 8081
