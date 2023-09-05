@@ -16,5 +16,5 @@ resource "aws_route53_record" "mobility-ninja" {
   name    = "mobility.api"
   type    = "A"
   ttl     = "30"
-  records = [aws_eip.eks-ingress-a.public_ip, aws_eip.eks-ingress-b.public_ip, aws_eip.eks-ingress-c.public_ip]
+  records = [aws_eip.eks-ingress-b.public_ip]
 }

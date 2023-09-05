@@ -157,3 +157,8 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
   --set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations='eipalloc-0352b56d6da041575\,eipalloc-0b84603c6d3f425bf\,eipalloc-010c74d6fe6f17525'"
 
 ```
+
+### Ninja API
+```sh
+helm upgrade --install ninja-api infrastructure/helm/ninja-api/ninja-api --values infrastructure/helm/ninja-api/values.yaml --set env.DB_PASSWORD=********
+```

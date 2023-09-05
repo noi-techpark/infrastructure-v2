@@ -4,10 +4,10 @@ output "main-nameservers" {
 }
 
 output "eks-ingress-ip" {
-  value = [aws_eip.eks-ingress-a.public_ip, aws_eip.eks-ingress-b.public_ip, aws_eip.eks-ingress-c.public_ip]
+  value = [aws_eip.eks-ingress-b.public_ip]
   description = "Static EIB IP address for eks ingress load balancer. This is where the DNS entries point to"
 }
 output "eks-ingress-name" {
-  value = [aws_eip.eks-ingress-a.allocation_id, aws_eip.eks-ingress-b.allocation_id, aws_eip.eks-ingress-c.allocation_id]
+  value = [aws_eip.eks-ingress-b.allocation_id]
   description = "Static EIB IP address for eks ingress load balancer. This is where the DNS entries point to"
 }

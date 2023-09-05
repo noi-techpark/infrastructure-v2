@@ -37,9 +37,11 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    - http:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
         paths:
-          {{- range .Values.ingress.paths }}
+          {{- range .paths }}
           - path: {{ .path }}
             {{- if and .pathType (semverCompare ">=1.18-0" $.Capabilities.KubeVersion.GitVersion) }}
             pathType: {{ .pathType }}
@@ -55,4 +57,5 @@ spec:
               servicePort: {{ $svcPort }}
               {{- end }}
           {{- end }}
+    {{- end }}
 {{- end }}

@@ -27,11 +27,13 @@ ingress:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
  
-  className: alb
+  className: nginx
+  hosts:
+    - host: mobility.api.dev.testingmachine.eu
+      paths: 
+        - path: "/*"
+          pathType: ImplementationSpecific
 
-  paths: 
-    - path: "/*"
-      pathType: ImplementationSpecific
 env: 
   SERVER_PORT: 8081
   NINJA_BASE_URL: http://localhost:8081
