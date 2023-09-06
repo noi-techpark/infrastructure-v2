@@ -15,16 +15,20 @@ auth:
 ingress:
   enabled: true
 
-  # Workaround: a host is currently required and wildcards are not accepted.
-  hostname: "k8s-default-rabbitmq-41f0d76183-1481013304.eu-west-1.elb.amazonaws.com"
-
   annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-  
-  ingressClassName: alb
+    cert-manager.io/issuer: "letsencrypt-prod"
 
-  path: "/*"
+  ingressClassName: nginx
+  hostname: rabbitmq.dev.testingmachine.eu
+  tls:
+    - hosts:
+      - rabbitmq.dev.testingmachine.eu
+      secretName: tls-rabbitmq
+  hosts:
+    - host: rabbitmq.dev.testingmachine.eu
+      paths: 
+        - path: "/"
+          pathType: Prefix
 
 extraConfiguration: |
   consumer_timeout = 60000

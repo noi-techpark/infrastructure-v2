@@ -8,7 +8,7 @@ image:
   repository: ghcr.io/noi-techpark/it.bz.opendatahub.analytics/it.bz.opendatahub.analytics
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "6b984ebe28d00019a59e4e805254b888183db994"
+  tag: e8ee3894abe54bd95a712915dcfbf1ac53fd5d14
 
 nameOverride: "analytics"
 fullnameOverride: "analytics"
@@ -21,12 +21,15 @@ ingress:
   enabled: true
 
   annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
- 
-  className: alb
+    cert-manager.io/issuer: "letsencrypt-prod"
 
-  paths: 
-    - path: "/*"
-      pathType: ImplementationSpecific
-      port: 80
+  className: nginx
+  tls:
+    - hosts:
+      - analytics.dev.testingmachine.eu
+      secretName: tls-ninja-api
+  hosts:
+    - host: analytics.dev.testingmachine.eu
+      paths: 
+        - path: "/"
+          pathType: Prefix

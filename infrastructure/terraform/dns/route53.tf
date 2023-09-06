@@ -3,18 +3,27 @@ resource "aws_route53_zone" "main" {
     force_destroy = true
 }
 
-# resource "aws_route53_record" "main-ns" {
-#     zone_id = aws_route53_zone.main.zone_id
-#     name = aws_route53_zone.main.name
-#     type = "NS"
-#     ttl = "30"
-#     records = aws_route53_zone.main.name_servers
-# }
-
-resource "aws_route53_record" "mobility-ninja" {
+resource "aws_route53_record" "eks-ingress" {
   zone_id = aws_route53_zone.main.zone_id
-  name    = "mobility.api"
+  name    = "eks-ingress"
   type    = "A"
-  ttl     = "30"
+  ttl     = "300"
   records = [aws_eip.eks-ingress-b.public_ip]
+}
+
+locals {
+  service-domains = [
+    "mobility.api",
+    "analytics",
+    "rabbitmq"
+  ]
+}
+
+resource "aws_route53_record" "eks-service-domains" {
+  for_each = toset(local.service-domains)
+  zone_id = aws_route53_zone.main.zone_id
+  name    = each.value
+  type    = "CNAME"
+  ttl     = "300"
+  records = [aws_route53_record.eks-ingress.fqdn]
 }

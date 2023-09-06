@@ -74,8 +74,6 @@ helm upgrade --install mongodb bitnami/mongodb \
 helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
 
-**Reminder: update the `hostname` configuration value of the ingress.**
-
 ```sh
 helm upgrade --install rabbitmq bitnami/rabbitmq \
   --values infrastructure/helm/rabbitmq/values.yaml
@@ -173,7 +171,14 @@ kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-staging-cluste
 kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml
 ```
 
+## Open Data Hub core applications
+These core applications use already existing containers and pipelines and are configured via env variables set as "env." values.
+Image tags are hardcoded, so upgrading the applications has to be done by updating image tags (commit hash)
 ### Ninja API
 ```sh
 helm upgrade --install ninja-api infrastructure/helm/ninja-api/ninja-api --values infrastructure/helm/ninja-api/values.yaml --set env.DB_PASSWORD=********
+```
+### Analytics
+```sh
+helm upgrade --install analytics infrastructure/helm/analytics/analytics --values infrastructure/helm/analytics/values.yaml
 ```
