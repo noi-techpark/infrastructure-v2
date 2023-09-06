@@ -148,14 +148,29 @@ helm upgrade --install notifier ./infrastructure/helm/notifier/notifier \
 ```
 
 ### Nginx ingress
-TODO: values.yaml contains hardcoded coordinates of dev environment.
+TODO: values.yaml contains hardcoded subnet of dev environment.
 ```sh
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx --create-namespace \
-  --values infrastructure/helm/nginx-ingress/values.yaml \
-  --set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations='eipalloc-0352b56d6da041575\,eipalloc-0b84603c6d3f425bf\,eipalloc-010c74d6fe6f17525'"
+helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx  --namespace ingress-nginx --create-namespace \
+--values infrastructure/helm/nginx-ingress/values.yaml \
+--set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations=eipalloc-0b84603c6d3f425bf"
+```
 
+### Certmanager (https certificates)
+
+```sh
+helm repo add jetstack https://charts.jetstack.io
+helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.12.4 \
+  --set installCRDs=true
+  
+# Create the letsencrypt issuers. 
+# TODO: create a route53 issuer so we can use dns instead of http challenges
+kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-staging-clusterissuer.yaml
+kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml
 ```
 
 ### Ninja API

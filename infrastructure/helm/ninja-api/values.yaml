@@ -24,10 +24,14 @@ ingress:
   enabled: true
 
   annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
+    cert-manager.io/issuer: "letsencrypt-prod"
+
  
   className: nginx
+  tls:
+    - hosts:
+      - mobility.api.dev.testingmachine.eu
+      secretName: tls-ninja-api
   hosts:
     - host: mobility.api.dev.testingmachine.eu
       paths: 
@@ -36,8 +40,8 @@ ingress:
 
 env: 
   SERVER_PORT: 8081
-  NINJA_BASE_URL: http://localhost:8081
-  NINJA_HOST_URL: http://localhost:8081
+  NINJA_BASE_URL: https://mobility.api.dev.testingmachine.eu
+  NINJA_HOST_URL: https://mobility.api.dev.testingmachine.eu
   NINJA_QUERY_TIMEOUT_SEC: 30
   NINJA_RESPONSE_MAX_SIZE_MB: 100
 
