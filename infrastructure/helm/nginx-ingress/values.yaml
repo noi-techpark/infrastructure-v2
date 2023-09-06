@@ -1,5 +1,6 @@
 controller:
   service:
+    httpPort.enable: false
     annotations:
       # Exchange ID with output of terraform dns eks-ingress-name
       service.beta.kubernetes.io/aws-load-balancer-eip-allocations: <list of public IPs (one per az)>
