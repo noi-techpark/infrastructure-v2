@@ -27,7 +27,7 @@ ingress:
   tls:
     - hosts:
       - analytics.dev.testingmachine.eu
-      secretName: tls-ninja-api
+      secretName: tls-analytics
   hosts:
     - host: analytics.dev.testingmachine.eu
       paths: 

@@ -209,6 +209,28 @@ resource "aws_iam_policy" "load_balancer_controller_iam_policy" {
         }
       },
       {
+        "Effect": "Allow",
+        "Action": [
+            "elasticloadbalancing:AddTags"
+        ],
+        "Resource": [
+            "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+            "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+            "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*"
+        ],
+        "Condition": {
+            "StringEquals": {
+                "elasticloadbalancing:CreateAction": [
+                    "CreateTargetGroup",
+                    "CreateLoadBalancer"
+                ]
+            },
+            "Null": {
+                "aws:RequestTag/elbv2.k8s.aws/cluster": "false"
+            }
+        }
+      },
+      {
         "Effect" : "Allow",
         "Action" : [
           "elasticloadbalancing:RegisterTargets",
