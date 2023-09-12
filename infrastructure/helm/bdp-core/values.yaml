@@ -34,3 +34,4 @@ env:
   POSTGRES_SCHEMA: intimev2
   POSTGRES_USERNAME: bdp
   POSTGRES_PASSWORD: <pass by commandline>
+  
