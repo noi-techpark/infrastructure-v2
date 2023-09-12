@@ -14,6 +14,7 @@ resource "aws_route53_record" "eks-ingress" {
 locals {
   service-domains = [
     "mobility.api",
+    "tourism.api",
     "analytics",
     "rabbitmq"
   ]
