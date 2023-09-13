@@ -5,12 +5,12 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/noi-techpark/odh-api-core/odh-api-core-api 
+  repository: ghcr.io/noi-techpark/odh-api-core/odh-api-core-api
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "e349c859c9c9c654a2063f56604a4c906fc85721"
+  tag: "76e9e733a2d1447fa53449d1c354719aa67e60ea"
 
-imagePullSecrets: 
+imagePullSecrets:
   - name: ghcr-odh-v2-playground-readonly
 nameOverride: "tourism-api"
 fullnameOverride: "tourism-api"
@@ -19,9 +19,10 @@ fullnameOverride: "tourism-api"
 #   delay: 30
     
 service:
-  type: ClusterIP
-  port: 80
-  targetport: 80  
+  type: NodePort
+  port: 8080
+  targetport: 80
+  containerport: 80
 
 ingress:
   enabled: true
@@ -36,14 +37,14 @@ ingress:
       secretName: tls-tourism-api
   hosts:
     - host: tourism.api.dev.testingmachine.eu
-      paths: 
+      paths:
         - path: "/"
           pathType: Prefix
 
 env: 
   ASPNETCORE_URLS: http://+:80
-  ASPNETCORE_ENVIRONMENT: "Development"   
-  ASPNETCORE_API__URL: "https://tourism.api.dev.testingmachine.eu"  
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_API__URL: "https://tourism.api.dev.testingmachine.eu"
   ASPNETCORE_OauthServerConfig__Authority: "https://auth.opendatahub.testingmachine.eu/auth/realms/noi/"
   ASPNETCORE_S3ImageresizerConfig__Url: "https://images.tourism.testingmachine.eu/api/Image/GetImage?imageurl="
   ASPNETCORE_S3ImageresizerConfig__DocUrl: "https://images.tourism.testingmachine.eu/api/File/GetFile/"

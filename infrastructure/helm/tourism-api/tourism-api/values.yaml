@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/noi-techpark/odh-api-core/odh-api-core-api 
+  repository: ghcr.io/noi-techpark/odh-api-core/odh-api-core-api
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "f858a81826d9b68a0aff09c5652d08f27029d996"
+  tag: "76e9e733a2d1447fa53449d1c354719aa67e60ea"
 
 imagePullSecrets: []
 nameOverride: ""
