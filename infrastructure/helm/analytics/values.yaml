@@ -14,7 +14,7 @@ nameOverride: "analytics"
 fullnameOverride: "analytics"
 
 service:
-  type: NodePort
+  type: ClusterIP
   port: 80
 
 ingress:

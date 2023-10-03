@@ -11,7 +11,7 @@ module "eks" {
   # General
   # ----------------------------------------------------------------------------
   cluster_name    = "aws-main-eu-01"
-  cluster_version = "1.26"
+  cluster_version = "1.27"
 
   # ----------------------------------------------------------------------------
   # Control Plane Access
@@ -72,8 +72,29 @@ module "eks" {
   # ----------------------------------------------------------------------------
   # Security Groups
   # ----------------------------------------------------------------------------
-  node_security_group_additional_rules    = {}
-  cluster_security_group_additional_rules = {}
+  # https://github.com/terraform-aws-modules/terraform-aws-eks/blob/master/docs/network_connectivity.md#security-groups
+  cluster_security_group_additional_rules = {
+    egress_nodes_ephemeral_ports_tcp = {
+      description                = "To node 1025-65535"
+      protocol                   = "tcp"
+      from_port                  = 1025
+      to_port                    = 65535
+      type                       = "egress"
+      source_node_security_group = true
+    }
+  }
+
+  # Extend node-to-node security group rules
+  node_security_group_additional_rules = {
+    ingress_self_all = {
+      description = "Node to node all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
+    }
+  }
 
   # ----------------------------------------------------------------------------
   # Tags
