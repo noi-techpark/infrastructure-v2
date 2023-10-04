@@ -1,0 +1,80 @@
+# Default values for tourism-api.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/noi-techpark/odh-api-core/odh-api-core-importer
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "d01df9451fc85f1db72a43f8e6ebd29800b56c51"
+
+imagePullSecrets:
+  - name: ghcr-odh-v2-playground-readonly
+nameOverride: "tourism-importer"
+fullnameOverride: "tourism-importer"
+  
+# health:
+#   delay: 30
+    
+service:
+  type: NodePort
+  port: 8080
+  targetport: 80
+  containerport: 80
+
+ingress:
+  enabled: true
+
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+
+  className: nginx
+  tls:
+    - hosts:
+      - tourism.importer.dev.testingmachine.eu
+      secretName: tls-tourism-api
+  hosts:
+    - host: tourism.importer.dev.testingmachine.eu
+      paths:
+        - path: "/"
+          pathType: Prefix
+
+env: 
+  ASPNETCORE_URLS: http://+:80
+  ASPNETCORE_ENVIRONMENT: "Development"
+  ASPNETCORE_API__URL: "https://tourism.importer.dev.testingmachine.eu"
+  ASPNETCORE_OauthServerConfig__Authority: "https://auth.opendatahub.testingmachine.eu/auth/realms/noi/"
+  ASPNETCORE_S3ImageresizerConfig__Url: "https://images.tourism.testingmachine.eu/api/Image/GetImage?imageurl="
+  ASPNETCORE_S3ImageresizerConfig__DocUrl: "https://images.tourism.testingmachine.eu/api/File/GetFile/"
+  ASPNETCORE_XmlConfig__Xmldir: "xml/"
+  ASPNETCORE_JsonConfig__Jsondir: "./wwwroot/json/"
+  ASPNETCORE_ConnectionStrings__PgConnection: <pass by commandline>
+  # ASPNETCORE_MssConfig__Username: ${MSS_USER}
+  # ASPNETCORE_MssConfig__Password: ${MSS_PSWD}
+  # ASPNETCORE_LcsConfig__Username: ${LCS_USER}
+  # ASPNETCORE_LcsConfig__MessagePassword: ${LCS_MSGPSWD}
+  # ASPNETCORE_LcsConfig__Password: ${LCS_PSWD}
+  # ASPNETCORE_SiagConfig__Username: ${SIAG_USER}
+  # ASPNETCORE_SiagConfig__Password: ${SIAG_PSWD}  
+  # ASPNETCORE_XmlConfig__XmldirWeather: ${XMLDIR}
+  # ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ${S3_BUCKET_ACCESSPOINT}
+  # ASPNETCORE_S3ImageresizerConfig__AccessKey: ${S3_IMAGEUPLOADER_ACCESSKEY}
+  # ASPNETCORE_S3ImageresizerConfig__SecretKey: ${S3_IMAGEUPLOADER_SECRETKEY}  
+  # ASPNETCORE_ElasticSearchConfig__ElasticUrl: ${ELK_URL}
+  # ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ${ELK_TOKEN}  
+  # ASPNETCORE_EBMSConfig__EBMSUser: ${EBMS_USER}
+  # ASPNETCORE_EBMSConfig__EBMSPassword: ${EBMS_PASS}      
+  # ASPNETCORE_DataBrowserConfig__Url: ${DATABROWSER_URL}
+  # ASPNETCORE_RavenConfig__ServiceUrl: ${RAVEN_SERVICEURL}
+  # ASPNETCORE_RavenConfig__Username: ${RAVEN_USER}
+  # ASPNETCORE_RavenConfig__Password: ${RAVEN_PSWD}
+  # ASPNETCORE_DSSConfig__Username: ${DSS_USER}
+  # ASPNETCORE_DSSConfig__Password: ${DSS_PSWD}
+  # ASPNETCORE_DSSConfig__ServiceUrl: ${DSS_SERVICEURL}
+  # ASPNETCORE_FCMConfig__noicommunityapp__ServerKey: ${NOICOMMUNITY_SERVERKEY}
+  # ASPNETCORE_FCMConfig__noicommunityapp__SenderId: ${NOICOMMUNITY_SENDERID}
+  # ASPNETCORE_NotifierConfig__idm-marketplace__Url: ${MARKETPLACE_PUSH_URL}
+  # ASPNETCORE_NotifierConfig__idm-marketplace__User: ${MARKETPLACE_PUSH_USER}
+  # ASPNETCORE_NotifierConfig__idm-marketplace__Password: ${MARKETPLACE_PUSH_PSWD}
