@@ -10,8 +10,8 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "76e9e733a2d1447fa53449d1c354719aa67e60ea"
 
-imagePullSecrets:
-  - name: ghcr-odh-v2-playground-readonly
+imagePullSecrets: []
+  #- name: ghcr-odh-v2-playground-readonly
 nameOverride: "tourism-api"
 fullnameOverride: "tourism-api"
   
