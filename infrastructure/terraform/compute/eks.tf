@@ -59,7 +59,7 @@ module "eks" {
       min_size     = 1
 
       # Node instances.
-      instance_type = "t3.medium"
+      instance_type = "t3.large"
       
       # enable more pods per node using IP prefix: https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
       bootstrap_extra_args = "--use-max-pods false --kubelet-extra-args '--max-pods=110'"
