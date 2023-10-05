@@ -8,7 +8,7 @@ image:
   repository: ghcr.io/noi-techpark/odh-api-core/odh-api-core-importer
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "d01df9451fc85f1db72a43f8e6ebd29800b56c51"
+  tag: "e767e5491018000eb0cd0169d1485e2c5e9e107e"
 
 imagePullSecrets:
   - name: ghcr-odh-v2-playground-readonly
@@ -50,7 +50,7 @@ env:
   ASPNETCORE_DataBrowserConfig__Url: "https://frontend.tourism.testingmachine.eu/"
   ASPNETCORE_S3ImageresizerConfig__Url: "https://images.tourism.testingmachine.eu/api/File/GetFile/"
   ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ""
-  ASPNETCORE_S3ImageresizerConfig__AccessKey: """"
+  ASPNETCORE_S3ImageresizerConfig__AccessKey: ""
   ASPNETCORE_S3ImageresizerConfig__SecretKey: ""
   ASPNETCORE_OauthServerConfig__Authority: ""
   ASPNETCORE_ElasticSearchConfig__ElasticUrl: ""
