@@ -16,7 +16,8 @@ locals {
     "mobility.api",
     "tourism.api",
     "analytics",
-    "rabbitmq"
+    "rabbitmq",
+    "spreadsheets"
   ]
 }
 

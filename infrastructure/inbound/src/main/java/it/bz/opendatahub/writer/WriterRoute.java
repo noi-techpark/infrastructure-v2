@@ -14,45 +14,34 @@
 
 package it.bz.opendatahub.writer;
 
-import org.apache.camel.builder.RouteBuilder;
-
-import javax.enterprise.context.ApplicationScoped;
-import java.util.Optional;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Date;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.*;
-
-import org.apache.camel.component.jackson.JacksonDataFormat;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.eclipse.microprofile.config.ConfigProvider;
-
+import java.net.URLDecoder;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.enterprise.context.ApplicationScoped;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.component.rabbitmq.RabbitMQConstants;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ContainerNode;
-
-import java.io.UnsupportedEncodingException;
-
-import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URISyntaxException;
-import java.util.Map;
 
 // import it.bz.opendatahub.RabbitMQConnection;
 
