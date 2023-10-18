@@ -34,7 +34,7 @@ ingress:
   tls:
     - hosts:
       - tourism.importer.dev.testingmachine.eu
-      secretName: tls-tourism-api
+      secretName: tls-tourism-importer
   hosts:
     - host: tourism.importer.dev.testingmachine.eu
       paths:
