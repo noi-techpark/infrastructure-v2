@@ -3,6 +3,11 @@
 ## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/19.13.0
 ################################################################################
 
+resource  "aws_key_pair" "kubernetes-node" {
+  key_name = "ec2-kubernetes-node"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvyTatYJ7RURFzXBvFoLRpIWMuSXFniLFgkwtmnPV+Tk0MM0DCw12a2EHr3kptGrRyLEDP5agbwgFJEcCZJQNlvdRmaau2wqxyxtu9wML8FO05xDlYn6PPI1CKaFZU/EDwR7nNvcRuUEAg6TftDJ6tuZUxqEVId8zEVX1+0WgaoxvfFE/81erSPqUEDMzce1ENbrNnJltGSGEoEnmNg3F3EHjwyX+HQZAhJyw+AM1NWYc0kVFQF/kKp+k49ts0fBy3VQOAjqXNV4IbPDhFMCcT1GA6aMYjzJs3r7Y9BlZqMhlRc6CdoQZwiUR1PjKmUhn5zcUaySDdyB4GkmCOsi4kPGC4vOQ9+4mkCP8ZfFeFRnraDzQtoJ0MMK/Y1rXoOwKupjLF0+DfR2gtcTBivtE+By722Gb8Ttc6mKVEG5L/G8Je7yvLQUQgDLezA3G1KnW4BsNuZ2rG8my+5gbUoC6eoNmy6QKg8nYsdx+eJdjVZ4DvkxIOg5aYYxS7H0AF5JM= digital@noi.bz.it"
+}
+
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 19.13"
@@ -57,6 +62,7 @@ module "eks" {
       max_size     = 3
       desired_size = 2
       min_size     = 1
+      key_name = aws_key_pair.kubernetes-node.key_name
 
       # Node instances.
       instance_type = "t3.large"
