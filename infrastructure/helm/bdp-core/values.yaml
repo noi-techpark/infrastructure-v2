@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/noi-techpark/bdp-core/bdp-core-app
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
 
@@ -34,4 +34,9 @@ env:
   POSTGRES_SCHEMA: intimev2
   POSTGRES_USERNAME: bdp
   POSTGRES_PASSWORD: <pass by commandline>
+  LOG_LEVEL: INFO
+  LOG_STYLE: json
+  LOG_APPLICATION_NAME: writer
+  HIBERNATE_SQL_LOG: false
+  HIBERNATE_LOG_LEVEL: WARN
   
