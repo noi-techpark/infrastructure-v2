@@ -59,13 +59,13 @@ module "eks" {
       subnet_ids = [module.vpc.private_subnets[1]]
 
       # Node group autoscaling.
-      max_size     = 3
-      desired_size = 2
+      max_size     = 5
+      desired_size = 3
       min_size     = 1
       key_name = aws_key_pair.kubernetes-node.key_name
 
       # Node instances.
-      instance_type = "t3.large"
+      instance_type = "r7i.large"
       
       # enable more pods per node using IP prefix: https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
       bootstrap_extra_args = "--use-max-pods false --kubelet-extra-args '--max-pods=110'"
