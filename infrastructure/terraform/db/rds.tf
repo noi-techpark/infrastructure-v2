@@ -48,7 +48,7 @@ data "aws_security_group" "default" {
 resource "aws_db_instance" "odh-postgres" {
     identifier = "odh-postgres"
     instance_class = "db.t4g.medium"
-    allocated_storage = 20
+    allocated_storage = 100 
     engine = "postgres"
     engine_version = "15.3"
     username = "postgres"
