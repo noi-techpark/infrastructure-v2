@@ -40,17 +40,15 @@ async function monitorListingsUsingEventEmitter(client, fnPublish, topic, pipeli
         changeStream.on('change', async (next) => {
             // console.log(changeStream.resumeToken);
             const operationTime = new Date(next.clusterTime.getHighBits() * 1000);
-            // if (cursor) {
-            //     console.log(operationTime.getTime(), cursor.date.getTime());
-            //     console.log(operationTime.getTime() - cursor.date.getTime(), checkpointInterrvall);
-            // }
 
             if (!updating && (!cursor || operationTime.getTime() - cursor.date.getTime() > checkpointInterrvall))
             {
-                updating = true;
-                cursor = await flushCheckpoint(client, cursor, next.clusterTime);
-                updating = false;
-                // console.log("new cursor", cursor);
+                try {
+                    updating = true;
+                    cursor = await flushCheckpoint(client, cursor, next.clusterTime);
+                } finally {
+                    updating = false;
+                }
             }
 
             // publish {id, db and collection} to the queue the transformers will watch to know about new data
@@ -69,8 +67,11 @@ async function monitorListingsUsingEventEmitter(client, fnPublish, topic, pipeli
     })
 };
 
-async function flushCheckpoint(client, old, timestamp) {
-    const filter = old ? { _id: old._id } : {};
+async function flushCheckpoint(client, oldCursor, timestamp) {
+    console.log("Updating checkpoint cursor:");
+    console.log("old: ", oldCursor);
+
+    const filter = oldCursor ? { _id: oldCursor._id } : {};
     const options = { upsert: true };
     const updateDoc = {
         $set: {
@@ -78,9 +79,13 @@ async function flushCheckpoint(client, old, timestamp) {
         },
     };
     const result = await client.db("admin").collection("notifier_checkpoint").updateOne(filter, updateDoc, options);
-    // console.log(old, result);
+    console.log("result: ", result);
+
     const date = new Date(timestamp.getHighBits() * 1000)
-    return old ? { _id: old._id, timestamp: timestamp, date} : { _id: result.upsertedId, timestamp: timestamp, date };
+    const newCursor = oldCursor ? { _id: oldCursor._id, timestamp: timestamp, date} : { _id: result.upsertedId, timestamp: timestamp, date };
+    console.log("new: ", newCursor);
+
+    return cursor;
 }
 
 async function getCursor(client) {
