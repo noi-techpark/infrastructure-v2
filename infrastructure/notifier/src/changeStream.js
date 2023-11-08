@@ -85,7 +85,7 @@ async function flushCheckpoint(client, oldCursor, timestamp) {
     const newCursor = oldCursor ? { _id: oldCursor._id, timestamp: timestamp, date} : { _id: result.upsertedId, timestamp: timestamp, date };
     console.log("new: ", newCursor);
 
-    return cursor;
+    return newCursor;
 }
 
 async function getCursor(client) {
