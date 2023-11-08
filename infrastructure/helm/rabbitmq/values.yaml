@@ -8,27 +8,30 @@ fullnameOverride: rabbitmq
 # Set up static authentication.
 # TODO: this value should be changed in production!
 auth:
-  username: guest
-  password: guest
+  username: opendatahub
+  enableLoopbackUser: true
+    
 
 # Set up the ALB ingress for the RabbitMQ Management Console (UI).
-ingress:
-  enabled: true
-
-  annotations:
-    cert-manager.io/issuer: "letsencrypt-prod"
-
-  ingressClassName: nginx
-  hostname: rabbitmq.dev.testingmachine.eu
-  tls:
-    - hosts:
-      - rabbitmq.dev.testingmachine.eu
-      secretName: tls-rabbitmq
-  hosts:
-    - host: rabbitmq.dev.testingmachine.eu
-      paths: 
-        - path: "/"
-          pathType: Prefix
+#ingress:
+#  enabled: true
+#
+#  annotations:
+#    cert-manager.io/issuer: "letsencrypt-prod"
+#
+#  ingressClassName: nginx
+#  hostname: rabbitmq.dev.testingmachine.eu
+#  tls:
+#    - hosts:
+#      - rabbitmq.dev.testingmachine.eu
+#      secretName: tls-rabbitmq
+#  hosts:
+#    - host: rabbitmq.dev.testingmachine.eu
+#      paths: 
+#        - path: "/"
+#pathType: Prefix
 
 extraConfiguration: |
   consumer_timeout = 60000
+  
+replicaCount: 2

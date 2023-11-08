@@ -10,5 +10,9 @@ architecture: replicaset
 
 # Set up authentication.
 auth:
-  enabled: false
-  replicaSetKey: ec1916f3-417e-47f0-bb8f-ee1ce047cc5f # RANDOM
+  enabled: true
+
+serviceBindings:
+  enabled: true
+  
+#  replicaSetKey: ec1916f3-417e-47f0-bb8f-ee1ce047cc5f # RANDOM

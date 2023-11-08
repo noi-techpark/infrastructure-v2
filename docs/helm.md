@@ -15,6 +15,13 @@ In order to be able to plan, apply, and debug infrastructure provisioning, it is
 - Installation of [Helm CLI](https://helm.sh/docs/intro/install/)
 - Prerequisites of [Kubernetes](kubernetes.md#Prerequisites)
 
+## Namespaces
+
+create the namespaces the helm charts are deployed to:
+```
+kubectl create namespace core
+kubectl create namespace collectors
+```
 ## Packages
 
 ### Kubernetes Dashboard
@@ -28,7 +35,8 @@ helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 ```sh
 helm upgrade --install \
   metrics-server metrics-server/metrics-server \
-  --values infrastructure/helm/metrics-server/values.yaml
+  --values infrastructure/helm/metrics-server/values.yaml \
+  --namespace kube-system
 ```
 
 https://artifacthub.io/packages/helm/k8s-dashboard/kubernetes-dashboard
@@ -40,7 +48,8 @@ helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
 ```sh
 helm upgrade --install \
   kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
-  --values infrastructure/helm/kubernetes-dashboard/values.yaml
+  --values infrastructure/helm/kubernetes-dashboard/values.yaml \
+  --namespace kube-system
 ```
 
 ### Amazon ALB in EKS
@@ -65,7 +74,8 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 
 ```sh
 helm upgrade --install mongodb bitnami/mongodb \
-  --values infrastructure/helm/mongodb/values.yaml
+  --values infrastructure/helm/mongodb/values.yaml \
+  --namespace core
 ```
 
 ### RabbitMQ
@@ -76,7 +86,8 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 
 ```sh
 helm upgrade --install rabbitmq bitnami/rabbitmq \
-  --values infrastructure/helm/rabbitmq/values.yaml
+  --values infrastructure/helm/rabbitmq/values.yaml \
+  --namespace core
 ```
 
 ### Camel K
@@ -88,7 +99,8 @@ helm upgrade --install rabbitmq bitnami/rabbitmq \
 ```sh
 kubectl create secret docker-registry docker-secrets \
   --docker-username=[USER] \
-  --docker-password=[TOKEN]
+  --docker-password=[TOKEN]\
+  --namespace core
 
 # !!! Amazon ECR is not supported yet by Kamel, use Docker Hub instead.
 # !!! See https://github.com/apache/camel-k/issues/4107.
@@ -107,7 +119,8 @@ helm repo add camel-k https://apache.github.io/camel-k/charts
 
 helm upgrade --install camel-k camel-k/camel-k \
   --values infrastructure/helm/camel-k/values.yaml
-  --version 0.13.1
+  --version 0.13.1 \
+  --namespace core
 ```
 
 
@@ -119,7 +132,8 @@ helm repo add naps https://naps.github.io/helm-charts/
 
 ```sh
 helm upgrade --install mosquitto naps/mosquitto \
-  --values infrastructure/helm/mosquitto/values.yaml
+  --values infrastructure/helm/mosquitto/values.yaml \
+  --namespace core
 ```
 
 ### Notifier
@@ -142,7 +156,8 @@ docker push [ACCOUNT].dkr.ecr.[REGION].amazonaws.com/notifier:latest
 
 ```sh
 helm upgrade --install notifier ./infrastructure/helm/notifier/notifier \
-  --values infrastructure/helm/notifier/values.yaml
+  --values infrastructure/helm/notifier/values.yaml \
+  --namespace core
 ```
 
 ### Nginx ingress
@@ -179,15 +194,15 @@ Image tags are hardcoded, so upgrading the applications has to be done by updati
 Outbound mobility API used to query mobility data
 TODO: rewrite to /v2/ context and add the STA mobility proxies
 ```sh
-helm upgrade --install ninja-api infrastructure/helm/ninja-api/ninja-api --values infrastructure/helm/ninja-api/values.yaml --set env.DB_PASSWORD=********
+helm upgrade --install ninja-api infrastructure/helm/ninja-api/ninja-api --namespace core --values infrastructure/helm/ninja-api/values.yaml --set env.DB_PASSWORD=********
 ```
 ### Mobility core / writer
 Endpoint where data collectors and elaborations push their mobility data. Also maintains and versions the mobility database schema
 ```sh
-helm upgrade --install bdp-core infrastructure/helm/bdp-core/bdp-core --values infrastructure/helm/bdp-core/values.yaml --set env.DB_PASSWORD=********
+helm upgrade --install bdp-core infrastructure/helm/bdp-core/bdp-core --namespace core --values infrastructure/helm/bdp-core/values.yaml --set env.DB_PASSWORD=********
 ```
 ### Analytics
 Frontend application that uses Ninja-API to visualize mobility data on maps and charts
 ```sh
-helm upgrade --install analytics infrastructure/helm/analytics/analytics --values infrastructure/helm/analytics/values.yaml
+helm upgrade --install analytics infrastructure/helm/analytics/analytics --namespace core --values infrastructure/helm/analytics/values.yaml
 ```
