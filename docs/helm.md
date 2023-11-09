@@ -71,12 +71,59 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
 ```sh
 helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
+**Create the default user credentials**
+```sh
+  for MONGO_USER in writer notifier collector
+  do
+    MONGO_PW=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 12`;
+    kubectl create secret generic mongodb-${MONGO_USER}-svcbind \
+      --namespace core \
+      --type='servicebinding.io/mongodb' \
+      --from-literal=type='mongodb' \
+      --from-literal=provider='bitnami' \
+      --from-literal=host='mongodb-headless.core.svc.cluster.local' \
+      --from-literal=port='27017' \
+      --from-literal=username="${MONGO_USER}"\
+      --from-literal=password="$MONGO_PW" \
+      --from-literal=uri="mongodb://${MONGO_USER}:${TMP_MONGO_PW}@mongodb-headless.core.svc.cluster.local"
+  done
+```
 
 ```sh
 helm upgrade --install mongodb bitnami/mongodb \
   --values infrastructure/helm/mongodb/values.yaml \
   --namespace core
 ```
+
+    export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace core mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 -d)
+    kubectl run --namespace core mongodb-client --rm --tty -i --restart='Never' --env="MONGODB_ROOT_PASSWORD=$MONGODB_ROOT_PASSWORD" --image docker.io/bitnami/mongodb:6.0.9-debian-11-r5 --command -- bash
+    mongosh admin --host "mongodb-headless.core.svc.cluster.local:27017" --authenticationDatabase admin -u root -p $MONGODB_ROOT_PASSWORD
+    
+db.createUser(
+  {
+    user: "writer",
+    pwd: "12345",
+    roles: [ { role: "readWriteAnyDatabase", db: "admin" } ]
+  }
+);
+
+db.createUser(
+  {
+    user: "notifier",
+    pwd: "12345",
+    roles: [ { role: "readAnyDatabase", db: "admin" }, { role: "readWrite", db: "admin" } ]
+  }
+);
+
+db.createUser(
+  {
+    user: "collector",
+    pwd: "12345",
+    roles: [ { role: "readAnyDatabase", db: "admin" } ]
+  }
+);
+
+
 
 ### RabbitMQ
 
@@ -97,18 +144,10 @@ helm upgrade --install rabbitmq bitnami/rabbitmq \
 **Tips: install `Kamel CLI` and read the Camel K [documentation](https://camel.apache.org/camel-k/1.9.x/running/running.html).**
 
 ```sh
-kubectl create secret docker-registry docker-secrets \
+kubectl create secret docker-registry container-registry-rw \
   --docker-username=[USER] \
   --docker-password=[TOKEN]\
   --namespace core
-
-# !!! Amazon ECR is not supported yet by Kamel, use Docker Hub instead.
-# !!! See https://github.com/apache/camel-k/issues/4107.
-
-# kubectl create secret docker-registry docker-secrets \
-#   --docker-server=463112166163.dkr.ecr.eu-west-1.amazonaws.com \
-#   --docker-username=AWS \
-#   --docker-password=$(aws ecr get-login-password --region eu-west-1)
 ```
 
 ```sh
@@ -118,11 +157,10 @@ helm repo add camel-k https://apache.github.io/camel-k/charts
 ```sh
 
 helm upgrade --install camel-k camel-k/camel-k \
-  --values infrastructure/helm/camel-k/values.yaml
-  --version 0.13.1 \
+  --values infrastructure/helm/camel-k/values.yaml \
+  --version 2.1.0 \
   --namespace core
 ```
-
 
 ### Mosquitto
 
@@ -138,20 +176,13 @@ helm upgrade --install mosquitto naps/mosquitto \
 
 ### Notifier
 
-**Reminder: authenticate to docker via `aws ecr get-login-password` and `docker login` before invoking the `docker push` command.**
-
-See [https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html](Using Amazon ECR with the AWS CLI).
-
-**Reminder: update the `image.repository` configuration value.**
+**Reminder: authenticate to docker via `docker login` before invoking the `docker push` command.**
 
 **Reminder: update the `RABBITMQ_CLUSTER_URL` environment variable with valid RabbitMQ credentials.**
 
 ```sh
-aws ecr get-login-password --region [REGION] | docker login --username AWS --password-stdin [ACCOUNT].dkr.ecr.[REGION].amazonaws.com
-# See https://docs.aws.amazon.com/AmazonECR/latest/userguide/getting-started-cli.html for more information.
-
-docker build -t [ACCOUNT].dkr.ecr.[REGION].amazonaws.com/notifier:latest .
-docker push [ACCOUNT].dkr.ecr.[REGION].amazonaws.com/notifier:latest
+docker build -t ghcr.io/noi-techpark/odh-infrastructure-v2/notifier:latest .
+docker push ghcr.io/noi-techpark/odh-infrastructure-v2/notifier:latest
 ```
 
 ```sh

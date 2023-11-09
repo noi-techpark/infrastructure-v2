@@ -11,8 +11,13 @@ architecture: replicaset
 # Set up authentication.
 auth:
   enabled: true
-
-serviceBindings:
-  enabled: true
+    
+# initdbScripts:
+#   init.js: |
+#    db.addUser...
   
+# we create this manually and don't need it for root
+#serviceBindings:
+#  enabled: true
+
 #  replicaSetKey: ec1916f3-417e-47f0-bb8f-ee1ce047cc5f # RANDOM

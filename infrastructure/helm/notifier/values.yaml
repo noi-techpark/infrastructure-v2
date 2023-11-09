@@ -3,15 +3,21 @@
 # SPDX-License-Identifier: CC0-1.0
 
 image:
-  repository: 828408288281.dkr.ecr.eu-west-1.amazonaws.com/notifier
+  repository: ghcr.io/noi-techpark/odh-infrastructure-v2/notifier
   pullPolicy: Always # Workaround: this is necessary since we are using the `latest` tag.
   tag: latest # Woraround: ideally here we should use the image `sha256` unique hash.
-  imagePullSecrets: ecr-secrets
+  imagePullSecrets: container-registry-r
 
 env:
   - name: MONGODB_CONNECTION_STRING
-    value: mongodb://mongodb-headless.default.svc.cluster.local:27017
+    valueFrom:
+      secretKeyRef: 
+        name: mongodb-svcbind
+        key: uri
   - name: MONGODB_CONNECTION_REPLICA_SET
     value: rs0
   - name: RABBITMQ_CLUSTER_URL
-    value: guest:guest@rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672
+    valueFrom:
+      secretKeyRef: 
+        name: rabbitmq-svcbind
+        key: uri

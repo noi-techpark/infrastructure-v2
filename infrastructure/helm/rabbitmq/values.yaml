@@ -6,11 +6,12 @@
 fullnameOverride: rabbitmq
 
 # Set up static authentication.
-# TODO: this value should be changed in production!
 auth:
   username: opendatahub
-  enableLoopbackUser: true
+#  enableLoopbackUser: true
     
+serviceBindings:
+  enabled: true
 
 # Set up the ALB ingress for the RabbitMQ Management Console (UI).
 #ingress:

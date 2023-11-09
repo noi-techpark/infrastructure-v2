@@ -13,7 +13,7 @@ platform:
       # organization: kamel
       address: ghcr.io
       organization: noi-techpark/odh-v2-playground/camel
-      secret: ghcr-odh-v2-playground-readonly
+      secret: container-registry-rw
 
 # Before deploying Camel-K remember to create the required docker secrets:
 #

@@ -70,10 +70,11 @@ async function main() {
     let conn = undefined;
 
     while (!conn) {
-        conn = await amqplib.connect(`amqp://${process.env.RABBITMQ_CLUSTER_URL}`).catch(err => console.log(err));
+        const rabbitURI = process.env.RABBITMQ_CLUSTER_URL;
+        conn = await amqplib.connect(`${rabbitURI}`).catch(err => console.log(err));
         await new Promise(r => setTimeout(r, 2000));
     }
-    console.log(`connected to rabbitmq ${process.env.RABBITMQ_CLUSTER_URL}`);
+    console.log(`connected to rabbitmq!`);
 
     const readyExchange = "ready";
     const rabbitChannel = await conn.createChannel();
@@ -94,7 +95,7 @@ async function main() {
 
         // ! the nofier may starts when the changestream is not ready
         // ! and it won't subscribe until a restart
-        console.log(`connecting to db ${process.env.MONGODB_CONNECTION_STRING}`)
+        console.log(`connecting to db...`)
         await client.connect();
 
         // Make the appropriate DB calls
@@ -103,7 +104,7 @@ async function main() {
     } finally {
         // Close the connection to the MongoDB cluster
         await client.close();
-        console.log(`error connecting to db ${process.env.MONGODB_CONNECTION_STRING}`)
+        console.log(`error connecting to db`)
     }
 }
 
