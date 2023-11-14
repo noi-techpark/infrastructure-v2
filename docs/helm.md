@@ -125,8 +125,6 @@ mongosh admin --host 'mongodb-headless.core.svc.cluster.local:27017' --authentic
 "
 ```
 
-
-
 ### RabbitMQ
 
 ```sh

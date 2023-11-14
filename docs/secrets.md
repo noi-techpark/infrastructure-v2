@@ -40,6 +40,46 @@ NB: You also have to create the user in mongo with these credentials. see helm.m
       --from-literal=port='27017' \
       --from-literal=username="${MONGO_USER}"\
       --from-literal=password="$MONGO_PW" \
-      --from-literal=uri="mongodb://${MONGO_USER}:${TMP_MONGO_PW}@mongodb-headless.core.svc.cluster.local"
+      --from-literal=uri="mongodb://${MONGO_USER}:${MONGO_PW}@mongodb-headless.core.svc.cluster.local"
   done
+```
+## postgresql
+Create secrets for rw and ro users using servicebind standard
+
+```sh
+  # terraform init so you have access to the state
+  (cd infrastructure/terraform/db; terraform init)
+
+  # Extract the user credentials and database coordinates from terraform:
+  EXTRACTED_JSON=`terraform -chdir=infrastructure/terraform/db output -json | jq -r '{hostname: .odh_postgres_hostname.value, port: .odh_postgres_port.value, pw_readwrite: .odh_postgres_password_bdp.value, pw_readonly: .odh_postgres_password_bdp_readonly.value}'`
+
+  # Get the value from the extracted json. You can supply your values in another way if you didn't use the terraform script
+  POSTGRES_HOST=`jq '.hostname' -r <<< "$EXTRACTED_JSON"`
+  POSTGRES_PORT=`jq '.port' -r <<< "$EXTRACTED_JSON"`
+  POSTGRES_R_PW=`jq '.pw_readonly' -r <<< "$EXTRACTED_JSON"`
+  POSTGRES_RW_PW=`jq '.pw_readwrite' -r <<< "$EXTRACTED_JSON"`
+  POSTGRES_DB=bdp
+  POSTGRES_SCHEMAS='intimev2,public'
+
+  kubectl create secret generic postgres-readwrite-svcbind \
+    --namespace core \
+    --type='servicebinding.io/postgresql' \
+    --from-literal=type='postgresql' \
+    --from-literal=provider='rds' \
+    --from-literal=host="$POSTGRES_HOST" \
+    --from-literal=port="$POSTGRES_PORT" \
+    --from-literal=username="bdp" \
+    --from-literal=password="$POSTGRES_RW_PW" \
+    --from-literal=uri="postgresql://bdp:${POSTGRES_RW_PW}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMAS}"
+
+  kubectl create secret generic postgres-read-svcbind \
+    --namespace core \
+    --type='servicebinding.io/postgresql' \
+    --from-literal=type='postgresql' \
+    --from-literal=provider='rds' \
+    --from-literal=host="$POSTGRES_HOST" \
+    --from-literal=port="$POSTGRES_PORT" \
+    --from-literal=username="bdp_readonly" \
+    --from-literal=password="$POSTGRES_R_PW" \
+    --from-literal=uri="postgresql://bdp_readonly:${POSTGRES_R_PW}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMAS}"
 ```
