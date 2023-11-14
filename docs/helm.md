@@ -95,33 +95,35 @@ helm upgrade --install mongodb bitnami/mongodb \
   --namespace core
 ```
 
-    export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace core mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 -d)
-    kubectl run --namespace core mongodb-client --rm --tty -i --restart='Never' --env="MONGODB_ROOT_PASSWORD=$MONGODB_ROOT_PASSWORD" --image docker.io/bitnami/mongodb:6.0.9-debian-11-r5 --command -- bash
-    mongosh admin --host "mongodb-headless.core.svc.cluster.local:27017" --authenticationDatabase admin -u root -p $MONGODB_ROOT_PASSWORD
-    
-db.createUser(
-  {
-    user: "writer",
-    pwd: "12345",
-    roles: [ { role: "readWriteAnyDatabase", db: "admin" } ]
-  }
-);
-
-db.createUser(
-  {
-    user: "notifier",
-    pwd: "12345",
-    roles: [ { role: "readAnyDatabase", db: "admin" }, { role: "readWrite", db: "admin" } ]
-  }
-);
-
-db.createUser(
-  {
-    user: "collector",
-    pwd: "12345",
-    roles: [ { role: "readAnyDatabase", db: "admin" } ]
-  }
-);
+```sh
+# Run a mongodb client container. Then within the container execute the create user script.
+# Credentials for the single users are extracted via kubectl from the corresponding secrets (see secrets.md for how to create them)
+export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace core mongodb -o jsonpath='{.data.mongodb-root-password}' | base64 -d)
+kubectl run --namespace core mongodb-client --rm --tty -i --restart='Never' --env="MONGODB_ROOT_PASSWORD=$MONGODB_ROOT_PASSWORD" --image docker.io/bitnami/mongodb:6.0.9-debian-11-r5 --command -- \
+mongosh admin --host 'mongodb-headless.core.svc.cluster.local:27017' --authenticationDatabase admin -u root -p $MONGODB_ROOT_PASSWORD --eval "
+	db.createUser(
+	  {
+	    user: '`kubectl get secret --namespace core mongodb-writer-svcbind -o jsonpath='{.data.username}' | base64 -d`',
+	    pwd: '`kubectl get secret --namespace core mongodb-writer-svcbind -o jsonpath='{.data.password}' | base64 -d`',
+	    roles: [ { role: 'readWriteAnyDatabase', db: 'admin' } ]
+	  }
+	);
+	db.createUser(
+	  {
+	    user: '`kubectl get secret --namespace core mongodb-notifier-svcbind -o jsonpath='{.data.username}' | base64 -d`',
+	    pwd: '`kubectl get secret --namespace core mongodb-notifier-svcbind -o jsonpath='{.data.password}' | base64 -d`',
+	    roles: [ { role: 'readAnyDatabase', db: 'admin' }, { role: 'readWrite', db: 'admin' } ]
+	  }
+	);
+	db.createUser(
+	  {
+	    user: '`kubectl get secret --namespace core mongodb-collector-svcbind -o jsonpath='{.data.username}' | base64 -d`',
+	    pwd: '`kubectl get secret --namespace core mongodb-collector-svcbind -o jsonpath='{.data.password}' | base64 -d`',
+	    roles: [ { role: 'readAnyDatabase', db: 'admin' } ]
+	  }
+	);
+"
+```
 
 
 
