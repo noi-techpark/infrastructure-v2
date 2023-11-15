@@ -12,7 +12,7 @@ env:
   - name: MONGODB_CONNECTION_STRING
     valueFrom:
       secretKeyRef: 
-        name: mongodb-svcbind
+        name: mongodb-notifier-svcbind
         key: uri
   - name: MONGODB_CONNECTION_REPLICA_SET
     value: rs0

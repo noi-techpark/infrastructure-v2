@@ -41,10 +41,7 @@ async function main() {
      * pass option { useUnifiedTopology: true } to the MongoClient constructor.
      * const client =  new MongoClient(uri, {useUnifiedTopology: true})
      */
-    const client = new MongoClient(uri, { 
-        useUnifiedTopology: true, 
-        replicaSet: process.env.MONGODB_CONNECTION_REPLICA_SET 
-    });
+    const client = new MongoClient(uri);
 
     /**
      * MQTT client for test env

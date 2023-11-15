@@ -100,7 +100,7 @@ helm upgrade --install mongodb bitnami/mongodb \
 # Credentials for the single users are extracted via kubectl from the corresponding secrets (see secrets.md for how to create them)
 export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace core mongodb -o jsonpath='{.data.mongodb-root-password}' | base64 -d)
 kubectl run --namespace core mongodb-client --rm --tty -i --restart='Never' --env="MONGODB_ROOT_PASSWORD=$MONGODB_ROOT_PASSWORD" --image docker.io/bitnami/mongodb:6.0.9-debian-11-r5 --command -- \
-mongosh admin --host 'mongodb-headless.core.svc.cluster.local:27017' --authenticationDatabase admin -u root -p $MONGODB_ROOT_PASSWORD --eval "
+mongosh 'mongodb+srv://mongodb-headless.core.svc.cluster.local/admin?tls=false' --authenticationDatabase admin -u root -p $MONGODB_ROOT_PASSWORD --eval "
 	db.createUser(
 	  {
 	    user: '`kubectl get secret --namespace core mongodb-writer-svcbind -o jsonpath='{.data.username}' | base64 -d`',
