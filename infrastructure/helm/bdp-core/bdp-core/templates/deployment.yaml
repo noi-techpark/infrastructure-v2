@@ -35,23 +35,38 @@ spec:
             - name: {{ $k }}
               value: {{ $v | quote }}
           {{- end }}
-          {{- if .Values.databse.servicebind-name}}
-            - name: "POSTGRES_URL"
+          {{- if .Values.database.servicebindName }}
+            - name: "POSTGRES_SERVER"
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.database.servicebind-name}}
-                  key: "uri"
-            - name: "JDBC_URL"
-              value: "jdbc:${POSTGRES_URL}"
-            - name: "DB_USERNAME"
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "host"
+            - name: "POSTGRES_PORT"
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.database.servicebind-name}}
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "port"
+            - name: "POSTGRES_DB"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "db"
+            # Schema is in the svcbind but it's intimev2,public. This can be enabled once bdp core doesn't auto append the "public" anymore
+            # For now set this separately as an env variable
+            # - name: "POSTGRES_SCHEMA"
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: {{ .Values.database.servicebindName | quote }}
+            #       key: "schema"
+            - name: "POSTGRES_USERNAME"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.servicebindName | quote }}
                   key: "username"
-            - name: "DB_PASSWORD"
+            - name: "POSTGRES_PASSWORD"
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.database.servicebind-name}}
+                  name: {{ .Values.database.servicebindName | quote }}
                   key: "password"
           {{- end }}
           ports:

@@ -38,10 +38,9 @@ env:
   # POSTGRES_SERVER: postgres.hostname.com
   # POSTGRES_PORT: 5432
   # POSTGRES_DB: bdp
+  # POSTGRES_SCHEMA: intimev2
   # POSTGRES_USERNAME: bdp
   # POSTGRES_PASSWORD: <pass by commandline>
-  #
-  POSTGRES_SCHEMA: intimev2
   
 database:
   servicebindName: "postgres-readwrite-svcbind"
