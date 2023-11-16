@@ -35,6 +35,41 @@ spec:
             - name: {{ $k }}
               value: {{ $v | quote }}
           {{- end }}
+          {{- if .Values.database.servicebindName }}
+            - name: "DB_HOST"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "host"
+            - name: "DB_PORT"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "port"
+            - name: "DB_DATABASE"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "db"
+            - name: "DB_SCHEMAS"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "schema"
+            # Why not use the servicebind.uri you ask? Because jdbc connection string don't support the way credentials are passed in the standard URI format
+            - name: "JDBC_URL"
+              value: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}?currentSchema=${DB_SCHEMAS}"
+            - name: "DB_USERNAME"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "username"
+            - name: "DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.servicebindName | quote }}
+                  key: "password"
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

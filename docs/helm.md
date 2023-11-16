@@ -225,12 +225,12 @@ Image tags are hardcoded, so upgrading the applications has to be done by updati
 Outbound mobility API used to query mobility data
 TODO: rewrite to /v2/ context and add the STA mobility proxies
 ```sh
-helm upgrade --install ninja-api infrastructure/helm/ninja-api/ninja-api --namespace core --values infrastructure/helm/ninja-api/values.yaml --set env.DB_PASSWORD=********
+helm upgrade --install ninja-api infrastructure/helm/ninja-api/ninja-api --namespace core --values infrastructure/helm/ninja-api/values.yaml
 ```
 ### Mobility core / writer
 Endpoint where data collectors and elaborations push their mobility data. Also maintains and versions the mobility database schema
 ```sh
-helm upgrade --install bdp-core infrastructure/helm/bdp-core/bdp-core --namespace core --values infrastructure/helm/bdp-core/values.yaml --set env.DB_PASSWORD=********
+helm upgrade --install bdp-core infrastructure/helm/bdp-core/bdp-core --namespace core --values infrastructure/helm/bdp-core/values.yaml
 ```
 ### Analytics
 Frontend application that uses Ninja-API to visualize mobility data on maps and charts

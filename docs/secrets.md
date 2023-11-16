@@ -70,6 +70,8 @@ Create secrets for rw and ro users using servicebind standard
     --from-literal=port="$POSTGRES_PORT" \
     --from-literal=username="bdp" \
     --from-literal=password="$POSTGRES_RW_PW" \
+    --from-literal=db="$POSTGRES_DB" \
+    --from-literal=schema="$POSTGRES_SCHEMAS" \
     --from-literal=uri="postgresql://bdp:${POSTGRES_RW_PW}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMAS}"
 
   kubectl create secret generic postgres-read-svcbind \
@@ -81,5 +83,7 @@ Create secrets for rw and ro users using servicebind standard
     --from-literal=port="$POSTGRES_PORT" \
     --from-literal=username="bdp_readonly" \
     --from-literal=password="$POSTGRES_R_PW" \
+    --from-literal=db="$POSTGRES_DB" \
+    --from-literal=schema="$POSTGRES_SCHEMAS" \
     --from-literal=uri="postgresql://bdp_readonly:${POSTGRES_R_PW}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMAS}"
 ```

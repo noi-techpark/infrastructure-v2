@@ -40,3 +40,5 @@ env:
   HIBERNATE_SQL_LOG: false
   HIBERNATE_LOG_LEVEL: WARN
   
+database:
+  servicebind-name: "postgres-readwrite-svcbind"
