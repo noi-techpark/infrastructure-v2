@@ -2,135 +2,152 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// camel-k: dependency=mvn:io.quarkus:quarkus-mongodb-client
-// camel-k: dependency=mvn:org.apache.camel:camel-jackson:3.6.0
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-jackson
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-mongodb
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
+// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
 // camel-k: dependency=mvn:org.apache.commons:commons-lang3:3.12.0
 
+package com.opendatahub.inbound.mqtt;
 
-package it.bz.opendatahub.writer;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.paho.PahoConstants;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.enterprise.context.ApplicationScoped;
+import java.util.Optional;
+
+import org.eclipse.microprofile.config.ConfigProvider;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.enterprise.context.ApplicationScoped;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jackson.JacksonDataFormat;
 import org.apache.camel.component.rabbitmq.RabbitMQConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.microprofile.config.ConfigProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 
-// import it.bz.opendatahub.RabbitMQConnection;
+import java.io.UnsupportedEncodingException;
 
-class MongoDBConnection {
-    String host;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URISyntaxException;
+import java.util.Map;
+
+// import com.opendatahub.RabbitMQConnection;
+// import com.opendatahub.WrapperProcessor;
+
+/**
+ * MQTT configuration as defined by Quarkus.
+ * <p>
+ * The data in this interface is taken from System properties, ENV variables,
+ * .env file and more. Take a look at https://quarkus.io/guides/config-reference
+ * to see how it works.
+ */
+class MqttConfig {
+    String url;
+
+    // Username is optional and may not be set
+    Optional<String> user;
+
+    // Password is optional and may not be set
+    Optional<String> pass;
 }
 
 /**
- * Route to read from INTERNAL MQTT and store data in rawDataTable.
+ * Route to read from MQTT.
  */
 @ApplicationScoped
-public class WriterRoute extends RouteBuilder {
-
+public class MqttRoute extends RouteBuilder {
+    private MqttConfig mqttConfig;
     private final RabbitMQConnection rabbitMQConfig;
-    private final MongoDBConnection mongoDBConnection;
 
-    public WriterRoute()
+    public MqttRoute()
     {
-        this.rabbitMQConfig = new RabbitMQConnection();
-        this.mongoDBConnection = new MongoDBConnection();
+        this.mqttConfig = new MqttConfig();
+        this.mqttConfig.url = ConfigProvider.getConfig().getValue("mqtt.url", String.class);
+        this.mqttConfig.user = ConfigProvider.getConfig().getOptionalValue("mqtt.user", String.class);
+        this.mqttConfig.pass = ConfigProvider.getConfig().getOptionalValue("mqtt.pass", String.class);
 
-        this.mongoDBConnection.host = ConfigProvider.getConfig().getValue("mongodb.host", String.class);
+        this.rabbitMQConfig = new RabbitMQConnection();
     } 
 
     @Override
     public void configure() {
-        // Read from RabbitMQ ingress
-        // Writes a valid BSON object to MongoDB
-        // TODO Add throtling if needed
-        // https://camel.apache.org/components/3.18.x/rabbitmq-component.html
-        from(this.rabbitMQConfig.getRabbitMQIngressFrom())
-            .routeId("[Route: Writer]")
-            //.throttle(100).timePeriodMillis(10000)
-            // .log("WRITE| ${body}")
-            .unmarshal(new JacksonDataFormat())
-            .process(exchange -> {
-                // First we unmarshal the payload
-                Map<String, Object> body = (HashMap<String, Object>)exchange.getMessage().getBody(Map.class);
-                Object timestamp = body.get("timestamp");
-                // we convert the timestamp field into a valid BSON TimeStamp
-                if (timestamp != null)
-                {
-                    Instant instant = Instant.parse((String)timestamp);
-                    Date dateTimestamp = Date.from(instant);
-                    body.put("bsontimestamp", dateTimestamp);
-                }
-                exchange.getMessage().setBody(body);
-                // we then compute the database connection using the message body (in this case we only care bout the field `provider`)
-                // and store the connection string in the `database` header to be used later
-                exchange.getMessage().setHeader("database", getDatabaseString((String)body.get("provider")));
-            })
-            // we don't use `.to()` because the connection string is dynamic and we use the previously set header `database`
-            // to send the data to the database
-            .recipientList(header("database"))
+        MqttConfigLogger.log(mqttConfig);
+
+        String mqttConnectionString = getMqttConnectionString();
+
+        // Use MQTT connection
+        // wrap message and send to RabbitMQ ingress
+        from(mqttConnectionString)
+            .routeId("[Route: MQTT subscription]")
+            .log("MQTT| ${body}")
+            // .log("MQTT| ${headers}")
+            .process(exchange -> WrapperProcessor.process(exchange, exchange.getIn().getHeader(PahoConstants.MQTT_TOPIC).toString()))
+            .choice()
+                // forward to fastline
+                .when(header("fastline").isEqualTo(true))
+                    // we handle the request as invalid and forward the encapsulated payload to 
+                    // whatever mechanism we want to use to store malformed data
+                    .to(this.rabbitMQConfig.getRabbitMQFastlineConnectionString())
+            .end()
+            .choice()
+            // if the payload is not a valid json
+            .when(header("valid").isEqualTo(false))
+                // we handle the request as invalid and forward the encapsulated payload to 
+                // whatever mechanism we want to use to store malformed data
+                .to(this.rabbitMQConfig.getRabbitMQIngressDeadletterTo())
+            .otherwise()
+                // otherwise we forward the encapsulated message to the 
+                // internal queue waiting to be written in rawDataTable
+                .to(this.rabbitMQConfig.getRabbitMQIngressTo())
             .end();
     }
 
-    /**
-     * For the purpose of the PoC, we use a single MongoDB deployment as rawDataTable.
-     * The db name is the first token of the provider uri
-     * The collection name is the second token of the provider uri
-     *      if there is only one token it will be used as collection as well
-     * 
-     * If we need to use multiple deployments or custom paths, you should edit this function.
-     * References:
-     * https://camel.apache.org/components/3.20.x/mongodb-component.html
-     * https://quarkus.io/guides/mongodb
-     */
-    // ! invalid collection & db characters (on linux deployment): /\. "$ 
-    // https://www.mongodb.com/docs/manual/reference/limits/#std-label-restrictions-on-db-names
-    private String getDatabaseString(String provider) throws URISyntaxException {
-        String[] tokens = new URI(provider).getPath().split("/");
-        String db = tokens[0];
-        String collection = tokens[0];
-        if (tokens.length > 1) {
-            collection = tokens[1];
-        }
-        final StringBuilder uri = new StringBuilder(String.format("mongodb:dummy?hosts=%s&database=%s&collection=%s&operation=insert", 
-        this.mongoDBConnection.host, db, collection));
+    private String getMqttConnectionString() {
+        // paho-mqtt5 has some problems with the retained messages on startup
+        // -> https://stackoverflow.com/questions/56248757/camel-paho-routes-not-receiving-offline-messages-while-connecting-back
+
+        // therefore we use paho
+        final StringBuilder uri = new StringBuilder(String.format("paho:#?brokerUrl=%s&cleanSession=false&qos=2&clientId=mqtt-route", 
+            mqttConfig.url));
+
+        // Check if MQTT credentials are provided. If so, then add the credentials to the connection string
+        mqttConfig.user.ifPresent(user -> uri.append(String.format("&userName=%s", user)));
+        mqttConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
+
         return uri.toString();
     }
+
 }
 
-final class WriterConfigLogger {
+final class MqttConfigLogger {
 
-    private static Logger LOG = LoggerFactory.getLogger(WriterConfigLogger.class);
+    private static Logger LOG = LoggerFactory.getLogger(MqttConfigLogger.class);
 
-    private WriterConfigLogger() {
+    private MqttConfigLogger() {
         // Private constructor, don't allow new instances
+    }
+
+    public static void log(MqttConfig config) {
+        String url = config.url;
+        String user = config.user.orElseGet(() -> "*** no user ***");
+        String pass = config.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
+
+        LOG.info("MQTT URL: {}", url);
+        LOG.info("MQTT user: {}", user);
+        LOG.info("MQTT password: {}", pass);
     }
 }
 

@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-package it.bz.opendatahub.transformer; 
+package com.opendatahub.transformer; 
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;

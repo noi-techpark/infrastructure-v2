@@ -10,7 +10,10 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-vertx-websocket
 
-package it.bz.opendatahub.outbound.update;
+// camel-k: trait=ingress.enabled=false
+// camel-k: trait=service.enabled=true trait=service.type=NodePort
+
+package com.opendatahub.outbound.fastline;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.rabbitmq.RabbitMQConstants;
@@ -28,6 +31,8 @@ import org.apache.camel.component.vertx.websocket.VertxWebsocketConstants;
 class RabbitMQConfig {
     String cluster;
 
+    String ingressQueue;
+
     // Username is optional and may not be set
     Optional<String> user;
 
@@ -39,14 +44,14 @@ class RabbitMQConfig {
  * Route to read from RabbitMQ.
  */
 @ApplicationScoped
-public class UpdateRoute extends RouteBuilder {
-    static final String RABBITMQ_UPDATE_QUEUE = "push-update-q";
-    static final String RABBITMQ_UPDATE_EXCHANGE = "push-update";
+public class FastlineRoute extends RouteBuilder {
+    static final String RABBITMQ_FASTLINE_QUEUE = "fastline-q";
+    static final String RABBITMQ_FASTLINE_EXCHANGE = "fastline";
 
     private RabbitMQConfig RabbitMQConfig;
     private Optional<Boolean> isLocal;
 
-    public UpdateRoute()
+    public FastlineRoute()
     {
         this.RabbitMQConfig = new RabbitMQConfig();
         this.RabbitMQConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
@@ -59,27 +64,24 @@ public class UpdateRoute extends RouteBuilder {
     public void configure() {
         String RabbitMQConnectionString = getRabbitMQConnectionString();
 
-        System.out.println(RabbitMQConnectionString);
-
         // Use RabbitMQ connection
         from(RabbitMQConnectionString)
-            .routeId("[Route: update]")
+            .routeId("[Route: fastline]")
             .process(exchange -> {
-
                 String destination = "";
                 String route = exchange.getMessage().getHeader(RabbitMQConstants.ROUTING_KEY).
                     toString().
                     replaceAll("\\.", "/");
                 if (this.isLocal.isPresent()) {
-                    destination = String.format("websocket://0.0.0.0:8082/update?sendToAll=true,"+
-                        "websocket://0.0.0.0:8082/update/%s?sendToAll=true",
+                    destination = String.format("websocket://0.0.0.0:8081/fastline?sendToAll=true,"+
+                        "websocket://0.0.0.0:8081/fastline/%s?sendToAll=true",
                         route
                     );
                 } else {
                     // Kamel
                     exchange.getMessage().setHeader(VertxWebsocketConstants.SEND_TO_ALL, true);
-                    destination = String.format("vertx-websocket://0.0.0.0:8082/update,"+
-                        "vertx-websocket://0.0.0.0:8082/update/%s",
+                    destination = String.format("vertx-websocket://0.0.0.0:8081/fastline,"+
+                        "vertx-websocket://0.0.0.0:8081/fastline/%s",
                         route
                     );
                 }
@@ -97,7 +99,7 @@ public class UpdateRoute extends RouteBuilder {
             "&routingKey=#"+ // any routing key
             "&exchangeType=topic"+
             "&autoDelete=false", 
-            RABBITMQ_UPDATE_EXCHANGE, RabbitMQConfig.cluster, RABBITMQ_UPDATE_QUEUE));
+            RABBITMQ_FASTLINE_EXCHANGE, RabbitMQConfig.cluster, RABBITMQ_FASTLINE_QUEUE));
 
         // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
         RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));

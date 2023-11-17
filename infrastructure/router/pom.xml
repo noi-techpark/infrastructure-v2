@@ -10,7 +10,7 @@ SPDX-License-Identifier: CC0-1.0
   xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>it.bz.opendatahub</groupId>
+  <groupId>com.opendatahub</groupId>
   <artifactId>outbrouteround</artifactId>
   <version>1.0.0</version>
   <properties>

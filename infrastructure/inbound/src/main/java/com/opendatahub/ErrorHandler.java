@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-package it.bz.opendatahub.outbound;
+package com.opendatahub;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;

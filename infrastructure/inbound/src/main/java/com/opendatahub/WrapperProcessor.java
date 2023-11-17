@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-package it.bz.opendatahub;
+package com.opendatahub;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

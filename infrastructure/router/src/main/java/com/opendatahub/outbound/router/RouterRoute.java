@@ -9,7 +9,7 @@
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
 
-package it.bz.opendatahub.outbound.router;
+package com.opendatahub.outbound.router;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.rabbitmq.RabbitMQConstants;

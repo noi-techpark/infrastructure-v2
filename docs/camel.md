@@ -45,7 +45,7 @@ Example:
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho-mqtt5
 // camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
 
-package it.bz.opendatahub.inbound.mqtt;
+package com.opendatahub.inbound.mqtt;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.paho.mqtt5.PahoMqtt5Constants;
@@ -65,7 +65,7 @@ kamel run \
   --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
   --property rabbitmq.user='guest' \
   --property rabbitmq.pass='guest' \
-    infrastructure/inbound/src/main/java/it/bz/opendatahub/inbound/mqtt/MqttRoute.java
+    infrastructure/inbound/src/main/java/com/opendatahub/inbound/mqtt/MqttRoute.java
 ```
 
 ### Run the **REST Route (REST and WebSocket)**
@@ -76,7 +76,7 @@ kamel run \
   --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
   --property rabbitmq.user='guest' \
   --property rabbitmq.pass='guest' \
-    infrastructure/inbound/src/main/java/it/bz/opendatahub/inbound/rest/RestRoute.java
+    infrastructure/inbound/src/main/java/com/opendatahub/inbound/rest/RestRoute.java
 ```
 
 ### Run the **Writer Route (MongoDB)**
@@ -90,7 +90,7 @@ kamel run \
   --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
   --property rabbitmq.user='guest' \
   --property rabbitmq.pass='guest' \
-    infrastructure/inbound/src/main/java/it/bz/opendatahub/writer/WriterRoute.java
+    infrastructure/inbound/src/main/java/com/opendatahub/writer/WriterRoute.java
 ```
 
 ### Run the **Sample Pull Route (Südtirol Wine)**
@@ -104,7 +104,7 @@ kamel run \
   --property pull.provider='suedtirol/wein2?fastline=false' \
   --property pull.endpoints='https://suedtirolwein.secure.consisto.net/companies.ashx,https://suedtirolwein.secure.consisto.net/awards.ashx' \
   --property pull.endpointKeys='companies,awards' \
-    infrastructure/inbound/src/main/java/it/bz/opendatahub/pull/PullRoute.java
+    infrastructure/inbound/src/main/java/com/opendatahub/pull/PullRoute.java
 ```
 
 ### Run the **Fastline Route (WebSocket)**
@@ -115,7 +115,7 @@ kamel run \
   --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
   --property rabbitmq.user='guest' \
   --property rabbitmq.pass='guest' \
-    infrastructure/router/src/main/java/it/bz/opendatahub/outbound/fastline/FastlineRoute.java
+    infrastructure/router/src/main/java/com/opendatahub/outbound/fastline/FastlineRoute.java
 ```
 
 ### Run the **Router Route (RabbitMQ)**
@@ -126,7 +126,7 @@ kamel run \
   --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
   --property rabbitmq.user='guest' \
   --property rabbitmq.pass='guest' \
-    infrastructure/router/src/main/java/it/bz/opendatahub/outbound/router/RouterRoute.java
+    infrastructure/router/src/main/java/com/opendatahub/outbound/router/RouterRoute.java
 ```
 
 ### Run the **Update Route**
@@ -137,7 +137,7 @@ kamel run \
   --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
   --property rabbitmq.user='guest' \
   --property rabbitmq.pass='guest' \
-    infrastructure/router/src/main/java/it/bz/opendatahub/outbound/update/UpdateRoute.java
+    infrastructure/router/src/main/java/com/opendatahub/outbound/update/UpdateRoute.java
 ```
 
 ## Delete Camel Routes
