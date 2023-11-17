@@ -56,15 +56,29 @@ Reference: [Blog Article](https://piotrminkowski.com/2020/12/08/apache-camel-k-a
 
 ## How to deploy routes via Camel K CLI
 
+###
+Create secret common to all routes:
+```sh
+RABBITMQ_HOST="$(kubectl get secret -n core rabbitmq-svcbind -o jsonpath='{.data.host}' | base64 -d)"
+RABBITMQ_PORT="$(kubectl get secret -n core rabbitmq-svcbind -o jsonpath='{.data.port}' | base64 -d)"
+RABBITMQ_USER="$(kubectl get secret -n core rabbitmq-svcbind -o jsonpath='{.data.username}' | base64 -d)"
+RABBITMQ_PASS="$(kubectl get secret -n core rabbitmq-svcbind -o jsonpath='{.data.password}' | base64 -d)"
+RABBITMQ_CLUSTER_URL=$RABBITMQ_HOST:$RABBITMQ_PORT
+kubectl create secret generic kamel-credentials \
+  --namespace core \
+  --from-literal=rabbitmq.cluster="$RABBITMQ_CLUSTER_URL" \
+  --from-literal=rabbitmq.user="$RABBITMQ_USER" \
+  --from-literal=rabbitmq.pass="$RABBITMQ_PASS" 
+```
+
 ### Run the **MQTT Route**
 
 ```
 kamel run \
+  --namespace core \
   --name mqtt-route \
   --property mqtt.url='tcp://mosquitto:1883' \
-  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
-  --property rabbitmq.user='guest' \
-  --property rabbitmq.pass='guest' \
+  --property secret:kamel-credentials \
     infrastructure/inbound/src/main/java/com/opendatahub/inbound/mqtt/MqttRoute.java
 ```
 
@@ -72,9 +86,10 @@ kamel run \
 
 ```
 kamel run \
+  --namespace core \
   --name rest-route \
-  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
-  --property rabbitmq.user='guest' \
+  --property rabbitmq.cluster='rabbitmq-headless.core.svc.cluster.local:5672' \
+  --property rabbitmq.user=secret:rabbitmq-svcbind/username \
   --property rabbitmq.pass='guest' \
     infrastructure/inbound/src/main/java/com/opendatahub/inbound/rest/RestRoute.java
 ```
@@ -112,7 +127,7 @@ kamel run \
 ```
 kamel run \
   --name fastline-route \
-  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+  --property rabbitmq.cluster='rabbitmq-headless.default.svc.cluster.local:5672' \
   --property rabbitmq.user='guest' \
   --property rabbitmq.pass='guest' \
     infrastructure/router/src/main/java/com/opendatahub/outbound/fastline/FastlineRoute.java
