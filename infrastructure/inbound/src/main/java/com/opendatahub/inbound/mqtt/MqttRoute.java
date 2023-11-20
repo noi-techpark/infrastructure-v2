@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
+// camel-k: dependency=camel:bean
+// camel-k: dependency=camel:openapi-java
+// camel-k: dependency=camel:paho
+// camel-k: dependency=camel:spring-rabbitmq
+// camel-k: dependency=camel:seda
+// camel-k: dependency=camel:stream
 // camel-k: dependency=mvn:org.apache.commons:commons-lang3:3.12.0
 
 package com.opendatahub.inbound.mqtt;
@@ -17,8 +17,9 @@ import org.apache.camel.component.paho.PahoConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -28,8 +29,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
-import org.apache.camel.component.rabbitmq.RabbitMQConstants;
+
+import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -72,8 +75,7 @@ public class MqttRoute extends RouteBuilder {
     private MqttConfig mqttConfig;
     private final RabbitMQConnection rabbitMQConfig;
 
-    public MqttRoute()
-    {
+    public MqttRoute() {
         this.mqttConfig = new MqttConfig();
         this.mqttConfig.url = ConfigProvider.getConfig().getValue("mqtt.url", String.class);
         this.mqttConfig.user = ConfigProvider.getConfig().getOptionalValue("mqtt.user", String.class);
@@ -84,6 +86,8 @@ public class MqttRoute extends RouteBuilder {
 
     @Override
     public void configure() {
+        getCamelContext().getRegistry().bind(RabbitMQConnection.CONNECTION_FACTORY, rabbitMQConfig.connectionFactory());
+
         MqttConfigLogger.log(mqttConfig);
 
         String mqttConnectionString = getMqttConnectionString();
@@ -133,7 +137,6 @@ public class MqttRoute extends RouteBuilder {
 }
 
 final class MqttConfigLogger {
-
     private static Logger LOG = LoggerFactory.getLogger(MqttConfigLogger.class);
 
     private MqttConfigLogger() {
@@ -166,21 +169,18 @@ class ErrorHandler extends RouteBuilder {
 
 class RabbitMQConfig {
     String cluster;
-
-    // Username is optional and may not be set
     Optional<String> user;
-
-    // Password is optional and may not be set
     Optional<String> pass;
+    Optional<String> clientName;
 }
 
 class RabbitMQConnection {
-
     static final String RABBITMQ_INGRESS_QUEUE = "ingress-q";
     static final String RABBITMQ_INGRESS_EXCHANGE = "ingress";
     static final String RABBITMQ_INGRESS_DEADLETTER_QUEUE = "ingress-dl-q";
     static final String RABBITMQ_INGRESS_DEADLETTER_EXCHANGE = "ingress-dl";
     static final String RABBITMQ_FASTLINE_EXCHANGE = "fastline";
+    static final String CONNECTION_FACTORY = "odh-ingress";
 
     private static Logger LOG = LoggerFactory.getLogger(RabbitMQConnection.class);
     private RabbitMQConfig ingressConfig;
@@ -190,87 +190,43 @@ class RabbitMQConnection {
         this.ingressConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
         this.ingressConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
         this.ingressConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
-
+        this.ingressConfig.clientName = ConfigProvider.getConfig().getOptionalValue("rabbitmq.clientName", String.class);
+    }
+    
+    public CachingConnectionFactory connectionFactory() {
         String user = this.ingressConfig.user.orElseGet(() -> "*** no user ***");
         String pass = this.ingressConfig.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
 
         LOG.info("RabbitMQ cluster: {}", this.ingressConfig.cluster);
         LOG.info("RabbitMQ user: {}", user);
         LOG.info("RabbitMQ password: {}", pass);
-    }
-
-    private String setAuth(StringBuilder uri) {
-        // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
-        this.ingressConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
-        this.ingressConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-
-        System.out.println(uri.toString());
-        return uri.toString();
-    }
-
-    public String getRabbitMQIngressFrom() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:?"+
-            "addresses=%s"+
-            "&queue=%s"+
-            "&autoAck=false"+
-            // setting reQueue=true + autoAck=false messages not processed because of exceptions get requeued
-            "&reQueue=true"+ 
-            "&autoDelete=false"+
-            "&skipExchangeDeclare=true"+
-            "&skipQueueBind=true"+
-            "&skipQueueDeclare=true",
-            this.ingressConfig.cluster,
-            RABBITMQ_INGRESS_QUEUE));
-
-        return this.setAuth(uri);
+        final CachingConnectionFactory fac = new CachingConnectionFactory();
+        fac.setConnectionNameStrategy(_f -> ingressConfig.clientName + ": " + System.getenv("HOSTNAME"));
+        fac.setAddresses(ingressConfig.cluster);
+        if(user != null) {
+            fac.setUsername(user);
+            fac.setPassword(pass);
+        }
+        return fac;
     }
 
     public String getRabbitMQIngressTo() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
-            "addresses=%s"+
-            "&queue=%s"+
-            "&autoDelete=false"+
-            // https://stackoverflow.com/questions/14527185/activemq-i-cant-consume-a-message-sent-from-camel-using-inout-pattern
-            // https://camel.apache.org/manual/exchange-pattern.html
-            // we are using Event messages, therefore we have to specify the InOnly pattern
-            // otherwise the component expects a reply
-            "&exchangePattern=InOnly"+
-            "&exchangeType=fanout",
-            RABBITMQ_INGRESS_EXCHANGE,
-            this.ingressConfig.cluster,
-            RABBITMQ_INGRESS_QUEUE));
-
-        return this.setAuth(uri);
+        return String.format("spring-rabbitmq:%s?connectionFactory=#bean:%s&queues=%s&exchangePattern=InOnly&exchangeType=fanout",
+                RABBITMQ_INGRESS_EXCHANGE,
+                CONNECTION_FACTORY,
+                RABBITMQ_INGRESS_QUEUE);
     }
 
     public String getRabbitMQIngressDeadletterTo() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
-            "addresses=%s"+
-            "&queue=%s"+
-            "&routingKey=ingress.*"+
-            "&exchangeType=fanout"+
-            "&exchangePattern=InOnly"+
-            "&autoDelete=false", 
-            RABBITMQ_INGRESS_DEADLETTER_EXCHANGE,
-            this.ingressConfig.cluster,
-            RABBITMQ_INGRESS_DEADLETTER_QUEUE));
-
-        return this.setAuth(uri);
+        return String.format("spring-rabbitmq:%s?queues=%s&exchangePattern=InOnly&exchangeType=fanout",
+                RABBITMQ_INGRESS_DEADLETTER_EXCHANGE,
+                RABBITMQ_INGRESS_DEADLETTER_QUEUE);
     }
 
     public String getRabbitMQFastlineConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
-            "addresses=%s"+
-            "&passive=true"+
-            "&exchangeType=topic"+
-            "&skipQueueBind=true"+
-            "&skipQueueDeclare=true"+
-            "&exchangePattern=InOnly"+
-            "&autoDelete=false"+
-            "&declare=true", 
-            RABBITMQ_FASTLINE_EXCHANGE, this.ingressConfig.cluster));
-
-        return this.setAuth(uri);
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?exchangePattern=InOnly&exchangeType=topic",
+                RABBITMQ_FASTLINE_EXCHANGE));
+        return uri.toString();
     }
 }
 
@@ -319,9 +275,9 @@ class WrapperProcessor {
         System.out.println("routing to routeKey " +  routeKey);
         System.out.println("provider " +  provider);
 
-        //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
-        exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
-        //exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
+        //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/SpringRabbitMQConstants.java
+        exchange.getMessage().setHeader(SpringRabbitMQConstants.ROUTING_KEY, routeKey);
+        //exchange.getMessage().setHeader(SpringRabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
 
         // if the provider specifies the fastline=true param
         // set the header

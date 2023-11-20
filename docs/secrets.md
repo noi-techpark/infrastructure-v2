@@ -9,11 +9,15 @@ Both a read/write and read permission secret (write currently needed by camel-k,
 
 ```sh
 kubectl create secret docker-registry container-registry-rw \
+  --docker-server=ghcr.io \
+  --docker-email=[EMAIL] \
   --docker-username=[USER] \
   --docker-password=[TOKEN] \
   --namespace core
 
 kubectl create secret docker-registry container-registry-r \
+  --docker-server=ghcr.io
+  --docker-email=[EMAIL] \
   --docker-username=[USER] \
   --docker-password=[TOKEN] \
   --namespace core

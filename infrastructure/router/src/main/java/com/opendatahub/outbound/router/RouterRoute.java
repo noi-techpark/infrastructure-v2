@@ -12,12 +12,12 @@
 package com.opendatahub.outbound.router;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.rabbitmq.RabbitMQConstants;
+import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -94,15 +94,15 @@ public class RouterRoute extends RouteBuilder {
                 .process(exchange -> {
                     Payload payload = (Payload)exchange.getMessage().getBody();
                     String routeKey = String.format("%s.%s", payload.db, payload.collection);
-                    exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
-                    exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
+                    exchange.getMessage().setHeader(SpringRabbitMQConstants.ROUTING_KEY, routeKey);
+                    exchange.getMessage().setHeader(SpringRabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
                 })
                 .marshal().json()
                 .to(getRabbitMQRoutedConnectionString());
     }
 
     private String getRabbitMQConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
             "&autoAck=false"+
@@ -119,7 +119,7 @@ public class RouterRoute extends RouteBuilder {
     }
 
     private String getRabbitMQRoutedConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
             "&autoDelete=false"+

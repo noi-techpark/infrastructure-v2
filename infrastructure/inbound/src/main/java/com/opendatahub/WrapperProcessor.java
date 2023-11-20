@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.component.rabbitmq.RabbitMQConstants;
+import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -70,9 +70,9 @@ public class WrapperProcessor {
         System.out.println("routing to routeKey " +  routeKey);
         System.out.println("provider " +  provider);
 
-        //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
-        exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
-        //exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
+        //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/SpringRabbitMQConstants.java
+        exchange.getMessage().setHeader(SpringRabbitMQConstants.ROUTING_KEY, routeKey);
+        //exchange.getMessage().setHeader(SpringRabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
 
         // if the provider specifies the fastline=true param
         // set the header

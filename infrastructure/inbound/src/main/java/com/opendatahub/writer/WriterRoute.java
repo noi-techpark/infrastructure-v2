@@ -27,12 +27,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jackson.JacksonDataFormat;
-import org.apache.camel.component.rabbitmq.RabbitMQConstants;
+import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
@@ -192,7 +192,7 @@ class RabbitMQConnection {
     }
 
     public String getRabbitMQIngressFrom() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:?"+
             "addresses=%s"+
             "&queue=%s"+
             "&autoAck=false"+
@@ -209,7 +209,7 @@ class RabbitMQConnection {
     }
 
     public String getRabbitMQIngressTo() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
             "&autoDelete=false"+
@@ -227,7 +227,7 @@ class RabbitMQConnection {
     }
 
     public String getRabbitMQIngressDeadletterTo() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
             "&routingKey=ingress.*"+
@@ -242,7 +242,7 @@ class RabbitMQConnection {
     }
 
     public String getRabbitMQFastlineConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&passive=true"+
             "&exchangeType=topic"+
@@ -302,9 +302,9 @@ class WrapperProcessor {
         System.out.println("routing to routeKey " +  routeKey);
         System.out.println("provider " +  provider);
 
-        //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/RabbitMQConstants.java
-        exchange.getMessage().setHeader(RabbitMQConstants.ROUTING_KEY, routeKey);
-        //exchange.getMessage().setHeader(RabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
+        //https://github.com/Talend/apache-camel/blob/master/components/camel-rabbitmq/src/main/java/org/apache/camel/component/rabbitmq/SpringRabbitMQConstants.java
+        exchange.getMessage().setHeader(SpringRabbitMQConstants.ROUTING_KEY, routeKey);
+        //exchange.getMessage().setHeader(SpringRabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
 
         // if the provider specifies the fastline=true param
         // set the header

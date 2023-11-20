@@ -144,10 +144,9 @@ helm upgrade --install rabbitmq bitnami/rabbitmq \
 **Tips: install `Kamel CLI` and read the Camel K [documentation](https://camel.apache.org/camel-k/1.9.x/running/running.html).**
 
 ```sh
-kubectl create secret docker-registry container-registry-rw \
-  --docker-username=[USER] \
-  --docker-password=[TOKEN]\
-  --namespace core
+kubectl create secret ....
+# create registry secrets as outlined in secrets.md
+
 ```
 
 ```sh

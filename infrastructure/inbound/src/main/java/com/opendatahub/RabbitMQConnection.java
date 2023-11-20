@@ -56,7 +56,7 @@ public class RabbitMQConnection {
     }
 
     public String getRabbitMQIngressFrom() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:?"+
             "addresses=%s"+
             "&queue=%s"+
             "&autoAck=false"+
@@ -73,7 +73,7 @@ public class RabbitMQConnection {
     }
 
     public String getRabbitMQIngressTo() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
             "&autoDelete=false"+
@@ -91,7 +91,7 @@ public class RabbitMQConnection {
     }
 
     public String getRabbitMQIngressDeadletterTo() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
             "&routingKey=ingress.*"+
@@ -106,7 +106,7 @@ public class RabbitMQConnection {
     }
 
     public String getRabbitMQFastlineConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&passive=true"+
             "&exchangeType=topic"+

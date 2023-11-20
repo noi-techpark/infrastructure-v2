@@ -21,7 +21,7 @@ Let's make a real-world example:
 
 ```java
 public String getRabbitMQIngressConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
             "&autoAck=false"+
@@ -53,7 +53,7 @@ public String getRabbitMQIngressConnectionString() {
 The above connection string is used by both **publishers**([MQTT Route](mqtt-route.md), [REST Route](rest-route.md) or [Pull Route](pull-route.md)) and **consumers** ([Writer Route](writer-mqtt-route.md)).
 
 ```java
-"rabbitmq:%s?" // PUBLISHERS - the exchange where to publish
+"spring-rabbitmq:%s?" // PUBLISHERS - the exchange where to publish
 ```
 
 ```java

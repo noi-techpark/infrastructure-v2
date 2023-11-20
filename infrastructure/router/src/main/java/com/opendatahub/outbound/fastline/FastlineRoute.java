@@ -16,9 +16,9 @@
 package com.opendatahub.outbound.fastline;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.rabbitmq.RabbitMQConstants;
+import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.Optional;
 
@@ -69,7 +69,7 @@ public class FastlineRoute extends RouteBuilder {
             .routeId("[Route: fastline]")
             .process(exchange -> {
                 String destination = "";
-                String route = exchange.getMessage().getHeader(RabbitMQConstants.ROUTING_KEY).
+                String route = exchange.getMessage().getHeader(SpringRabbitMQConstants.ROUTING_KEY).
                     toString().
                     replaceAll("\\.", "/");
                 if (this.isLocal.isPresent()) {
@@ -93,7 +93,7 @@ public class FastlineRoute extends RouteBuilder {
     }
 
     private String getRabbitMQConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("rabbitmq:%s?"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
             "addresses=%s"+
             "&queue=%s"+
             "&routingKey=#"+ // any routing key
