@@ -115,10 +115,10 @@ public class FastlineRoute extends RouteBuilder {
             "&queues=%s"+
             "&autoDeclare=true"+
             "&acknowledgeMode=MANUAL"+
-            "&arg.queue.durable=true",
             "&routingKey=#"+ // any routing key
             "&exchangeType=topic"+
-            "&exchangePattern=InOnly",
+            "&exchangePattern=InOnly"+
+            "&arg.queue.durable=true",
             RABBITMQ_FASTLINE_EXCHANGE, RABBITMQ_CONNECTION_FACTORY, RABBITMQ_FASTLINE_QUEUE));
         return uri.toString();
     }
