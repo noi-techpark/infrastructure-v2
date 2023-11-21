@@ -18,8 +18,10 @@ import org.apache.camel.component.paho.PahoConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
+
 import java.util.Optional;
 
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -29,7 +31,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 
 import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
@@ -86,9 +87,8 @@ public class MqttRoute extends RouteBuilder {
 
     @Override
     public void configure() {
-        getCamelContext().getRegistry().bind(RabbitMQConnection.CONNECTION_FACTORY, rabbitMQConfig.connectionFactory());
-
         MqttConfigLogger.log(mqttConfig);
+        getCamelContext().getRegistry().bind(RabbitMQConnection.CONNECTION_FACTORY, rabbitMQConfig.connectionFactory());
 
         String mqttConnectionString = getMqttConnectionString();
 
@@ -171,7 +171,7 @@ class RabbitMQConfig {
     String cluster;
     Optional<String> user;
     Optional<String> pass;
-    Optional<String> clientName;
+    String clientName;
 }
 
 class RabbitMQConnection {
@@ -190,22 +190,24 @@ class RabbitMQConnection {
         this.ingressConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
         this.ingressConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
         this.ingressConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
-        this.ingressConfig.clientName = ConfigProvider.getConfig().getOptionalValue("rabbitmq.clientName", String.class);
+        this.ingressConfig.clientName = ConfigProvider.getConfig().getValue("rabbitmq.clientName", String.class);
     }
     
-    public CachingConnectionFactory connectionFactory() {
+    public ConnectionFactory connectionFactory() {
         String user = this.ingressConfig.user.orElseGet(() -> "*** no user ***");
         String pass = this.ingressConfig.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
 
         LOG.info("RabbitMQ cluster: {}", this.ingressConfig.cluster);
         LOG.info("RabbitMQ user: {}", user);
         LOG.info("RabbitMQ password: {}", pass);
+
         final CachingConnectionFactory fac = new CachingConnectionFactory();
         fac.setConnectionNameStrategy(_f -> ingressConfig.clientName + ": " + System.getenv("HOSTNAME"));
         fac.setAddresses(ingressConfig.cluster);
+        fac.setPort(0);
         if(user != null) {
-            fac.setUsername(user);
-            fac.setPassword(pass);
+            fac.setUsername(ingressConfig.user.get());
+            fac.setPassword(ingressConfig.pass.get());
         }
         return fac;
     }

@@ -44,7 +44,7 @@ NB: You also have to create the user in mongo with these credentials. see helm.m
       --from-literal=port='27017' \
       --from-literal=username="${MONGO_USER}"\
       --from-literal=password="$MONGO_PW" \
-      --from-literal=uri="mongodb+srv://${MONGO_USER}:${MONGO_PW}@mongodb-headless.core.svc.cluster.local?tls=false"
+      --from-literal=uri="mongodb+srv://${MONGO_USER}:${MONGO_PW}@mongodb-headless.core.svc.cluster.local/?tls=false&ssl=false"
   done
 ```
 ## postgresql

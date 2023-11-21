@@ -73,53 +73,53 @@ kubectl create secret generic kamel-credentials \
 
 ### Run the **MQTT Route**
 
-```
+```sh
 kamel run \
   --namespace core \
   --name mqtt-route \
   --property mqtt.url='tcp://mosquitto:1883' \
   --property secret:kamel-credentials \
+  --property rabbitmq.clientName='mqtt-route' \
     infrastructure/inbound/src/main/java/com/opendatahub/inbound/mqtt/MqttRoute.java
 ```
 
 ### Run the **REST Route (REST and WebSocket)**
 
-```
+```sh
 kamel run \
   --namespace core \
   --name rest-route \
-  --property rabbitmq.cluster='rabbitmq-headless.core.svc.cluster.local:5672' \
-  --property rabbitmq.user=secret:rabbitmq-svcbind/username \
-  --property rabbitmq.pass='guest' \
+  --property secret:kamel-credentials \
+  --property rabbitmq.clientName='rest-route' \
     infrastructure/inbound/src/main/java/com/opendatahub/inbound/rest/RestRoute.java
 ```
 
 ### Run the **Writer Route (MongoDB)**
 
-```
+```sh
 kamel run \
+  --namespace core \
   --name writer-route \
-  --property quarkus.mongodb.connection-string='mongodb://mongodb-headless.core.svc.cluster.local:27017' \
+  --property quarkus.mongodb.connection-string="$(kubectl get secret -n core mongodb-writer-svcbind -o jsonpath='{.data.uri}' | base64 -d)" \
   --property quarkus.mongodb.devservices.enabled=false \
-  --property mongodb.host='mongodb-headless.core.svc.cluster.local:27017' \
-  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
-  --property rabbitmq.user='guest' \
-  --property rabbitmq.pass='guest' \
+  --property secret:kamel-credentials \
+  --property rabbitmq.clientName='writer-route' \
     infrastructure/inbound/src/main/java/com/opendatahub/writer/WriterRoute.java
 ```
 
 ### Run the **Sample Pull Route (Südtirol Wine)**
-
+DEPRECATED
+See actual data collectors in separate project
 ```
-kamel run \
-  --name pull-route \
-  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
-  --property rabbitmq.user='guest' \
-  --property rabbitmq.pass='guest' \
-  --property pull.provider='suedtirol/wein2?fastline=false' \
-  --property pull.endpoints='https://suedtirolwein.secure.consisto.net/companies.ashx,https://suedtirolwein.secure.consisto.net/awards.ashx' \
-  --property pull.endpointKeys='companies,awards' \
-    infrastructure/inbound/src/main/java/com/opendatahub/pull/PullRoute.java
+#kamel run \
+#  --name pull-route \
+#  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
+#  --property rabbitmq.user='guest' \
+#  --property rabbitmq.pass='guest' \
+#  --property pull.provider='suedtirol/wein2?fastline=false' \
+#  --property pull.endpoints='https://suedtirolwein.secure.consisto.net/companies.ashx,https://suedtirolwein.secure.consisto.net/awards.ashx' \
+#  --property pull.endpointKeys='companies,awards' \
+#    infrastructure/inbound/src/main/java/com/opendatahub/pull/PullRoute.java
 ```
 
 ### Run the **Fastline Route (WebSocket)**

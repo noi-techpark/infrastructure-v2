@@ -8,8 +8,7 @@ fullnameOverride: rabbitmq
 # Set up static authentication.
 auth:
   username: opendatahub
-#  enableLoopbackUser: true
-    
+  
 serviceBindings:
   enabled: true
 
