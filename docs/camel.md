@@ -126,10 +126,10 @@ See actual data collectors in separate project
 
 ```
 kamel run \
+  --namespace core \
   --name fastline-route \
-  --property rabbitmq.cluster='rabbitmq-headless.default.svc.cluster.local:5672' \
-  --property rabbitmq.user='guest' \
-  --property rabbitmq.pass='guest' \
+  --property secret:kamel-credentials \
+  --property rabbitmq.clientName='fastline-route' \
     infrastructure/router/src/main/java/com/opendatahub/outbound/fastline/FastlineRoute.java
 ```
 
@@ -137,10 +137,10 @@ kamel run \
 
 ```
 kamel run \
+  --namespace core \
   --name router-route \
-  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
-  --property rabbitmq.user='guest' \
-  --property rabbitmq.pass='guest' \
+  --property secret:kamel-credentials \
+  --property rabbitmq.clientName='router-route' \
     infrastructure/router/src/main/java/com/opendatahub/outbound/router/RouterRoute.java
 ```
 

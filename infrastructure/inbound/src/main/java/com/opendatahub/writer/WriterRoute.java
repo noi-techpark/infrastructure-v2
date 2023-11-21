@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -178,7 +177,6 @@ class RabbitMQConnection {
         final CachingConnectionFactory fac = new CachingConnectionFactory();
         fac.setConnectionNameStrategy(_f -> ingressConfig.clientName + ": " + System.getenv("HOSTNAME"));
         fac.setAddresses(ingressConfig.cluster);
-        fac.setPort(0);
         if(user != null) {
             fac.setUsername(ingressConfig.user.get());
             fac.setPassword(ingressConfig.pass.get());

@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
+// camel-k: dependency=camel:bean
+// camel-k: dependency=camel:openapi-java
+// camel-k: dependency=camel:paho
+// camel-k: dependency=camel:spring-rabbitmq
+// camel-k: dependency=camel:seda
+// camel-k: dependency=camel:stream
 
 package com.opendatahub.outbound.router;
 
@@ -16,14 +16,10 @@ import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
-
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 
 import java.util.Optional;
 
@@ -41,19 +37,15 @@ import org.apache.camel.model.dataformat.JsonLibrary;
  */
 class RabbitMQConfig {
     String cluster;
-
-    // Username is optional and may not be set
     Optional<String> user;
-
-    // Password is optional and may not be set
     Optional<String> pass;
+    String clientName;
 }
 
 class Payload {
     public String id;
     public String db;
     public String collection;
-
 }
 
 /**
@@ -67,20 +59,41 @@ public class RouterRoute extends RouteBuilder {
     static final String RABBITMQ_ROUTED_EXCHANGE = "routed";
     static final String RABBITMQ_UNROUTABLE_QUEUE = "routed-dl-q";
     static final String RABBITMQ_UNROUTABLE_EXCHANGE = "routed-dl";
+    static final String RABBITMQ_CONNECTION_FACTORY = "default";
 
-    private RabbitMQConfig RabbitMQConfig;
+    private RabbitMQConfig rabbitConfig;
+    private static Logger LOG = LoggerFactory.getLogger(RouterRoute.class);
 
     public RouterRoute()
     {
-        this.RabbitMQConfig = new RabbitMQConfig();
-        this.RabbitMQConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
-        this.RabbitMQConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
-        this.RabbitMQConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
+        this.rabbitConfig = new RabbitMQConfig();
+        this.rabbitConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
+        this.rabbitConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
+        this.rabbitConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
+        this.rabbitConfig.clientName = ConfigProvider.getConfig().getValue("rabbitmq.clientName", String.class);
+    }
+
+    public ConnectionFactory connectionFactory() {
+        String user = this.rabbitConfig.user.orElseGet(() -> "*** no user ***");
+        String pass = this.rabbitConfig.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
+
+        LOG.info("RabbitMQ cluster: {}", this.rabbitConfig.cluster);
+        LOG.info("RabbitMQ user: {}", user);
+        LOG.info("RabbitMQ password: {}", pass);
+
+        final CachingConnectionFactory fac = new CachingConnectionFactory();
+        fac.setConnectionNameStrategy(_f -> rabbitConfig.clientName + ": " + System.getenv("HOSTNAME"));
+        fac.setAddresses(rabbitConfig.cluster);
+        if(user != null) {
+            fac.setUsername(rabbitConfig.user.get());
+            fac.setPassword(rabbitConfig.pass.get());
+        }
+        return fac;
     }
 
     @Override
     public void configure() {
-        RabbitMQConfigLogger.log(RabbitMQConfig);
+        getCamelContext().getRegistry().bind(RABBITMQ_CONNECTION_FACTORY, connectionFactory());
 
         String RabbitMQConnectionString = getRabbitMQConnectionString();
 
@@ -95,71 +108,43 @@ public class RouterRoute extends RouteBuilder {
                     Payload payload = (Payload)exchange.getMessage().getBody();
                     String routeKey = String.format("%s.%s", payload.db, payload.collection);
                     exchange.getMessage().setHeader(SpringRabbitMQConstants.ROUTING_KEY, routeKey);
-                    exchange.getMessage().setHeader(SpringRabbitMQConstants.RABBITMQ_DEAD_LETTER_ROUTING_KEY, routeKey);
+                    exchange.getMessage().setHeader(SpringRabbitMQConstants.DEAD_LETTER_ROUTING_KEY, routeKey);
                 })
                 .marshal().json()
                 .to(getRabbitMQRoutedConnectionString());
     }
 
     private String getRabbitMQConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
-            "addresses=%s"+
-            "&queue=%s"+
-            "&autoAck=false"+
-            "&autoDelete=false",
-            RABBITMQ_READY_EXCHANGE, RabbitMQConfig.cluster, RABBITMQ_READY_QUEUE));
-
-        // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
-        RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
-        RabbitMQConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-
-        System.out.println(uri.toString());
-
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s"+
+            "?connectionFactory=#bean:%s" +
+            "&queues=%s"+
+            "&autoDeclare=true"+
+            "&acknowledgeMode=MANUAL"+
+            "&arg.queue.durable=true",
+            RABBITMQ_READY_EXCHANGE, RABBITMQ_CONNECTION_FACTORY, RABBITMQ_READY_QUEUE));
         return uri.toString();
     }
 
     private String getRabbitMQRoutedConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
-            "addresses=%s"+
-            "&queue=%s"+
-            "&autoDelete=false"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s"+
+            "?connectionFactory=#bean:%s" +
+            "&queues=%s"+
+            "&autoDeclare=true"+
+            "&acknowledgeMode=MANUAL"+
+            "&arg.queue.durable=true"+
             "&exchangeType=topic"+
             "&deadLetterExchange=%s"+
             "&deadLetterQueue=%s"+
             "&deadLetterExchangeType=fanout"+
             "&arg.exchange.alternate-exchange=%s",
             RABBITMQ_ROUTED_EXCHANGE,
-            RabbitMQConfig.cluster,
+            RABBITMQ_CONNECTION_FACTORY,
             RABBITMQ_ROUTED_QUEUE,
             RABBITMQ_UNROUTABLE_EXCHANGE,
             RABBITMQ_UNROUTABLE_QUEUE,
             RABBITMQ_UNROUTABLE_EXCHANGE
             ));
-
-        // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
-        RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
-        RabbitMQConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-
-        System.out.println(uri.toString());
         return uri.toString();
-    }
-}
-
-final class RabbitMQConfigLogger {
-
-    private static Logger LOG = LoggerFactory.getLogger(RabbitMQConfigLogger.class);
-
-    private RabbitMQConfigLogger() {
-        // Private constructor, don't allow new instances
-    }
-
-    public static void log(RabbitMQConfig config) {
-        String user = config.user.orElseGet(() -> "*** no user ***");
-        String pass = config.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
-
-        LOG.info("RabbitMQ cluster: {}", config.cluster);
-        LOG.info("RabbitMQ user: {}", user);
-        LOG.info("RabbitMQ password: {}", pass);
     }
 }
 

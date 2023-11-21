@@ -1,3 +1,7 @@
 {
-    "grammarly.files.include": ["**/*.md", "**/*.txt"],
+    "grammarly.files.include": [
+        "**/*.md",
+        "**/*.txt"
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive",
 }
