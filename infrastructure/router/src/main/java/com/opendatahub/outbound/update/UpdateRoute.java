@@ -2,13 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-bean
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-openapi-java
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-paho
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-rabbitmq
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-seda
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-stream
-// camel-k: dependency=mvn:org.apache.camel.quarkus:camel-quarkus-vertx-websocket
+// camel-k: dependency=camel:bean
+// camel-k: dependency=camel:openapi-java
+// camel-k: dependency=camel:paho
+// camel-k: dependency=camel:spring-rabbitmq
+// camel-k: dependency=camel:seda
+// camel-k: dependency=camel:stream
+// camel-k: dependency=camel:vertx-websocket
 
 package com.opendatahub.outbound.update;
 
@@ -21,18 +21,16 @@ import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.apache.camel.component.vertx.websocket.VertxWebsocketConstants;
 
 class RabbitMQConfig {
     String cluster;
-
-    // Username is optional and may not be set
     Optional<String> user;
-
-    // Password is optional and may not be set
     Optional<String> pass;
+    String clientName;
 }
 
 /**
@@ -42,21 +40,42 @@ class RabbitMQConfig {
 public class UpdateRoute extends RouteBuilder {
     static final String RABBITMQ_UPDATE_QUEUE = "push-update-q";
     static final String RABBITMQ_UPDATE_EXCHANGE = "push-update";
+    static final String RABBITMQ_CONNECTION_FACTORY = "update";
 
-    private RabbitMQConfig RabbitMQConfig;
+    private RabbitMQConfig rabbitConfig;
     private Optional<Boolean> isLocal;
+    private static Logger LOG = LoggerFactory.getLogger(UpdateRoute.class);
 
     public UpdateRoute()
     {
-        this.RabbitMQConfig = new RabbitMQConfig();
-        this.RabbitMQConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
-        this.RabbitMQConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
-        this.RabbitMQConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
+        this.rabbitConfig = new RabbitMQConfig();
+        this.rabbitConfig.cluster = ConfigProvider.getConfig().getValue("rabbitmq.cluster", String.class);
+        this.rabbitConfig.user = ConfigProvider.getConfig().getOptionalValue("rabbitmq.user", String.class);
+        this.rabbitConfig.pass = ConfigProvider.getConfig().getOptionalValue("rabbitmq.pass", String.class);
         this.isLocal = ConfigProvider.getConfig().getOptionalValue("local", Boolean.class);
+        this.rabbitConfig.clientName = ConfigProvider.getConfig().getValue("rabbitmq.clientName", String.class);
     } 
+    public ConnectionFactory connectionFactory() {
+        String user = this.rabbitConfig.user.orElseGet(() -> "*** no user ***");
+        String pass = this.rabbitConfig.pass.map(p -> "*****").orElseGet(() -> "*** no password ***");
+
+        LOG.info("RabbitMQ cluster: {}", this.rabbitConfig.cluster);
+        LOG.info("RabbitMQ user: {}", user);
+        LOG.info("RabbitMQ password: {}", pass);
+
+        final CachingConnectionFactory fac = new CachingConnectionFactory();
+        fac.setConnectionNameStrategy(_f -> rabbitConfig.clientName + ": " + System.getenv("HOSTNAME"));
+        fac.setAddresses(rabbitConfig.cluster);
+        if(user != null) {
+            fac.setUsername(rabbitConfig.user.get());
+            fac.setPassword(rabbitConfig.pass.get());
+        }
+        return fac;
+    }
 
     @Override
     public void configure() {
+        getCamelContext().getRegistry().bind(RABBITMQ_CONNECTION_FACTORY, connectionFactory());
         String RabbitMQConnectionString = getRabbitMQConnectionString();
 
         System.out.println(RabbitMQConnectionString);
@@ -91,20 +110,16 @@ public class UpdateRoute extends RouteBuilder {
     }
 
     private String getRabbitMQConnectionString() {
-        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s?"+
-            "addresses=%s"+
-            "&queue=%s"+
+        final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s"+
+            "?connectionFactory=#bean:%s" +
+            "&queues=%s"+
+            "&autoDeclare=true"+
+            "&acknowledgeMode=MANUAL"+
             "&routingKey=#"+ // any routing key
             "&exchangeType=topic"+
-            "&autoDelete=false", 
-            RABBITMQ_UPDATE_EXCHANGE, RabbitMQConfig.cluster, RABBITMQ_UPDATE_QUEUE));
-
-        // Check if RabbitMQ credentials are provided. If so, then add the credentials to the connection string
-        RabbitMQConfig.user.ifPresent(user -> uri.append(String.format("&username=%s", user)));
-        RabbitMQConfig.pass.ifPresent(pass -> uri.append(String.format("&password=%s", pass)));
-
-        System.out.println(uri.toString());
-
+            "&exchangePattern=InOnly"+
+            "&arg.queue.durable=true",
+            RABBITMQ_UPDATE_EXCHANGE, RABBITMQ_CONNECTION_FACTORY, RABBITMQ_UPDATE_QUEUE));
         return uri.toString();
     }
 }

@@ -148,10 +148,10 @@ kamel run \
 
 ```
 kamel run \
+  --namespace core \
   --name update-route \
-  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
-  --property rabbitmq.user='guest' \
-  --property rabbitmq.pass='guest' \
+  --property secret:kamel-credentials \
+  --property rabbitmq.clientName='update-route' \
     infrastructure/router/src/main/java/com/opendatahub/outbound/update/UpdateRoute.java
 ```
 
