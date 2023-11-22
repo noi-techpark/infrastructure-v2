@@ -30,12 +30,12 @@ A default servicebind secret is created by rabbitmq helm chart
 Create secrets with random password to be used by services to access mongo.
 NB: You also have to create the user in mongo with these credentials. see helm.md for that
 
-
 ```sh
   for MONGO_USER in writer notifier collector
   do
     MONGO_PW=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 12`;
-    kubectl create secret generic mongodb-${MONGO_USER}-svcbind \
+    KSECRET_NAME=mongodb-${MONGO_USER}-svcbind
+    kubectl create secret generic $KSECRET_NAME \
       --namespace core \
       --type='servicebinding.io/mongodb' \
       --from-literal=type='mongodb' \
@@ -90,4 +90,15 @@ Create secrets for rw and ro users using servicebind standard
     --from-literal=db="$POSTGRES_DB" \
     --from-literal=schema="$POSTGRES_SCHEMAS" \
     --from-literal=uri="postgresql://bdp_readonly:${POSTGRES_R_PW}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMAS}"
+```
+
+### Expose secrets to other namespaces
+Secrets are namespace-bound in Kubernetes.  
+To make certain secrets available across namespaces, we use kubernetes-reflector.
+```sh
+  kubectl --namespace core annotate secret \
+    rabbitmq-svcbind mongodb-collector-svcbind container-registry-r \
+    reflector.v1.k8s.emberstack.com/reflection-allowed='true' \
+    reflector.v1.k8s.emberstack.com/reflection-auto-enabled='true' \
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces='collector'
 ```

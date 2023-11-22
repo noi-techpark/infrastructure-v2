@@ -216,6 +216,14 @@ kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-staging-cluste
 kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml
 ```
 
+### Secret reflector
+To make secrets visible across namespaces we use kubernetes-reflector
+
+```sh
+helm repo add emberstack https://emberstack.github.io/helm-charts
+helm upgrade --install reflector --namespace kube-system emberstack/reflector
+```
+
 ## Open Data Hub core applications
 These are the legacy core applications of the Open Data Hub
 These use already existing containers and pipelines and are configured via env variables set as "env." values.
