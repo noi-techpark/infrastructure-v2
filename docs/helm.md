@@ -20,7 +20,7 @@ In order to be able to plan, apply, and debug infrastructure provisioning, it is
 create the namespaces the helm charts are deployed to:
 ```
 kubectl create namespace core
-kubectl create namespace collectors
+kubectl create namespace collector
 ```
 ## Packages
 
