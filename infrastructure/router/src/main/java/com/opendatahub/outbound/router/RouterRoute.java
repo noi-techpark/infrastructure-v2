@@ -13,13 +13,19 @@ package com.opendatahub.outbound.router;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.springrabbit.SpringRabbitMQConstants;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.Binding.DestinationType;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 
 import java.util.Optional;
 
@@ -93,7 +99,13 @@ public class RouterRoute extends RouteBuilder {
 
     @Override
     public void configure() {
-        getCamelContext().getRegistry().bind(RABBITMQ_CONNECTION_FACTORY, connectionFactory());
+        ConnectionFactory fac = connectionFactory();
+        getCamelContext().getRegistry().bind(RABBITMQ_CONNECTION_FACTORY, fac);
+
+        AmqpAdmin admin = new RabbitAdmin(fac);
+        admin.declareExchange(new FanoutExchange(RABBITMQ_ROUTED_EXCHANGE, true, false));
+        admin.declareQueue(new Queue(RABBITMQ_ROUTED_QUEUE, true, false, false));
+        admin.declareBinding(new Binding(RABBITMQ_ROUTED_QUEUE,DestinationType.QUEUE, RABBITMQ_ROUTED_EXCHANGE, "#", null));
 
         String RabbitMQConnectionString = getRabbitMQConnectionString();
 
@@ -119,31 +131,31 @@ public class RouterRoute extends RouteBuilder {
             "?connectionFactory=#bean:%s" +
             "&queues=%s"+
             "&autoDeclare=true"+
-            "&acknowledgeMode=MANUAL"+
+            "&acknowledgeMode=AUTO"+
+            "&exchangePattern=InOnly"+
             "&arg.queue.durable=true",
             RABBITMQ_READY_EXCHANGE, RABBITMQ_CONNECTION_FACTORY, RABBITMQ_READY_QUEUE));
         return uri.toString();
     }
 
+    //TODO: autoDeclare doesn't work on consumers, declare this as a separate bean
     private String getRabbitMQRoutedConnectionString() {
         final StringBuilder uri = new StringBuilder(String.format("spring-rabbitmq:%s"+
             "?connectionFactory=#bean:%s" +
             "&queues=%s"+
             "&autoDeclare=true"+
-            "&acknowledgeMode=MANUAL"+
             "&arg.queue.durable=true"+
             "&exchangeType=topic"+
+            "&acknowledgeMode=AUTO"+
+            "&exchangePattern=InOnly"+
             "&deadLetterExchange=%s"+
             "&deadLetterQueue=%s"+
-            "&deadLetterExchangeType=fanout"+
-            "&arg.exchange.alternate-exchange=%s",
+            "&deadLetterExchangeType=fanout",
             RABBITMQ_ROUTED_EXCHANGE,
             RABBITMQ_CONNECTION_FACTORY,
             RABBITMQ_ROUTED_QUEUE,
             RABBITMQ_UNROUTABLE_EXCHANGE,
-            RABBITMQ_UNROUTABLE_QUEUE,
-            RABBITMQ_UNROUTABLE_EXCHANGE
-            ));
+            RABBITMQ_UNROUTABLE_QUEUE));
         return uri.toString();
     }
 }
