@@ -21,6 +21,8 @@ kubectl create secret docker-registry container-registry-r \
   --docker-username=[USER] \
   --docker-password=[TOKEN] \
   --namespace core
+  
+# DON'T FORGET TO ADD REFLECTOR ANNOTATIONS, SEE BELOW
 ```
 
 ## rabbitmq
@@ -90,6 +92,15 @@ Create secrets for rw and ro users using servicebind standard
     --from-literal=db="$POSTGRES_DB" \
     --from-literal=schema="$POSTGRES_SCHEMAS" \
     --from-literal=uri="postgresql://bdp_readonly:${POSTGRES_R_PW}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMAS}"
+```
+
+### Tourism test DB
+Only for initial tests, we use the existing tourism DB.
+Format
+```sh
+  kubectl create secret generic tourism \
+    --namespace core \
+    --from-literal=pgconnection="Server=hostname.domain.com;Port=5432;User ID=******;Password=********;Database=tourism"
 ```
 
 ### Expose secrets to other namespaces

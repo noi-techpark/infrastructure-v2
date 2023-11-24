@@ -44,7 +44,6 @@ ingress:
 env: 
   ASPNETCORE_URLS: http://+:80
   ASPNETCORE_ENVIRONMENT: "Development"
-  ASPNETCORE_ConnectionStrings__PgConnection: <pass by commandline>
   ASPNETCORE_API__URL: "https://tourism.importer.dev.testingmachine.eu"
   ASPNETCORE_OauthServerConfig__Authority: "https://auth.opendatahub.testingmachine.eu/auth/realms/noi/"
   ASPNETCORE_DataBrowserConfig__Url: "https://frontend.tourism.testingmachine.eu/"
@@ -52,7 +51,6 @@ env:
   ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ""
   ASPNETCORE_S3ImageresizerConfig__AccessKey: ""
   ASPNETCORE_S3ImageresizerConfig__SecretKey: ""
-  ASPNETCORE_OauthServerConfig__Authority: ""
   ASPNETCORE_ElasticSearchConfig__ElasticUrl: ""
   ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ""
   ASPNETCORE_JsonConfig__Jsondir: ""
@@ -102,3 +100,7 @@ env:
   ASPNETCORE_NotifierConfig__idm-marketplace__Url: ""
   ASPNETCORE_NotifierConfig__idm-marketplace__User: ""
   ASPNETCORE_NotifierConfig__idm-marketplace__Password: ""
+envSecretRef:
+  - name: ASPNETCORE_ConnectionStrings__PgConnection
+    secret: tourism
+    key: pgconnection

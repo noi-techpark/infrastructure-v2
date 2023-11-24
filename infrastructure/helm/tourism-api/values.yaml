@@ -50,7 +50,6 @@ env:
   ASPNETCORE_S3ImageresizerConfig__DocUrl: "https://images.tourism.testingmachine.eu/api/File/GetFile/"
   ASPNETCORE_XmlConfig__Xmldir: "xml/"
   ASPNETCORE_JsonConfig__Jsondir: "./wwwroot/json/"
-  ASPNETCORE_ConnectionStrings__PgConnection: <pass by commandline>
   # ASPNETCORE_MssConfig__Username: ${MSS_USER}
   # ASPNETCORE_MssConfig__Password: ${MSS_PSWD}
   # ASPNETCORE_LcsConfig__Username: ${LCS_USER}
@@ -78,3 +77,7 @@ env:
   # ASPNETCORE_NotifierConfig__idm-marketplace__Url: ${MARKETPLACE_PUSH_URL}
   # ASPNETCORE_NotifierConfig__idm-marketplace__User: ${MARKETPLACE_PUSH_USER}
   # ASPNETCORE_NotifierConfig__idm-marketplace__Password: ${MARKETPLACE_PUSH_PSWD}
+envSecretRef:
+  - name: ASPNETCORE_ConnectionStrings__PgConnection
+    secret: tourism
+    key: pgconnection

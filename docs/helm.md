@@ -212,8 +212,11 @@ helm install \
   
 # Create the letsencrypt issuers. 
 # TODO: create a route53 issuer so we can use dns instead of http challenges
-kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-staging-clusterissuer.yaml
-kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml
+for NAMESPACE in core collector
+do
+  kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-staging-clusterissuer.yaml
+  kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml
+done
 ```
 
 ### Secret reflector
@@ -244,4 +247,14 @@ helm upgrade --install bdp-core infrastructure/helm/bdp-core/bdp-core --namespac
 Frontend application that uses Ninja-API to visualize mobility data on maps and charts
 ```sh
 helm upgrade --install analytics infrastructure/helm/analytics/analytics --namespace core --values infrastructure/helm/analytics/values.yaml
+```
+### Tourism API
+Tourism API
+```sh
+helm upgrade --install tourism-api infrastructure/helm/tourism-api/tourism-api --namespace core --values infrastructure/helm/tourism-api/values.yaml
+```
+### Tourism importer
+Tourism importer
+```sh
+helm upgrade --install tourism-importer infrastructure/helm/tourism-importer/tourism-importer --namespace core --values infrastructure/helm/tourism-importer/values.yaml
 ```
