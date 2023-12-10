@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# https://artifacthub.io/packages/helm/cluster-autoscaler/cluster-autoscaler
+
+autoDiscovery:
+  clusterName: aws-main-eu-01

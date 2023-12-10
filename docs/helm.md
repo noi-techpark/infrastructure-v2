@@ -52,6 +52,20 @@ helm upgrade --install \
   --namespace kube-system
 ```
 
+### Amazon Cluster Autoscaler
+
+https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudprovider/aws/README.md
+
+```sh
+helm repo add autoscaler https://kubernetes.github.io/autoscaler
+```
+
+```sh
+helm upgrade --install aws-cluster-autoscaler autoscaler/cluster-autoscaler \
+  --values infrastructure/helm/aws-cluster-autoscaler/values.yaml \
+  --namespace kube-system
+```
+
 ### Amazon ALB in EKS
 
 https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
