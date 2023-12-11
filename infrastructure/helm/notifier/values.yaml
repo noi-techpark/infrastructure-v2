@@ -21,3 +21,11 @@ env:
       secretKeyRef: 
         name: rabbitmq-svcbind
         key: uri
+
+resources:
+  limits:
+    cpu: 250m   # 250m is equivalent to 0.25 CPU core
+    memory: 500Mi
+  requests:
+    cpu: 100m   # 100m is equivalent to 0.1 CPU core
+    memory: 100Mi

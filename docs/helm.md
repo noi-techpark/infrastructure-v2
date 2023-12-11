@@ -104,8 +104,13 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
 
 ```sh
+export MONGODB_REPLICA_SET_KEY=$(kubectl get secret --namespace "core" mongodb -o jsonpath="{.data.mongodb-replica-set-key}" | base64 -d)
+export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace "core" mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 -d)
+
 helm upgrade --install mongodb bitnami/mongodb \
   --values infrastructure/helm/mongodb/values.yaml \
+  --set auth.rootPassword=$MONGODB_ROOT_PASSWORD \
+  --set auth.replicaSetKey=$MONGODB_REPLICA_SET_KEY \
   --namespace core
 ```
 
@@ -146,8 +151,13 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
 
 ```sh
+export RABBITMQ_PASSWORD=$(kubectl get secret --namespace "core" rabbitmq -o jsonpath="{.data.rabbitmq-password}" | base64 -d)
+export RABBITMQ_ERLANG_COOKIE=$(kubectl get secret --namespace "core" rabbitmq -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 -d)
+
 helm upgrade --install rabbitmq bitnami/rabbitmq \
   --values infrastructure/helm/rabbitmq/values.yaml \
+  --set auth.password=$RABBITMQ_PASSWORD \
+  --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE \
   --namespace core
 ```
 

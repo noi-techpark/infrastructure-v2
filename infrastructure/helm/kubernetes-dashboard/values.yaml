@@ -4,25 +4,37 @@
 
 # https://artifacthub.io/packages/helm/k8s-dashboard/kubernetes-dashboard
 
+# Argument to disable the dashboard login (insecure).
 extraArgs:
   - --enable-skip-login
 
+# Enable HTTP protocol (insecure).
 protocolHttp: true
 
+# Enable metrics scraper for monitoring.
+metricsScraper:
+  enabled: true
+
+# Enable read-only Role-Based Access Control.
 rbac:
   create: true
   clusterReadOnlyRole: true
 
+# Set the service type to NodePort for ALB ingress.
 service:
   type: NodePort
 
+# Enable ingress for external access.
 ingress:
   enabled: true
 
+  # Annotations to set up the ALB forwarding rule.
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-  
+
+  # Use the ALB ingress controller.
   className: alb
 
+  # Tell the ingress to capture all paths.
   paths: [ "/*" ]

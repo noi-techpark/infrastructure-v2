@@ -6,3 +6,18 @@
 
 autoDiscovery:
   clusterName: aws-main-eu-01
+
+awsRegion: eu-west-1
+
+# NOTE: The role ARN can be obtained from the outputs of terraform `cluster_autscaler_role`.
+rbac:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::828408288281:role/aws-main-eu-01-cluster-autoscaler
+
+extraArgs:
+  # AWS EBS CSI driver pods use local storage on nodes.
+  skip-nodes-with-local-storage: false
+
+  # AWS Load Balancer Controller pods are deployed to kube-system.
+  skip-nodes-with-system-pods: false
