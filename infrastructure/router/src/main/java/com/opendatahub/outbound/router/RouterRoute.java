@@ -17,16 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.FanoutExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.core.Binding.DestinationType;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Produces;
-
 import java.util.Optional;
 
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -103,7 +101,7 @@ public class RouterRoute extends RouteBuilder {
         getCamelContext().getRegistry().bind(RABBITMQ_CONNECTION_FACTORY, fac);
 
         AmqpAdmin admin = new RabbitAdmin(fac);
-        admin.declareExchange(new FanoutExchange(RABBITMQ_ROUTED_EXCHANGE, true, false));
+        admin.declareExchange(new TopicExchange(RABBITMQ_ROUTED_EXCHANGE, true, false));
         admin.declareQueue(new Queue(RABBITMQ_ROUTED_QUEUE, true, false, false));
         admin.declareBinding(new Binding(RABBITMQ_ROUTED_QUEUE,DestinationType.QUEUE, RABBITMQ_ROUTED_EXCHANGE, "#", null));
 
