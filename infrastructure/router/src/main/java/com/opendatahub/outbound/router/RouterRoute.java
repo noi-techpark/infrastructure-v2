@@ -115,9 +115,9 @@ public class RouterRoute extends RouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, Payload.class)
                 // .log("RabbitMQ| ${body}")
                 .process(exchange -> {
-                    Payload payload = (Payload)exchange.getMessage().getBody();
+                    Payload payload = (Payload) exchange.getMessage().getBody();
                     String routeKey = String.format("%s.%s", payload.db, payload.collection);
-                    exchange.getMessage().setHeader(SpringRabbitMQConstants.ROUTING_KEY, routeKey);
+                    exchange.getMessage().setHeader(SpringRabbitMQConstants.ROUTING_OVERRIDE_KEY, routeKey);
                     exchange.getMessage().setHeader(SpringRabbitMQConstants.DEAD_LETTER_ROUTING_KEY, routeKey);
                 })
                 .marshal().json()
