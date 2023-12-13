@@ -8,16 +8,34 @@ fullnameOverride: mongodb
 # Switch to ReplicaSet architecture.
 architecture: replicaset
 
+# ! NOTE: values of `auth.replicaSetKey` and `auth.rootPassword` must be passed
+#         via command-line during `helm install` or `helm upgrade` operations.
+
 # Set up authentication.
 auth:
   enabled: true
-    
+
 # initdbScripts:
 #   init.js: |
 #    db.addUser...
-  
-# we create this manually and don't need it for root
-#serviceBindings:
+
+# We create this manually and don't need it for root.
+# serviceBindings:
 #  enabled: true
 
-#  replicaSetKey: ec1916f3-417e-47f0-bb8f-ee1ce047cc5f # RANDOM
+resources:
+  limits:
+    cpu: 1000m  # 1000m is equivalent to 1 CPU core
+    memory: 12Gi
+  requests:
+    cpu: 500m   # 500m is equivalent to 0.5 CPU core
+    memory: 4Gi
+
+arbitrer:
+  resources:
+    limits:
+      cpu: 100m # 100m is equivalent to 0.1 CPU core
+      memory: 500Mi
+    requests:
+      cpu: 50m  # 50m is equivalent to 0.05 CPU core
+      memory: 150Mi

@@ -12,6 +12,14 @@ auth:
 serviceBindings:
   enabled: true
 
+livenessProbe:
+  exec:
+    command: ["sh", "curl -f --user $RABBITMQ_USERNAME:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/virtual-hosts"]
+
+readinessProbe:
+  exec:
+    command: ["sh", "curl -f --user $RABBITMQ_USERNAME:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/local-alarms"]
+
 # Set up the ALB ingress for the RabbitMQ Management Console (UI).
 #ingress:
 #  enabled: true
@@ -35,3 +43,11 @@ extraConfiguration: |
   consumer_timeout = 60000
   
 replicaCount: 2
+
+resources:
+  limits:
+    cpu: 500m   # 500m is equivalent to 0.5 CPU core
+    memory: 2Gi
+  requests:
+    cpu: 100m   # 100m is equivalent to 0.1 CPU core
+    memory: 500Mi
