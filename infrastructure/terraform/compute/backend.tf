@@ -7,7 +7,7 @@ terraform {
     organization = "noi-digital"
 
     workspaces {
-      name = "opendatahub-ingress-compute-dev"
+      tags = ["opendatahub-compute"]
     }
   }
 
