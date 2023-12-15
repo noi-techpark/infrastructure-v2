@@ -14,3 +14,7 @@ variable "AWS_SECRET_ACCESS_KEY" {
   default = ""
 }
 
+variable "EKS_MAIN_POOL_INSTANCE_TYPE" {
+  type = string
+  default = "r5.large"
+}
