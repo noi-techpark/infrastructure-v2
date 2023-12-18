@@ -48,7 +48,7 @@ data "aws_security_group" "default" {
 resource "aws_db_instance" "odh-postgres" {
     identifier = "odh-postgres"
     instance_class = var.DB_INSTANCE_TYPE
-    allocated_storage = 100 
+    allocated_storage = var.DB_INSTANCE_STORAGE_GB
     engine = "postgres"
     engine_version = "15.3"
     username = "postgres"
