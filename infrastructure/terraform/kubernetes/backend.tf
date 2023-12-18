@@ -31,5 +31,5 @@ terraform {
 
 data "tfe_outputs" "compute" {
   organization = "noi-digital"
-  workspace    = "opendatahub-ingress-compute-dev"
+  workspace    = var.TF_COMPUTE_WORKSPACE
 }
