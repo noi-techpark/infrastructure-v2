@@ -80,6 +80,20 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
   --namespace kube-system
 ```
 
+### Velero
+
+https://aws.amazon.com/blogs/containers/backup-and-restore-your-amazon-eks-cluster-resources-using-velero/
+
+```sh
+helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+```
+
+```sh
+helm upgrade --install velero vmware-tanzu/velero \
+  --values infrastructure/helm/velero/values.yaml \
+  --namespace velero-system
+```
+
 ### MongoDB
 
 ```sh

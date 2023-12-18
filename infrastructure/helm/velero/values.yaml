@@ -1,0 +1,42 @@
+# https://artifacthub.io/packages/helm/vmware-tanzu/velero
+
+initContainers:
+  - name: velero-plugin-for-aws
+    image: velero/velero-plugin-for-aws:v1.8.2
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+      - mountPath: /target
+        name: plugins
+
+configuration:
+  # Velero Backup Storage Location Configuration.
+  backupStorageLocation:
+    - name: default
+      provider: aws
+      bucket: velero-opendatahub-bfe86313
+      config:
+        region: eu-west-1
+
+  # Velero Volume Snapshot Location Configuration.
+  volumeSnapshotLocation:
+    - name: default
+      provider: aws
+      config:
+        region: eu-west-1
+
+  # Additional Environment Variables for Velero.
+  extraEnvVars:
+    AWS_CLUSTER_NAME: aws-main-eu-01
+
+credentials:
+  # Whether to use a Secret for Velero credentials.
+  # Set to 'false' if using OIDC and role binding to the service account
+  # instead of managing AWS credentials through Kubernetes Secrets.
+  useSecret: false
+
+serviceAccount:
+  # Service Account Configuration for Velero Server.
+  server:
+    annotations:
+      # AWS EKS Role ARN for Velero
+      eks.amazonaws.com/role-arn: arn:aws:iam::828408288281:role/AmazonEKSVeleroRole
