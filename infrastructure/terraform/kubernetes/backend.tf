@@ -7,8 +7,8 @@ terraform {
     organization = "noi-digital"
 
     workspaces {
-      name = "opendatahub-ingress-kubernetes-dev"
-    }
+      tags = ["opendatahub-kubernetes"]
+    } 
   }
 
   required_providers {
