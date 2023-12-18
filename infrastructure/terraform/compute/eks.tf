@@ -61,7 +61,7 @@ module "eks" {
       # Node group autoscaling.
       max_size     = 5
       desired_size = 3
-      min_size     = 1
+      min_size     = 3
       key_name = aws_key_pair.kubernetes-node.key_name
 
       # Node instances.
