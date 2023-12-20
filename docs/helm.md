@@ -99,7 +99,7 @@ helm upgrade --install velero vmware-tanzu/velero \
 ```sh
 helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
-**Create the default user credentials**
+#### Create the default user credentials
 ```sh
   for MONGO_USER in writer notifier collector
   do
@@ -117,18 +117,18 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
   done
 ```
 
+#### On initial setup, let mongodb create it's secrets on it's own:
 ```sh
-# On initial setup, let mongodb create it's secrets on it's own:
 helm install mongodb bitnami/mongodb \
   --values infrastructure/helm/mongodb/values.yaml \
   --namespace core
 ```
 > [!WARNING]
 > Once mongodb is installed, the volumes persist throughout uninstalls or upgrades. The volumes retain the credentials used on creation. If you reinstall Mongodb or change credentials, you will have to delete the PVC and PV first.
-> This issues manifests as Authentication errors on the mongodb pods
+> This issues manifests as "Authentication error" on the mongodb pods
 
+#### For successive helm upgrades, pass the existing secrets
 ```sh
-# For successive helm upgrades, pass the existing secrets
 export MONGODB_REPLICA_SET_KEY=$(kubectl get secret --namespace "core" mongodb -o jsonpath="{.data.mongodb-replica-set-key}" | base64 -d)
 export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace "core" mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 -d)
 
@@ -139,6 +139,7 @@ helm upgrade mongodb bitnami/mongodb \
   --namespace core
 ```
 
+#### Create base users in mongodb
 ```sh
 # Run a mongodb client container. Then within the container execute the create user script.
 # Credentials for the single users are extracted via kubectl from the corresponding secrets (see secrets.md for how to create them)
