@@ -99,25 +99,6 @@ helm upgrade --install velero vmware-tanzu/velero \
 ```sh
 helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
-#### Create the default user credentials
-```sh
-  for MONGO_USER in writer notifier collector
-  do
-    MONGO_PW=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 12`;
-    KSECRET_NAME=mongodb-${MONGO_USER}-svcbind
-    kubectl create secret generic $KSECRET_NAME \
-      --namespace core \
-      --type='servicebinding.io/mongodb' \
-      --from-literal=type='mongodb' \
-      --from-literal=provider='bitnami' \
-      --from-literal=host='mongodb-headless.core.svc.cluster.local' \
-      --from-literal=port='27017' \
-      --from-literal=username="${MONGO_USER}"\
-      --from-literal=password="$MONGO_PW" \
-      --from-literal=uri="mongodb+srv://${MONGO_USER}:${MONGO_PW}@mongodb-headless.core.svc.cluster.local/?tls=false&ssl=false"
-  done
-```
-
 #### On initial setup, let mongodb create it's secrets on it's own:
 ```sh
 helm install mongodb bitnami/mongodb \
@@ -141,6 +122,24 @@ helm upgrade mongodb bitnami/mongodb \
 ```
 
 #### Create base users in mongodb
+```sh
+# Create servicebind secrets for the default users
+  for MONGO_USER in writer notifier collector
+  do
+    MONGO_PW=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 12`;
+    KSECRET_NAME=mongodb-${MONGO_USER}-svcbind
+    kubectl create secret generic $KSECRET_NAME \
+      --namespace core \
+      --type='servicebinding.io/mongodb' \
+      --from-literal=type='mongodb' \
+      --from-literal=provider='bitnami' \
+      --from-literal=host='mongodb-headless.core.svc.cluster.local' \
+      --from-literal=port='27017' \
+      --from-literal=username="${MONGO_USER}"\
+      --from-literal=password="$MONGO_PW" \
+      --from-literal=uri="mongodb+srv://${MONGO_USER}:${MONGO_PW}@mongodb-headless.core.svc.cluster.local/?tls=false&ssl=false"
+  done
+```
 ```sh
 # Run a mongodb client container. Then within the container execute the create user script.
 # Credentials for the single users are extracted via kubectl from the corresponding secrets (see secrets.md for how to create them)
