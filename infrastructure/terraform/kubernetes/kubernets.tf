@@ -25,7 +25,13 @@ provider "kubernetes" {
 
 # Authentication.
 locals {
-  aws_auth_roles = []
+  aws_auth_roles = [
+    {
+      rolearn = "arn:aws:iam::508265476175:role/AWSReservedSSO_aqcloudUser_d344621e20bc9c49"
+      username = "cluster-admin"
+      groups   = ["system:masters"]
+    }
+  ]
 
   aws_auth_users = [
     # Terraform.
