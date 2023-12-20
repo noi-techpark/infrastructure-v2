@@ -104,7 +104,8 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
   for MONGO_USER in writer notifier collector
   do
     MONGO_PW=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 12`;
-    kubectl create secret generic mongodb-${MONGO_USER}-svcbind \
+    KSECRET_NAME=mongodb-${MONGO_USER}-svcbind
+    kubectl create secret generic $KSECRET_NAME \
       --namespace core \
       --type='servicebinding.io/mongodb' \
       --from-literal=type='mongodb' \
@@ -113,7 +114,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
       --from-literal=port='27017' \
       --from-literal=username="${MONGO_USER}"\
       --from-literal=password="$MONGO_PW" \
-      --from-literal=uri="mongodb://${MONGO_USER}:${TMP_MONGO_PW}@mongodb-headless.core.svc.cluster.local"
+      --from-literal=uri="mongodb+srv://${MONGO_USER}:${MONGO_PW}@mongodb-headless.core.svc.cluster.local/?tls=false&ssl=false"
   done
 ```
 
@@ -176,11 +177,19 @@ mongosh 'mongodb+srv://mongodb-headless.core.svc.cluster.local/admin?tls=false' 
 helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
 
+#### Initial setup
+```sh
+helm install rabbitmq bitnami/rabbitmq \
+  --values infrastructure/helm/rabbitmq/values.yaml \
+  --namespace core
+```
+
+#### Upgrade existing deployment
 ```sh
 export RABBITMQ_PASSWORD=$(kubectl get secret --namespace "core" rabbitmq -o jsonpath="{.data.rabbitmq-password}" | base64 -d)
 export RABBITMQ_ERLANG_COOKIE=$(kubectl get secret --namespace "core" rabbitmq -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 -d)
 
-helm upgrade --install rabbitmq bitnami/rabbitmq \
+helm upgrade rabbitmq bitnami/rabbitmq \
   --values infrastructure/helm/rabbitmq/values.yaml \
   --set auth.password=$RABBITMQ_PASSWORD \
   --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE \
@@ -188,8 +197,6 @@ helm upgrade --install rabbitmq bitnami/rabbitmq \
 ```
 
 ### Camel K
-
-**Reminder: update the following credentials `[USER]` and `[TOKEN]` with valid docker registry credentials.**
 
 **Tips: install `Kamel CLI` and read the Camel K [documentation](https://camel.apache.org/camel-k/1.9.x/running/running.html).**
 
@@ -242,8 +249,12 @@ helm upgrade --install notifier ./infrastructure/helm/notifier/notifier \
 
 ### Nginx ingress
 TODO: values.yaml contains hardcoded subnet of dev environment.
+
 ```sh
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+```
+
+```sh
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx  --namespace ingress-nginx --create-namespace \
 --values infrastructure/helm/nginx-ingress/values.yaml \
 --set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations=eipalloc-0b84603c6d3f425bf"
@@ -274,13 +285,19 @@ To make secrets visible across namespaces we use kubernetes-reflector
 
 ```sh
 helm repo add emberstack https://emberstack.github.io/helm-charts
+```
+```sh
 helm upgrade --install reflector --namespace kube-system emberstack/reflector
 ```
 
 ## Open Data Hub core applications
 These are the legacy core applications of the Open Data Hub
 These use already existing containers and pipelines and are configured via env variables set as "env." values.
+
 Image tags are hardcoded, so upgrading the applications has to be done by updating image tags (commit hash)
+
+> [!IMPORTANT]
+> The core applications rely on secrets in `secrets.md` for package repository and database access
 
 ### Ninja API
 Outbound mobility API used to query mobility data

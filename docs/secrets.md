@@ -29,26 +29,8 @@ kubectl create secret docker-registry container-registry-r \
 A default servicebind secret is created by rabbitmq helm chart
 
 ## mongodb
-Create secrets with random password to be used by services to access mongo.
-NB: You also have to create the user in mongo with these credentials. see helm.md for that
+See `helm.md`
 
-```sh
-  for MONGO_USER in writer notifier collector
-  do
-    MONGO_PW=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 12`;
-    KSECRET_NAME=mongodb-${MONGO_USER}-svcbind
-    kubectl create secret generic $KSECRET_NAME \
-      --namespace core \
-      --type='servicebinding.io/mongodb' \
-      --from-literal=type='mongodb' \
-      --from-literal=provider='bitnami' \
-      --from-literal=host='mongodb-headless.core.svc.cluster.local' \
-      --from-literal=port='27017' \
-      --from-literal=username="${MONGO_USER}"\
-      --from-literal=password="$MONGO_PW" \
-      --from-literal=uri="mongodb+srv://${MONGO_USER}:${MONGO_PW}@mongodb-headless.core.svc.cluster.local/?tls=false&ssl=false"
-  done
-```
 ## postgresql
 Create secrets for rw and ro users using servicebind standard
 
