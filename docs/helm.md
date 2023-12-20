@@ -118,10 +118,21 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 ```
 
 ```sh
+# On initial setup, let mongodb create it's secrets on it's own:
+helm install mongodb bitnami/mongodb \
+  --values infrastructure/helm/mongodb/values.yaml \
+  --namespace core
+```
+> [!WARNING]
+> Once mongodb is installed, the volumes persist throughout uninstalls or upgrades. The volumes retain the credentials used on creation. If you reinstall Mongodb or change credentials, you will have to delete the PVC and PV first.
+> This issues manifests as Authentication errors on the mongodb pods
+
+```sh
+# For successive helm upgrades, pass the existing secrets
 export MONGODB_REPLICA_SET_KEY=$(kubectl get secret --namespace "core" mongodb -o jsonpath="{.data.mongodb-replica-set-key}" | base64 -d)
 export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace "core" mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 -d)
 
-helm upgrade --install mongodb bitnami/mongodb \
+helm upgrade mongodb bitnami/mongodb \
   --values infrastructure/helm/mongodb/values.yaml \
   --set auth.rootPassword=$MONGODB_ROOT_PASSWORD \
   --set auth.replicaSetKey=$MONGODB_REPLICA_SET_KEY \
