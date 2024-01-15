@@ -5,6 +5,12 @@
 # https://artifacthub.io/packages/helm/bitnami/rabbitmq
 fullnameOverride: rabbitmq
 
+# Allocate at least one replica for each AZ.
+replicaCount: 3
+
+# Ensure that each pod is scheduled to a different node.
+podAntiAffinityPreset: hard
+
 # Set up static authentication.
 auth:
   username: opendatahub
@@ -41,8 +47,6 @@ readinessProbe:
 
 extraConfiguration: |
   consumer_timeout = 60000
-  
-replicaCount: 2
 
 resources:
   limits:

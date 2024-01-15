@@ -1,6 +1,6 @@
 ################################################################################
 ## This file contains the EKS cluster.
-## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/19.13.0
+## https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/19.21.0
 ################################################################################
 
 resource  "aws_key_pair" "kubernetes-node" {
@@ -10,7 +10,7 @@ resource  "aws_key_pair" "kubernetes-node" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.13"
+  version = "~> 19.21"
 
   # ----------------------------------------------------------------------------
   # General
@@ -55,13 +55,10 @@ module "eks" {
     main = {
       name = "main-pool"
 
-      # Force single AZ because pods always have to be in same AZ as their persistent volumes
-      subnet_ids = [module.vpc.private_subnets[1]]
-
       # Node group autoscaling.
       max_size     = 5
       desired_size = 3
-      min_size     = 3
+      min_size     = 3 # NOTE: the minimum size must be at least equal to the amount of subnets (zones). 
       key_name = aws_key_pair.kubernetes-node.key_name
 
       # Node instances.
