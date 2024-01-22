@@ -53,7 +53,7 @@ data "aws_iam_policy_document" "velero_policy_document" {
       "s3:ListBucket",
     ]
 
-    resources = ["arn:aws:s3:::${aws_s3_bucket.velero.bucket}", ]
+    resources = [aws_s3_bucket.velero.arn]
   }
 
   statement {
@@ -66,7 +66,7 @@ data "aws_iam_policy_document" "velero_policy_document" {
       "s3:AbortMultipartUpload",
       "s3:ListMultipartUploadParts"
     ]
-    resources = ["arn:aws:s3:::${aws_s3_bucket.velero.bucket}/*", ]
+    resources = ["${aws_s3_bucket.velero.arn}/*", ]
   }
 }
 
@@ -86,5 +86,5 @@ resource "aws_iam_role_policy_attachment" "velero_attach_iam_policy" {
 }
 
 resource "aws_s3_bucket" "velero" {
-  bucket = "velero-opendatahub-bfe86313"
+  bucket_prefix = "velero-opendatahub-"
 }
