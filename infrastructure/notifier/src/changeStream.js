@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-const { Timestamp } = require('mongodb');
+const { Timestamp , ChangeStream} = require('mongodb');
 
 /**
  * monitorListingsUsingEventEmitter opens a changestream watching for all updates
@@ -25,8 +25,8 @@ async function monitorListingsUsingEventEmitter(client, fnPublish, topic, pipeli
          * https://stackoverflow.com/questions/55184492/difference-between-resumeafter-and-startatoperationtime-in-mongodb-change-stream
         */
         // console.log(collection)
-        const aftetTime = cursor ? cursor.timestamp : new Timestamp({ t: 0, i: 0 });
-        console.log("Reading events starting from " + new Date(aftetTime.getHighBits() * 1000))
+        const afterTime = cursor ? cursor.timestamp : new Timestamp({ t: 0, i: 0 });
+        console.log("Reading events starting from " + new Date(afterTime.getHighBits() * 1000))
         console.log("Now is " + new Date())
         // watching the whole deployment https://www.mongodb.com/docs/manual/changeStreams/
         // it could be possible to spin more instances of the notifier with different configurations to improve the performances
@@ -34,10 +34,10 @@ async function monitorListingsUsingEventEmitter(client, fnPublish, topic, pipeli
         //
         // in this case the logic to write checkpoints (flushCheckpoint, getCursor) 
         // should be extended to reflect the information about which collection/database the checkpoint refers to
-        const changeStream = client.watch(pipeline, { startAtOperationTime: aftetTime})
+        const changeStream = client.watch(pipeline, { startAtOperationTime: afterTime})
 
         let updating = false;
-        changeStream.on('change', async (next) => {
+        changeStream.on(ChangeStream.CHANGE, async (next) => {
             // console.log(changeStream.resumeToken);
             const operationTime = new Date(next.clusterTime.getHighBits() * 1000);
 

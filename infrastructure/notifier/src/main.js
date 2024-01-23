@@ -102,6 +102,7 @@ async function main() {
         // Close the connection to the MongoDB cluster
         await client.close();
         console.log(`error connecting to db`)
+        
     }
 }
 
