@@ -24,6 +24,10 @@ SPDX-License-Identifier: CC0-1.0
 - [RabbitMQ](docs/rabbitmq.md)
 - [Provider URI](docs/inbound.md#provider-uri)
 
+## Tools
+
+* [Remote RabbitMQ Queue Manager](docs/devops/rabbitmq_dev_route.md)
+
 --- 
 
 ## Overview
