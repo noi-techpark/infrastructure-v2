@@ -1,0 +1,27 @@
+name: Terraform [development]
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  provision:
+    if: github.event.review.state == 'approved' && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        workdir:
+          # - infrastructure/terraform/compute
+          # - infrastructure/terraform/db
+          # - infrastructure/terraform/dns
+          # - infrastructure/terraform/kubernetes
+          - infrastructure/terraform/kubernetes-managed
+          # - infrastructure/terraform/users
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: hashicorp/setup-terraform@v3
+        with: { cli_config_credentials_token: "${{ secrets.TERRAFORM_CREDENTIALS }}" }
+      - run: terraform -chdir=${{ matrix.workdir }} init
+      - run: terraform -chdir=${{ matrix.workdir }} apply -auto-approve -no-color
