@@ -16,7 +16,7 @@ module "eks" {
   # General
   # ----------------------------------------------------------------------------
   cluster_name    = "aws-main-eu-01"
-  cluster_version = "1.27"
+  cluster_version = "1.29"
 
   # ----------------------------------------------------------------------------
   # Control Plane Access
@@ -66,6 +66,29 @@ module "eks" {
       
       # enable more pods per node using IP prefix: https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
       bootstrap_extra_args = "--use-max-pods false --kubelet-extra-args '--max-pods=110'"
+
+      # IAM roles.
+      iam_role_use_name_prefix = false
+    }
+  }
+
+  eks_managed_node_groups = {
+    main = {
+      name = "main-pool-managed"
+
+      # Node group autoscaling.
+      max_size     = 1
+      desired_size = 1
+      min_size     = 1 # NOTE: the minimum size must be at least equal to the amount of subnets (zones).
+      key_name = aws_key_pair.kubernetes-node.key_name
+
+      # Node instances.
+      instance_type = "t3.medium"
+
+      use_custom_launch_template = false
+
+      ami_type = "BOTTLEROCKET_x86_64"
+      platform = "bottlerocket"
 
       # IAM roles.
       iam_role_use_name_prefix = false
