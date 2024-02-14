@@ -10,7 +10,7 @@ resource  "aws_key_pair" "kubernetes-node" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.21"
+  version = "~> 20.2"
 
   # ----------------------------------------------------------------------------
   # General
@@ -33,12 +33,6 @@ module "eks" {
   # Addons - managed in the kubernetes workspace (see addons.tf).
   # ----------------------------------------------------------------------------
   cluster_addons = {}
-
-  # ----------------------------------------------------------------------------
-  # Authentication - managed in the kubernetes workspace (see auth.tf).
-  # ----------------------------------------------------------------------------
-  create_aws_auth_configmap = false
-  manage_aws_auth_configmap = false
 
   # ----------------------------------------------------------------------------
   # Node Groups
