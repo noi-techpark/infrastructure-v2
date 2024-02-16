@@ -55,3 +55,6 @@ resources:
   requests:
     cpu: 100m   # 100m is equivalent to 0.1 CPU core
     memory: 500Mi
+
+clustering:
+  forceBoot: true
