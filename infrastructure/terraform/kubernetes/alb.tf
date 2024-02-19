@@ -282,11 +282,6 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller_attach_iam_p
 }
 
 resource "kubernetes_manifest" "load_balancer_controller_service_account" {
-  depends_on = [
-    kubernetes_config_map.aws_auth,
-    kubernetes_config_map_v1_data.aws_auth,
-  ]
-
   manifest = {
     "apiVersion" = "v1"
     "kind"       = "ServiceAccount"

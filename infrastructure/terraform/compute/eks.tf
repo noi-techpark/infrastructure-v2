@@ -30,10 +30,8 @@ module "eks" {
   cluster_addons = {}
 
   # ----------------------------------------------------------------------------
-  # Cluster Permissions - add the current caller identity as an administrator.
+  # Node groups
   # ----------------------------------------------------------------------------
-  enable_cluster_creator_admin_permissions = true
-
   eks_managed_node_groups = {
     main = {
       name = "main-pool-deprecated"
@@ -82,6 +80,11 @@ module "eks" {
       self        = true
     }
   }
+
+  # ----------------------------------------------------------------------------
+  # Cluster Permissions - add the current caller identity as an administrator.
+  # ----------------------------------------------------------------------------
+  enable_cluster_creator_admin_permissions = true
 
   # ----------------------------------------------------------------------------
   # Tags

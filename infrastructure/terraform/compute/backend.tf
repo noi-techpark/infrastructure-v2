@@ -21,6 +21,11 @@ terraform {
       source = "hashicorp/random"
       version = "~>3.5"
     }    
+    # The configuration of the kubernetes provider and its required version.
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.18"
+    }
   }
 
   # The required version of Terraform itself.

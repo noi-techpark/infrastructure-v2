@@ -4,21 +4,17 @@
 ###############################################################################
 
 resource "aws_eks_addon" "this" {
-  depends_on = [
-    kubernetes_config_map.aws_auth,
-    kubernetes_config_map_v1_data.aws_auth,
-  ]
-
   for_each = local.cluster_addons
 
   cluster_name = data.aws_eks_cluster.default.id
   addon_name   = try(each.value.name, each.key)
 
-  addon_version            = try(each.value.addon_version, data.aws_eks_addon_version.this[each.key].version)
-  configuration_values     = try(each.value.configuration_values, null)
-  preserve                 = try(each.value.preserve, null)
-  resolve_conflicts        = try(each.value.resolve_conflicts, "OVERWRITE")
-  service_account_role_arn = try(each.value.service_account_role_arn, null)
+  addon_version               = try(each.value.addon_version, data.aws_eks_addon_version.this[each.key].version)
+  configuration_values        = try(each.value.configuration_values, null)
+  preserve                    = try(each.value.preserve, null)
+  resolve_conflicts_on_create = try(each.value.resolve_conflicts, "OVERWRITE")
+  resolve_conflicts_on_update = try(each.value.resolve_conflicts, "OVERWRITE")
+  service_account_role_arn    = try(each.value.service_account_role_arn, null)
 
   timeouts {
     create = try(each.value.timeouts.create, null)
@@ -28,11 +24,6 @@ resource "aws_eks_addon" "this" {
 }
 
 data "aws_eks_addon_version" "this" {
-  depends_on = [
-    kubernetes_config_map.aws_auth,
-    kubernetes_config_map_v1_data.aws_auth,
-  ]
-
   for_each = local.cluster_addons
 
   addon_name         = try(each.value.name, each.key)
