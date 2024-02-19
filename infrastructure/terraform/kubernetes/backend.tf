@@ -15,7 +15,7 @@ terraform {
     # The configuration of the AWS provider and its required version.
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 4.55"
+      version = "~> 5.36"
     }
 
     # The configuration of the kubernetes provider and its required version.
@@ -26,7 +26,7 @@ terraform {
   }
 
   # The required version of Terraform itself.
-  required_version = "~> 1.4"
+  required_version = "~> 1.7"
 }
 
 data "tfe_outputs" "compute" {

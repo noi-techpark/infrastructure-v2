@@ -5,7 +5,6 @@
 
 locals {
   cluster_name = data.tfe_outputs.compute.nonsensitive_values.kubernetes_cluster_name
-  node_groups  = data.tfe_outputs.compute.nonsensitive_values.kubernetes_node_groups
 }
 
 data "aws_eks_cluster" "default" {
@@ -25,14 +24,7 @@ provider "kubernetes" {
 
 # Authentication.
 locals {
-  aws_auth_roles = [
-    {
-      rolearn = "arn:aws:iam::508265476175:role/AWSReservedSSO_aqcloudUser_d344621e20bc9c49"
-      username = "cluster-admin"
-      groups   = ["system:masters"]
-    }
-  ]
-
+  aws_auth_roles = []
   aws_auth_users = [
     # Terraform.
     {
