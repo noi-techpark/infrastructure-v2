@@ -87,4 +87,10 @@ resource "aws_iam_role_policy_attachment" "velero_attach_iam_policy" {
 
 resource "aws_s3_bucket" "velero" {
   bucket_prefix = "velero-opendatahub-"
+  
+  # prevent that one bucket in testing from being deleted on every apply.
+  # once the bucket velero-opendatahub-bfe86313 isn't used anymore, delete this
+  lifecycle {
+    ignore_changes = [bucket_prefix]
+  }
 }

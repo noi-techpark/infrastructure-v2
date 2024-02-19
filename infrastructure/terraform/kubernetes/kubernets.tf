@@ -27,11 +27,11 @@ locals {
   aws_auth_roles = []
   aws_auth_users = [
     # Terraform.
-    {
-      userarn  = "arn:aws:iam::828408288281:user/terraform-ingress"
-      username = "terraform"
-      groups   = ["system:masters"]
-    },
+    #{
+    #  userarn  = "arn:aws:iam::828408288281:user/terraform-ingress"
+    #  username = "terraform"
+    #  groups   = ["system:masters"]
+    #},
     # Animeshon.
     {
       userarn  = "arn:aws:iam::828408288281:user/animeshon"
