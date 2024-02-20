@@ -1,9 +1,7 @@
 ###############################################################################
-# The following resources have been extracted from the official AWS EKS module:
-# https://github.com/terraform-aws-modules/terraform-aws-eks/blob/v19.13.0/main.tf#L464-L569
+# Authorizations within the Kubernetes cluster
 ###############################################################################
 
-# Authentication.
 locals {
   aws_auth_users = [
     {
@@ -44,7 +42,7 @@ locals {
   ]
 }
 
-
+# Register IAM users as kubernetes users
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_access_entry
 resource "aws_eks_access_entry" "default" {
   for_each = {
@@ -58,6 +56,7 @@ resource "aws_eks_access_entry" "default" {
   kubernetes_groups = each.value.groups
 }
 
+# Attach cluser admin authorization to IAM users
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_access_policy_association
 resource "aws_eks_access_policy_association" "clusterAdmins" {
   for_each = aws_eks_access_entry.default
