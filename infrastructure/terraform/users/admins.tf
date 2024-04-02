@@ -13,7 +13,8 @@ resource "aws_iam_group_policy_attachment" "admin_policy_attach" {
 }
 
 locals {
-  admins = [
+  prod = var.ENVIRONMENT == "prod"
+  admins_dev = [
     "animeshon",
     "c.zagler",
     "l.miotto",
@@ -24,6 +25,16 @@ locals {
     "s.dalvai",
     "s.seppi",
   ]
+  admins_prod = [
+    "c.zagler",
+    "l.miotto",
+    "p.ohnewein",
+    "r.cavaliere",
+    "r.thoeni",
+    "s.dalvai",
+    "s.seppi",
+  ]
+  admins = local.prod ? local.admins_prod : local.admins_dev
 }
 
 resource "aws_iam_user" "admins" {

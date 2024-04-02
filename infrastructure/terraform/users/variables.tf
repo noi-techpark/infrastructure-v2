@@ -14,3 +14,8 @@ variable "AWS_SECRET_ACCESS_KEY" {
   default = ""
 }
 
+variable "ENVIRONMENT" {
+  type    = string
+  default = "dev"
+}
+
