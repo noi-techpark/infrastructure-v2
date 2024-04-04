@@ -5,7 +5,6 @@
 
 
 data "aws_eks_cluster" "default" {
-  depends_on = [ module.eks ]
   name = module.eks.cluster_name
 }
 

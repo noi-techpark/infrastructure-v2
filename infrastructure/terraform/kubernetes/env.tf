@@ -2,7 +2,7 @@
 locals {
   prod = var.ENVIRONMENT == "prod"
 
-  eks_main_pool_instance_types = local.prod ? ["r7a.large"] : ["r7a.large"]
+  eks_main_pool_instance_types = local.prod ? ["t3a.medium"] : ["r7a.large"]
 
   eks_admins_dev = [
     "animeshon",
