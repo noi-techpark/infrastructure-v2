@@ -4,7 +4,7 @@
 ################################################################################
 
 locals {
-  cluster_name = data.tfe_outputs.compute.nonsensitive_values.kubernetes_cluster_name
+  cluster_name = module.eks.cluster_name
 }
 
 data "aws_eks_cluster" "default" {

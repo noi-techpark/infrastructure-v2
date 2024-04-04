@@ -14,8 +14,7 @@ variable "AWS_SECRET_ACCESS_KEY" {
   default = ""
 }
 
-variable "TF_COMPUTE_WORKSPACE" {
-  type = string
-  default = ""
-  description = "The terraform cloud workspace that created the compute resources"
+variable "ENVIRONMENT" {
+  type    = string
+  default = "dev"
 }
