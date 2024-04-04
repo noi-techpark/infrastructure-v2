@@ -18,3 +18,11 @@ variable "ENVIRONMENT" {
   type    = string
   default = "dev"
 }
+
+# Some resources require the cluster to already be running. 
+# if initial_create is set "true", those resources are skipped
+# launch the very firstapply with -var "INITIAL_CREATE=true" and then apply again
+variable "INITIAL_CREATE" {
+  type = string
+  default = "false"
+}

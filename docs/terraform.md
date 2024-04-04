@@ -30,3 +30,5 @@ terraform apply   # Review the changes one last time and confirm before applying
 ## Documentation
 
 All files include a header with a link to the documentation page of the resources being deployed to the cloud.
+
+## First setup

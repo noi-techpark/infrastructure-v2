@@ -3,16 +3,14 @@
 ## https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs
 ################################################################################
 
-locals {
-  cluster_name = module.eks.cluster_name
-}
 
 data "aws_eks_cluster" "default" {
-  name = local.cluster_name
+  depends_on = [ module.eks ]
+  name = module.eks.cluster_name
 }
 
 data "aws_eks_cluster_auth" "default" {
-  name = local.cluster_name
+  name = data.aws_eks_cluster.default.id
 }
 
 # The instance of the kubernetes provider.

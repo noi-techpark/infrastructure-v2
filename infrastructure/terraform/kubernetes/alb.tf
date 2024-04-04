@@ -4,7 +4,7 @@
 ################################################################################
 
 locals {
-  oidc_provider = replace(data.aws_eks_cluster.default.identity[0].oidc[0].issuer, "https://", "")
+  oidc_provider = module.eks.oidc_provider
 }
 
 resource "aws_iam_policy" "load_balancer_controller_iam_policy" {
@@ -282,6 +282,10 @@ resource "aws_iam_role_policy_attachment" "load_balancer_controller_attach_iam_p
 }
 
 resource "kubernetes_manifest" "load_balancer_controller_service_account" {
+  # https://github.com/hashicorp/terraform-provider-kubernetes/issues/1391
+  # Must wait until cluster exists before creating this
+  count = var.INITIAL_CREATE == "true" ? 0 : 1
+  
   manifest = {
     "apiVersion" = "v1"
     "kind"       = "ServiceAccount"
