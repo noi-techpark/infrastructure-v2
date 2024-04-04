@@ -34,7 +34,7 @@ module "eks" {
   # ----------------------------------------------------------------------------
   eks_managed_node_groups = {
     main = {
-      name = "main-pool-deprecated"
+      name = "main-pool"
 
       # Node group autoscaling.
       min_size     = 1 # NOTE: the minimum size must be at least equal to the amount of subnets (zones).
@@ -42,7 +42,7 @@ module "eks" {
       desired_size = 3
 
       # Node instances.
-      instance_types = [var.EKS_MAIN_POOL_INSTANCE_TYPE]
+      instance_types = local.eks_main_pool_instance_types
 
       use_custom_launch_template = false
 

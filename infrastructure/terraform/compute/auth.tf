@@ -3,42 +3,13 @@
 ###############################################################################
 
 locals {
-  aws_auth_users = [
+  aws_auth_admins = [
+    for user in local.eks_admins: 
     {
-      userarn  = "arn:aws:iam::828408288281:user/animeshon"
-      username = "animeshon"
+      userarn  = "arn:aws:iam::${local.account_id}:user/${user}"
+      username = user
       groups   = []
-    },
-    # Simon Dalvai.
-    {
-      userarn  = "arn:aws:iam::828408288281:user/s.dalvai"
-      username = "s.dalvai"
-      groups   = []
-    },
-    # Rudolf Thoeni.
-    {
-      userarn  = "arn:aws:iam::828408288281:user/r.thoeni"
-      username = "r.thoeni"
-      groups   = []
-    },
-    # Clemens Zagler.
-    {
-      userarn  = "arn:aws:iam::828408288281:user/c.zagler"
-      username = "c.zagler"
-      groups   = []
-    },
-    # Stefano Seppi.
-    {
-      userarn  = "arn:aws:iam::828408288281:user/s.seppi"
-      username = "s.seppi"
-      groups   = []
-    },
-    # Martin Rabanser.
-    {
-      userarn  = "arn:aws:iam::828408288281:user/m.rabanser"
-      username = "m.rabanser"
-      groups   = []
-    },
+    }
   ]
 }
 
@@ -46,7 +17,7 @@ locals {
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_access_entry
 resource "aws_eks_access_entry" "default" {
   for_each = {
-    for index, u in local.aws_auth_users:
+    for index, u in local.aws_auth_admins:
     u.username => u
   }
 
