@@ -217,7 +217,7 @@ helm repo add camel-k https://apache.github.io/camel-k/charts
 
 helm upgrade --install camel-k camel-k/camel-k \
   --values infrastructure/helm/camel-k/values.yaml \
-  --version 2.1.0 \
+  --version 2.2.0 \
   --namespace core
 ```
 
