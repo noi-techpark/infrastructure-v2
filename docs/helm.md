@@ -18,8 +18,10 @@ In order to be able to plan, apply, and debug infrastructure provisioning, it is
 ## Namespaces
 
 create the namespaces the helm charts are deployed to:
-```
+```sh
+# core services like rabbitmq, mongodb, APIs etc.
 kubectl create namespace core
+# data collectors and transformers
 kubectl create namespace collector
 ```
 ## Packages
@@ -86,6 +88,8 @@ https://aws.amazon.com/blogs/containers/backup-and-restore-your-amazon-eks-clust
 
 ```sh
 helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+# create dedicated namespace
+kubectl create namespace velero-system
 ```
 
 ```sh
