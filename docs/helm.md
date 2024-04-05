@@ -61,10 +61,12 @@ https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/cloudpro
 ```sh
 helm repo add autoscaler https://kubernetes.github.io/autoscaler
 ```
-
 ```sh
+# NOTE: The role ARN can be obtained from the outputs of terraform `cluster_autscaler_role`
+# But it should suffice to plug in the correct account ID
 helm upgrade --install aws-cluster-autoscaler autoscaler/cluster-autoscaler \
   --values infrastructure/helm/aws-cluster-autoscaler/values.yaml \
+  --set rbac.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::828408288281:role/aws-main-eu-01-cluster-autoscaler" \
   --namespace kube-system
 ```
 
