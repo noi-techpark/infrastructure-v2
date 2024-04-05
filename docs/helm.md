@@ -238,7 +238,10 @@ helm upgrade --install mosquitto naps/mosquitto \
 **Reminder: authenticate to docker via `docker login ghcr.io` before invoking the `docker push` command.**
 
 ```sh
-docker build -t ghcr.io/noi-techpark/infrastructure-v2/notifier:latest infrastructure/notifier
+# note the label is there to link the package to the gh repo
+docker build -t ghcr.io/noi-techpark/infrastructure-v2/notifier:latest infrastructure/notifier \
+--label "org.opencontainers.image.source=https://github.com/noi-techpark/infrastructure-v2"
+
 docker push ghcr.io/noi-techpark/infrastructure-v2/notifier:latest
 ```
 
