@@ -235,13 +235,11 @@ helm upgrade --install mosquitto naps/mosquitto \
 
 ### Notifier
 
-**Reminder: authenticate to docker via `docker login` before invoking the `docker push` command.**
-
-**Reminder: update the `RABBITMQ_CLUSTER_URL` environment variable with valid RabbitMQ credentials.**
+**Reminder: authenticate to docker via `docker login ghcr.io` before invoking the `docker push` command.**
 
 ```sh
-docker build -t ghcr.io/noi-techpark/odh-infrastructure-v2/notifier:latest .
-docker push ghcr.io/noi-techpark/odh-infrastructure-v2/notifier:latest
+docker build -t ghcr.io/noi-techpark/infrastructure-v2/notifier:latest infrastructure/notifier
+docker push ghcr.io/noi-techpark/infrastructure-v2/notifier:latest
 ```
 
 ```sh

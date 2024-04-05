@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: odh-infrastructure-v2
+Upstream-Name: infrastructure-v2
 Upstream-Contact: NOI Techpark <digital@noi.bz.it>
-Source: https://github.com/noi-techpark/odh-infrastructure-v2
+Source: https://github.com/noi-techpark/infrastructure-v2
 
 Files: .mvn/* .vscode/* docs/assets/* .env.example .gitattributes .gitignore *.conf
        infrastructure/*/.env infrastructure/*/.gitignore infrastructure/*/Dockerfile infrastructure/*/env.example infrastructure/*/mvnw infrastructure/*/mvnw.cmd infrastructure/*/*.properties infrastructure/*/package-lock.json infrastructure/*/package.json
