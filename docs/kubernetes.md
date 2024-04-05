@@ -76,7 +76,7 @@ make sure you're logged into aws
 aws sso login --profile consip
 ```
 
-Now create the kubectl credentials following the odh-infrastructure-v2 documentation, but using the newly created AWS CLI profile:
+Now create the kubectl credentials following the infrastructure-v2 documentation, but using the newly created AWS CLI profile:
 ```sh
 aws eks --region eu-west-1 update-kubeconfig --name aws-main-eu-01 --profile consip
 ```
