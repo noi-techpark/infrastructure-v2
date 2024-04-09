@@ -42,17 +42,6 @@ resource "aws_iam_user" "admins" {
   name = each.value
 }
 
-## resource "aws_iam_user_login_profile" "admins" {
-##   for_each = values(aws_iam_user.admins)[*].name
-##   user = each.value
-##   pgp_key = var.PASSWORDS_PGP_PUBLIC_KEY
-##   password_reset_required = true
-## }
-## 
-## output "passwords" {
-##   value = values(aws_iam_user_login_profile.admins)
-## }
-
 resource "aws_iam_group_membership" "admin_members" {
   name = "admin_membership"
   users = values(aws_iam_user.admins)[*].name
