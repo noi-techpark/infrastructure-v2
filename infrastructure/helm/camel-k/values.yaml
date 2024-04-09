@@ -12,7 +12,7 @@ platform:
       # secret: docker-secrets
       # organization: kamel
       address: ghcr.io
-      organization: noi-techpark/odh-v2-playground/camel
+      organization: noi-techpark/infrastructure-v2/camel
       secret: container-registry-rw
       insecure: false
 
