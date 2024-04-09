@@ -1,5 +1,5 @@
 ###############################################################################
-# Authorizations within the Kubernetes cluster
+# Authorizations for personal IAM users 
 ###############################################################################
 
 locals {
