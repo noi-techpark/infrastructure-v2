@@ -85,7 +85,7 @@ Format
     --from-literal=pgconnection="Server=hostname.domain.com;Port=5432;User ID=******;Password=********;Database=tourism"
 ```
 
-## BDP core
+## Oauth data collectors
 Used by data collectors to authenticate themselves (mostly for pushing to writer API)
 ```bash
   kubectl create secret generic oauth-collector \
@@ -95,9 +95,6 @@ Used by data collectors to authenticate themselves (mostly for pushing to writer
     --from-literal=clientId='odh-mobility-datacollector' \
     --from-literal=clientSecret='*************'
 ```
-
-## Oauth data collectors
-Oauth coordinates for data collectors
 
 # Expose secrets to other namespaces
 Secrets are namespace-bound in Kubernetes.  
