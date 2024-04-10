@@ -76,7 +76,7 @@ Create secrets for rw and ro users using servicebind standard
     --from-literal=uri="postgresql://bdp_readonly:${POSTGRES_R_PW}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?currentSchema=${POSTGRES_SCHEMAS}"
 ```
 
-### Tourism test DB
+## Tourism test DB
 Only for initial tests, we use the existing tourism DB.
 Format
 ```sh
@@ -85,7 +85,21 @@ Format
     --from-literal=pgconnection="Server=hostname.domain.com;Port=5432;User ID=******;Password=********;Database=tourism"
 ```
 
-### Expose secrets to other namespaces
+## BDP core
+Used by data collectors to authenticate themselves (mostly for pushing to writer API)
+```bash
+  kubectl create secret generic oauth-collector \
+    --namespace collector \
+    --from-literal=authorizationUri='https://auth.opendatahub.testingmachine.eu/auth' \
+    --from-literal=tokenUri='https://auth.opendatahub.testingmachine.eu/auth/realms/noi/protocol/openid-connect/token' \
+    --from-literal=clientId='odh-mobility-datacollector' \
+    --from-literal=clientSecret='*************'
+```
+
+## Oauth data collectors
+Oauth coordinates for data collectors
+
+# Expose secrets to other namespaces
 Secrets are namespace-bound in Kubernetes.  
 To make certain secrets available across namespaces, we use kubernetes-reflector.
 ```sh
