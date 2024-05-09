@@ -15,6 +15,7 @@ locals {
   service-domains = [
     "mobility.api",
     "tourism.api",
+    "push.api",
     "analytics",
     "rabbitmq",
     "spreadsheets"
