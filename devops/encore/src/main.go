@@ -126,13 +126,38 @@ func main() {
 	log.Println("Job done!")
 }
 
-func foo() {
-	// create new temp queue with same binding as original
-	// remove original binding (and purge queue?)
-	// push replay msgs to orig queue
+func createDetour(ch *amqp.Channel, q amqp.Queue, routeKey string, exchange string) {
+	// create new detour queue with same binding as original
+	// All new messages get temporarily relayed to that queue
+	dt, err := ch.QueueDeclare(q.Name+".detour", true, false, false, false, nil)
+	failOnError(err, "Unable to create detour queue")
+	failOnError(ch.QueueBind(dt.Name, routeKey, exchange, false, nil), "Unable to bind detour queue")
+
+	// remove original binding and purge that queue
+	// This is the queue the transformer is still attached to
+	failOnError(ch.QueueUnbind(q.Name, routeKey, exchange, nil), "Unable to unbind original queue")
+	_, err = ch.QueuePurge(q.Name, false)
+	failOnError(err, "Unabe to purge original queue")
+}
+
+func retourDetour(ch *amqp.Channel, orig amqp.Queue, detour amqp.Queue, routeKey string, exchange string) {
 	// push temp queue to orig
-	// recreate original binding
-	// remove temp binding
+	c, err := ch.Consume(detour.Name, "encore", true, false, false, false, nil)
+	failOnError(err, "Error attaching to detour Queue")
+	for m := range c {
+		ch.PublishWithContext(context.TODO(), exchange, routeKey, true, true, amqp.Publishing{
+			Body: m.Body,
+		})
+	}
+	// restore original queue binding
+	failOnError(ch.QueueBind(orig.Name, routeKey, exchange, false, nil), "Failed to recreate original binding")
+	// remove detour binding
+	failOnError(ch.QueueUnbind(detour.Name, routeKey, exchange, nil), "Unable to unbind detour queue")
 	// push rest of temp queue to original queue (probably some duplicates
 	// delete temp queue)
+}
+
+func foo() {
+	// Now delete old data / deploy new transformer
+	// push replay msgs to orig queue
 }
