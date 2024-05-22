@@ -63,10 +63,12 @@ func conf() {
 	log.Print("Config: %s", string(c))
 }
 
+const batchSize = 1000
+
 func main() {
 	conf()
 
-	msgs := make(chan M)
+	msgs := make(chan M, batchSize*2)
 
 	go func() {
 		cl, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(Config.Mongo))
@@ -82,7 +84,7 @@ func main() {
 			{Key: "bsontimestamp", Value: bson.D{{Key: "$lt", Value: primitive.NewDateTimeFromTime(Config.To)}}},
 		}
 
-		opts := options.Find().SetSort(bson.D{{Key: "bsontimestamp", Value: 1}})
+		opts := options.Find().SetSort(bson.D{{Key: "bsontimestamp", Value: 1}}).SetBatchSize(batchSize)
 		cur, err := col.Find(context.TODO(), filter, opts)
 		failOnError(err, "Cursor fail")
 
@@ -122,4 +124,15 @@ func main() {
 	}
 
 	log.Println("Job done!")
+}
+
+func foo() {
+	// create new temp queue with same binding as original
+	// remove original binding (and purge queue?)
+	// push replay msgs to orig queue
+	// push temp queue to orig
+	// recreate original binding
+	// remove temp binding
+	// push rest of temp queue to original queue (probably some duplicates
+	// delete temp queue)
 }
