@@ -17,5 +17,5 @@ radmin () {
 radmin declare queue name=test.detour
 radmin declare binding source=routed destination=test.detour routing_key="echarging.route220"
 radmin declare queue name=test.detour.target
-
-radmin declare parameter component=shovel name=testshovel value='{"value":{"src-queue":"test.detour","dest-queue":"test.detour.target"}}'
+shovel='{"src-uri":"amqp://","src-queue":"test.detour","dest-uri":"amqp://","dest-queue":"test.detour.target"}'
+radmin declare parameter component=shovel name=testshovel value=$shovel
