@@ -17,11 +17,11 @@ radmin () {
 srcroute=echarging.route220
 detourroute=$srcroute.detour
 
-# radmin declare queue name=$srcroute.detour
-# radmin declare binding source=routed destination=$detourroute routing_key=$srcroute
-# shoveljson='{"src-uri":"amqp://","src-queue":"'$srcroute'","dest-uri":"amqp://","dest-queue":"'$detourroute'","src-delete-after":"queue-length"}'
-# radmin declare parameter component=shovel name=testshovel value=$shoveljson
+radmin declare queue name=$srcroute.detour
+radmin declare binding source=routed destination=$detourroute routing_key=$srcroute
+shoveljson='{"src-uri":"amqp://","src-queue":"'$srcroute'","dest-uri":"amqp://","dest-queue":"'$detourroute'","src-delete-after":"queue-length"}'
+radmin declare parameter component=shovel name=testshovel value=$shoveljson
 
-# radmin delete parameter component=shovel name=testshovel
-# radmin delete queue name=test.detour
-# radmin delete queue name=test.detour.target
+radmin delete parameter component=shovel name=testshovel
+radmin delete queue name=test.detour
+radmin delete queue name=test.detour.target
