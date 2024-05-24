@@ -1,10 +1,11 @@
 #!/bin/bash
 #
 
-# start this in a separate terminal ideally
-# kubectl port-forward -n core svc/rabbitmq-headless 5672 --address 0.0.0.0 &
-# kubectl port-forward -n core svc/rabbitmq-headless 15672 --address 0.0.0.0 &
-# kubectl port-forward -n core svc/mongodb-headless 27017 --address 0.0.0.0 &
+# Port-forward services
+kubectl port-forward -n core svc/rabbitmq-headless 5672 --address 0.0.0.0 &
+forwards=$!
+kubectl port-forward -n core svc/mongodb-headless 27017 --address 0.0.0.0 &
+forwards="$forwards $!"
 
 # Connection details for rabbit and mongo. Run kubectl port-forward above beforehand
 RABBIT_PW=`kubectl get secret -n collector rabbitmq-svcbind -o  jsonpath='{.data.password}' | base64 -d`
@@ -17,12 +18,16 @@ export DB="echarging"
 export COLLECTION="route220"
 
 # Queue the messages are pushed into
-export QUEUE="echarging.route220.encore"
+export QUEUE="echarging.route220.temp"
 
 # A mongodb query that is applied to the collection
 # Following the "relaxed" format of mongodb extended json: https://www.mongodb.com/docs/manual/reference/mongodb-extended-json/
 # e.g. Dates have to be full ISO not just partial
-export QUERY='{ "bsontimestamp": { "$gte": { "$date": "2024-05-22T00:00:00.000Z"}}}'
+export QUERY='{ "bsontimestamp": { "$gte": { "$date": "2024-04-10T12:00:00.000Z"}}}'
 
 go mod download
 go run main.go
+
+for pid in $forwards; do
+    kill $pid
+done

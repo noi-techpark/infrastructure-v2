@@ -83,7 +83,7 @@ func main() {
 			var res D
 			failOnError(cur.Decode(&res), "Decode fail")
 			msgs <- M{
-				Id:         res.Id.String(),
+				Id:         res.Id.Hex(),
 				Db:         col.Database().Name(),
 				Collection: col.Name(),
 			}
