@@ -24,4 +24,5 @@ export QUEUE="echarging.route220.encore"
 # e.g. Dates have to be full ISO not just partial
 export QUERY='{ "bsontimestamp": { "$gte": { "$date": "2024-05-22T00:00:00.000Z"}}}'
 
+go mod download
 go run main.go
