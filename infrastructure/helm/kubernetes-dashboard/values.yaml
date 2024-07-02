@@ -4,10 +4,6 @@
 
 # https://artifacthub.io/packages/helm/k8s-dashboard/kubernetes-dashboard
 
-# Argument to disable the dashboard login (insecure).
-extraArgs:
-  - --enable-skip-login
-
 # Enable HTTP protocol (insecure).
 protocolHttp: true
 
@@ -26,7 +22,7 @@ service:
 
 # Enable ingress for external access.
 ingress:
-  enabled: true
+  enabled: false
 
   # Annotations to set up the ALB forwarding rule.
   annotations:
