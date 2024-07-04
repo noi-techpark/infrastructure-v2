@@ -199,6 +199,10 @@ helm upgrade rabbitmq bitnami/rabbitmq \
   --set auth.password=$RABBITMQ_PASSWORD \
   --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE \
   --namespace core
+  
+# ATTENTION: After an upgrade of a major rabbitmq version, it is necessary to enable all stable feature flags (the GUI will scream at you to do so)
+# This can either be done via the GUI (Admin/Feature Flags), or by executing this:
+kubectl exec -n core rabbitmq-0 --container rabbitmq -- rabbitmqctl enable_feature_flag all
 ```
 
 ### Camel K
