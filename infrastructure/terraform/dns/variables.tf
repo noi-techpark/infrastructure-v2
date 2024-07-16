@@ -18,3 +18,8 @@ variable "main-zone" {
   type = string
   default = "dev.testingmachine.eu"
 }
+
+variable "ENVIRONMENT" {
+  type    = string
+  default = "dev"
+}

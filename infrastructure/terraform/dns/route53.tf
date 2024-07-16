@@ -12,7 +12,8 @@ resource "aws_route53_record" "eks-ingress" {
 }
 
 locals {
-  service-domains = [
+  prod = var.ENVIRONMENT == "prod"
+  service_domains_dev = [
     "mobility.api",
     "tourism.api",
     "push.api",
@@ -20,10 +21,14 @@ locals {
     "rabbitmq",
     "spreadsheets"
   ]
+  service_domains_prod = [
+    "push.api",
+  ]
+  service_domains = local.prod ? local.service_domains_prod : local.service_domains_dev
 }
 
 resource "aws_route53_record" "eks-service-domains" {
-  for_each = toset(local.service-domains)
+  for_each = toset(local.service_domains)
   zone_id = aws_route53_zone.main.zone_id
   name    = each.value
   type    = "CNAME"
