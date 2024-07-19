@@ -126,6 +126,6 @@ func main() {
 	}
 
 	t.Stop()
-	log.Printf("Pushed %d records", count)
+	log.Printf("Pushed %d records to queue %s", count, q.Name)
 	log.Println("Job done!")
 }

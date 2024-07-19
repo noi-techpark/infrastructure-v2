@@ -1,5 +1,4 @@
 #!/bin/bash
-#
 
 # Port-forward services
 kubectl port-forward -n core svc/rabbitmq-headless 5672 --address 0.0.0.0 &
@@ -14,16 +13,16 @@ export RABBIT_URI="amqp://opendatahub:${RABBIT_PW}@localhost:5672"
 export MONGO_URI="mongodb://collector:${MONGO_PW}@localhost/?tls=false&ssl=false&directConnection=true"
 
 # Mongodb db and collection that is queried
-export DB="echarging"
-export COLLECTION="route220"
+export DB="municipality-bolzano"
+export COLLECTION="parking-macello"
 
 # Queue the messages are pushed into
-export QUEUE="echarging.route220.temp"
+export QUEUE="municipality-bolzano.parking-macello.temp"
 
 # A mongodb query that is applied to the collection
 # Following the "relaxed" format of mongodb extended json: https://www.mongodb.com/docs/manual/reference/mongodb-extended-json/
 # e.g. Dates have to be full ISO not just partial
-export QUERY='{ "bsontimestamp": { "$gte": { "$date": "2024-04-10T12:00:00.000Z"}}}'
+export QUERY='{ "bsontimestamp": { "$gte": { "$date": "2024-06-21T00:00:00.000+00:00"}}}'
 
 go mod download
 go run main.go
