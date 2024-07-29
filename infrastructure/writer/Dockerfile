@@ -11,5 +11,5 @@ ENTRYPOINT [ "/entrypoint.sh" ]
 FROM base as build
 WORKDIR /code
 COPY ./ /code
-RUN mvn -B -DskipTests install -Dquarkus.package.type=uber-jar -D quarkus.package.output-name=router
-CMD [ "java", "-jar", "target/router-runner.jar" ]
+RUN mvn -B -DskipTests install -Dquarkus.package.type=uber-jar -D quarkus.package.output-name=inbound
+CMD [ "java", "-jar", "target/inbound-runner.jar" ]

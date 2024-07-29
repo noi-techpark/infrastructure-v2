@@ -2,20 +2,9 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-version: "3.4"
-
 services:
-  mosquitto:
-    image: eclipse-mosquitto:2.0.12
-    ports:
-      - "${EXPOSED_INBOUND_MQTT_PORT}:1883"
-    volumes:
-      - ./mosquitto.inbound.conf:/mosquitto.conf
-      - ./mosquitto/data:/mosquitto/data
-    command: "mosquitto -c /mosquitto.conf"
-
-  rabbitmq-outbound:
-    image: rabbitmq:3-management
+  rabbitmq:
+    image: rabbitmq:management-alpine
     ports:
       - "5671:5671"
       - "5672:5672"
@@ -24,103 +13,106 @@ services:
       - "15672:15672"
     volumes:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq-definitions.json:/etc/rabbitmq/definitions.json
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
     healthcheck:
       test: nc -z localhost:5672
 
-  mongodb1:
+  mongodb:
     image: mongo
     ports:
       - 27017:27017
-    # restart: always
-    # volumes:
-    #   - ./mongo-replicaset.sh:/docker-entrypoint-initdb.d/mongo-replicaset.sh
-    command: --replSet rs0 --bind_ip localhost,mongodb1,127.0.0.1 --port 27017
+    command: --replSet rs0 --bind_ip localhost,mongodb,127.0.0.1 --port 27017
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       
-  inbound:
-    build:
-      context: .
-      dockerfile: infrastructure/inbound/Dockerfile
-      target: dev
-    ulimits:
-      nofile:
-        soft: 20000
-        hard: 40000
-    env_file:
-      - infrastructure/inbound/.env
-    volumes:
-      - ./infrastructure/inbound:/code
-      - ./.mvn:/code/.mvn
+  # Initializes replicaset once after it has been started
+  mongodb-init:
+    image: mongo
     depends_on:
-      - mongodb1
-      - mosquitto
-      - rabbitmq-outbound
-    working_dir: /code
-    command: ["./mvnw -B compile quarkus:dev"]
-    ports:
-      - "${EXPOSED_INBOUND_REST_PORT}:8080"
-
-  notifier:
+      mongodb:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: |
+      mongosh "mongodb://mongodb" --eval "
+        try{
+          rs.initiate({
+            _id : 'rs0',
+            members: [
+              { _id : 0, host : 'mongodb:27017' },
+            ]
+          })
+        } catch(error) {
+          // Already initialized. that's fine
+          if (error.code != 23) {
+            throw(error)
+          }
+        }"
+          
+  # Writer service listens on ingress queue and writes raw data to mongodb
+  writer:
     build:
-      context: infrastructure/notifier/
+      context: infrastructure/writer
       dockerfile: Dockerfile
-    depends_on:
-      - mongodb1
-      - rabbitmq-outbound
-    env_file:
-      infrastructure/notifier/.env
-    # working_dir: /code
-    command: npm run start
-
-  outbound:
-    build:
-      context: .
-      dockerfile: infrastructure/router/Dockerfile
       target: dev
-    env_file:
-      - infrastructure/router/.env
+    environment:
+      RABBITMQ_CLUSTER_URL: rabbitmq:5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_CLIENTNAME: writer
+      MONGODB_URI: "mongodb://mongodb:27017/?directConnection=true"
+    volumes:
+      - ./infrastructure/writer:/code
+      - mvn-cache:/code/.mvn
+    depends_on:
+      - mongodb
+      - rabbitmq
+    working_dir: /code
+    command: ["mvn -B quarkus:dev"]
+
+  # Notifier service listens on mongodb oplog and generates an event when data is inserted
+  notifier:
+    image: ghcr.io/noi-techpark/infrastructure-v2/notifier:latest
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mongodb-init:
+        condition: service_completed_successfully
+    environment:
+      MONGODB_CONNECTION_STRING: mongodb://mongodb:27017?directConnection=true
+      MONGODB_CONNECTION_REPLICA_SET: rs0
+      RABBITMQ_CLUSTER_URL: amqp://guest:guest@rabbitmq:5672/
+
+  # Router service listens on ready exchange (where notifier writes) and distributes messages according to routing key
+  router:
+    build:
+      context: infrastructure/router
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      RABBITMQ_CLUSTER_URL: rabbitmq:5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_CLIENTNAME: writer
     volumes:
       - ./infrastructure/router:/code
-      - ./.mvn:/code/.mvn
+      - mvn-cache:/code/.mvn
     depends_on:
-      - rabbitmq-outbound
+      - notifier
     working_dir: /code
-    ports:
-      - "8081:8081"
-      - "8082:8082"
-    ## with host we can connect using host machine address, otherwise we use service name host
-    # network_mode: host
-    command: ["./mvnw -B compile quarkus:dev"]
+    command: ["mvn -B quarkus:dev"]
+    
+    
+# Profile mobility: Ninja and BDP
+# Profile tourism: ...
 
-  transformer:
-    build:
-      context: .
-      dockerfile: infrastructure/transformer/Dockerfile
-      target: dev
-    env_file:
-      - infrastructure/transformer/.env
-    volumes:
-      - ./infrastructure/transformer:/code
-      - ./.mvn:/code/.mvn
-    depends_on:
-      - rabbitmq-outbound
-    working_dir: /code
-    ## with host we can connect using host machine address, otherwise we use service name host
-    # network_mode: host
-    command: ["./mvnw -B compile quarkus:dev"]
+volumes:
+  mvn-cache:
 
-  transformer2:
-    build:
-      context: .
-      dockerfile: infrastructure/transformer/Dockerfile
-      target: dev
-    env_file:
-      - infrastructure/transformer/.env
-    volumes:
-      - ./infrastructure/transformer:/code
-      - ./.mvn:/code/.mvn
-    depends_on:
-      - rabbitmq-outbound
-    working_dir: /code
-    ## with host we can connect using host machine address, otherwise we use service name host
-    # network_mode: host
-    command: ["./mvnw -B compile quarkus:dev"]
+networks:
+  default:
+    name: opendatahub-local
+    attachable: true

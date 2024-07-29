@@ -17,6 +17,7 @@
 .settings
 .project
 .classpath
+.mvn
 infrastructure/router/bin
 
 *.db

@@ -107,21 +107,6 @@ kamel run \
     infrastructure/inbound/src/main/java/com/opendatahub/writer/WriterRoute.java
 ```
 
-### Run the **Sample Pull Route (Südtirol Wine)**
-DEPRECATED
-See actual data collectors in separate project
-```
-#kamel run \
-#  --name pull-route \
-#  --property rabbitmq.cluster='rabbitmq-0.rabbitmq-headless.default.svc.cluster.local:5672' \
-#  --property rabbitmq.user='guest' \
-#  --property rabbitmq.pass='guest' \
-#  --property pull.provider='suedtirol/wein2?fastline=false' \
-#  --property pull.endpoints='https://suedtirolwein.secure.consisto.net/companies.ashx,https://suedtirolwein.secure.consisto.net/awards.ashx' \
-#  --property pull.endpointKeys='companies,awards' \
-#    infrastructure/inbound/src/main/java/com/opendatahub/pull/PullRoute.java
-```
-
 ### Run the **Fastline Route (WebSocket)**
 
 ```

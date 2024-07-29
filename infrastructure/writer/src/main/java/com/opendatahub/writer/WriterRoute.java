@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 // camel-k: dependency=mvn:io.quarkus:quarkus-mongodb-client
-// camel-k: dependency=camel:jackson
 // camel-k: dependency=camel:bean
 // camel-k: dependency=camel:jackson
 // camel-k: dependency=camel:mongodb
