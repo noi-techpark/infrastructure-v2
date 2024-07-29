@@ -104,15 +104,11 @@ services:
       - notifier
     working_dir: /code
     command: ["mvn -B quarkus:dev"]
-    
-    
-# Profile mobility: Ninja and BDP
-# Profile tourism: ...
 
 volumes:
   mvn-cache:
 
 networks:
   default:
-    name: opendatahub-local
+    name: ingestion
     attachable: true
