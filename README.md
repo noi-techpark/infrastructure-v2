@@ -49,27 +49,13 @@ The PoC is designed and developed to run in two different environments:
   - The `notifier` is a **dockerized Node.js** application
   - `RabbitMQ` is deployed using **RabbitMQ Cluster Operator for Kubernetes**
 
-### Flow
-
-Follow the data flow by entrying in one of the inbound.
-
-- [REST inbound](./docs/components/rest-route.md)
-- [MQTT inbound](./docs/components/mqtt-route.md)
-- [Pull inbound](./docs/components/pull-route.md)
-
 ## Repository structure
 
 <normal><pre>
 ├── infrastructure
 │   ├── inbound
 │   │   └── src/main/java/opendatahub
-│   │       ├── inbound
-│   │       │   ├── [mqtt/MqttRoute.java](./docs/components/mqtt-route.md)
-│   │       │   └── [rest/RestRoute.java](./docs/components/rest-route.md)
-│   │       ├── [pull/PullRoute.java](./docs/components/pull-route.md)
 │   │       ├── [writer/WriterRoute.java](./docs/components/writer-route.md)
-│   │       ├── [RabbitMQConnection.java](./docs/components/rabbitmq-connection.md)
-│   │       └── [WrapperProcessor.java](./docs/components/wrapper-processor.md)
 │   ├── notifier
 │   │   └── src
 │   │       ├── [changeStream.js](./docs/components/notifier.md#change-stream)
@@ -91,65 +77,23 @@ We provide a `docker-compose` file to start the architecture locally.
 
 To run the cluster just 
 ```sh
-docker-compose up
+docker compose up
 ```
 in the main folder. It will build and spin up all components.
-
-The first time we compose-up, we have to initialize MongoDB's replica set. To do so firstly identify the MongoDB docker container by running
-
-```sh
-docker ps
-```
-
-then copy the MongoDB container name (should be something like `odh-infrastructure-v2_mongodb1_1` or `odh-infrastructure-v2-mongodb1-1` depending on the [version](https://stackoverflow.com/questions/69464001/docker-compose-container-name-use-dash-instead-of-underscore) of `docker-compose`) and run
-
-```sh
-docker exec <mongodb-container-name> mongosh --eval "rs.initiate({
-            _id : 'rs0',
-            members: [
-              { _id : 0, host : 'mongodb1:27017' },
-            ]
-          })"
-```
 
 ### Entrypoints
 
 | Service | Address |
 | - | - |
-| Gateway Mosquitto | localhost:1883 |
-| Gateway Rest | localhost:8080 |
-| RabbitMQ Pannel | localhost:15672 |
+| RabbitMQ Panel | localhost:15672 |
 | RabbitMQ AMPQ 0-9-1 port | localhost:5672 |
 | MongoDB | localhost:27017 |
 
 # How to make Requests and check the data flow
-To make and listen to the MQTT brokers (gateway or internal) we suggest using [MQTTX](https://mqttx.app/).
-To make REST requests we suggest using [Insomnia](https://insomnia.rest/) or any other REST client.
 To connect to the MongoDB deployment we suggest using [Compass](https://www.mongodb.com/products/compass). Be aware that being the deployment a `Replica Set`, the URI string must be properly configured ([Doc](https://www.mongodb.com/docs/manual/reference/connection-string/)) and you have to check **Direct Connection** in the **Advanced Connection Options** of Compass.
-
-## What to do
-Once all connections are established, you can subscribe to the `MQTT Brokers` and watch for messages or send, send `REST request` and connect to the `MongoDB` instance.
-
-! All messages sent to the `Perimeter` **must be** valid JSON, otherwise, the `Integrator` will discard and log the message.
-
-! All messages sent with MQTT **must be** sent with `QoS2`.
-
-
-# Performances
-Being a PoC, the whole system is meant to give an overall insight and overview of the proposed architecture.
-Performances can be greatly improved using replicas, sharding, parallel programming, configuration tuning, and polish.
-
-# Notifier
-The `notifier`, written in JS and running on Node, is a good example of a possible bottleneck that can be greatly improved.
-Instead of having a single instance subscripted to the whole `MongoDB deployment`, it could be split between multiple instances each one subscripted to a particular `MongoDB Database` or even to single `Collections`.
-This kind of polish can be done only once the team decides how to distribute the `RawData` coming from different **Datasources**.
 
 ## Change Stream
 To use the Change Stream feature, the MongoDB deployment MUST be deployed as `ReplicaSet`
-
-## Notifier connection
-The notifier subscribes to the MongoDB deployment and starts listening for changes.
-In the case that the MongoDB deployment restarts / goes offline, the *Notifier* **MUST** implement a mechanism to check that the connection is alive and start reconnecting until the MongoDB deployment returns online.
 
 # Troubleshooting
 
