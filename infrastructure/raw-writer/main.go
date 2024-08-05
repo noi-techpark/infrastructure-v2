@@ -72,6 +72,7 @@ func setupDeadletter() {
 
 func setupMQ() <-chan *message.Message {
 	setupDeadletter()
+
 	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameTopicName)
 	amqpConfig.Queue.Arguments = amqp091.Table{"x-dead-letter-exchange": cfg.MQ_Exchange + "-dl"}
 	amqpConfig.Consume.NoRequeueOnNack = true
@@ -188,8 +189,6 @@ func main() {
 	messages := setupMQ()
 
 	handleMq(messages)
-
-	<-make(chan int)
 }
 
 func initMongo() *mongo.Client {
