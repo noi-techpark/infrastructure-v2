@@ -5,11 +5,17 @@
 FROM golang:1.22.2-bookworm AS base
 
 FROM base AS build
-WORKDIR app
-COPY src/main main
-CMD [ "./main"]
+WORKDIR /app
+COPY go.mod .
+COPY go.sum .
+COPY *.go .
+RUN CGO_ENABLED=0 GOOS=linux go build -o writer
+
+FROM scratch AS release
+COPY --from=build /app/writer /writer
+CMD ["/writer"]
+
 
 FROM base AS dev
 WORKDIR /code
-
 CMD ["go", "run", "main.go"]

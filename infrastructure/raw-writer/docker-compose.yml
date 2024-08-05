@@ -1,7 +1,7 @@
 services:
   app:
     build:
-      dockerfile: infrastructure/docker/Dockerfile
+      dockerfile: Dockerfile
       context: . 
       target: dev
     env_file:
