@@ -145,12 +145,12 @@ func parseTimestamp(body *map[string]any) (time.Time, error) {
 }
 
 func parseProvider(body map[string]any) (string, string, error) {
-	// provider string is in format "db.collection"
+	// provider string is in format "db/collection"
 	providerstr, ok := body["provider"]
 	if !ok || reflect.TypeOf(providerstr).Kind() != reflect.String {
 		return "", "", errors.New("provider missing or wrong type")
 	}
-	provider := strings.SplitN(providerstr.(string), ".", 2)
+	provider := strings.SplitN(providerstr.(string), "/", 2)
 	if provider == nil || len(provider) != 2 {
 		return "", "", fmt.Errorf("provider format invalid: %s", providerstr)
 	}

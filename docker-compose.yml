@@ -18,6 +18,7 @@ services:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
     healthcheck:
       test: nc -z localhost:5672
+    attach: false
 
   mongodb:
     image: mongo
@@ -26,6 +27,7 @@ services:
     command: --replSet rs0 --bind_ip localhost,mongodb,127.0.0.1 --port 27017
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+    attach: false
       
   # Initializes replicaset once after it has been started
   mongodb-init:
@@ -52,24 +54,17 @@ services:
           
   # Writer service listens on ingress queue and writes raw data to mongodb
   writer:
-    build:
-      context: infrastructure/writer
-      dockerfile: Dockerfile
-      target: dev
+    image: ghcr.io/noi-techpark/infrastructure-v2/raw-writer:latest
     environment:
-      RABBITMQ_CLUSTER_URL: rabbitmq:5672
-      RABBITMQ_USER: guest
-      RABBITMQ_PASSWORD: guest
-      RABBITMQ_CLIENTNAME: writer
-      MONGODB_URI: "mongodb://mongodb:27017/?directConnection=true"
-    volumes:
-      - ./infrastructure/writer:/code
-      - mvn-cache:/code/.mvn
+      APP_MQ_URI: amqp://guest:guest@rabbitmq:5672
+      APP_MQ_EXCHANGE: ingress
+      APP_MONGO_URI: mongodb://mongodb/?replicaSet=rs0&directConnection=true
+      APP_LOGLEVEL: INFO
     depends_on:
-      - mongodb
-      - rabbitmq
-    working_dir: /code
-    command: ["mvn -B quarkus:dev"]
+      mongodb-init:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
 
   # Notifier service listens on mongodb oplog and generates an event when data is inserted
   notifier:
