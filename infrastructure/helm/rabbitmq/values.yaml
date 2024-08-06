@@ -18,13 +18,13 @@ auth:
 serviceBindings:
   enabled: true
 
-livenessProbe:
-  exec:
-    command: ["sh", "curl -f --user $RABBITMQ_USERNAME:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/virtual-hosts"]
+# livenessProbe:
+#   exec:
+#     command: ["curl -f --user $RABBITMQ_USERNAME:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/virtual-hosts"]
 
-readinessProbe:
-  exec:
-    command: ["sh", "curl -f --user $RABBITMQ_USERNAME:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/local-alarms"]
+# readinessProbe:
+#   exec:
+#     command: ["curl -f --user $RABBITMQ_USERNAME:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/local-alarms"]
 
 # Set up the ALB ingress for the RabbitMQ Management Console (UI).
 #ingress:
