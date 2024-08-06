@@ -13,9 +13,6 @@ services:
       - "15672:15672"
     volumes:
       - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-      - ./rabbitmq-definitions.json:/etc/rabbitmq/definitions.json
-    environment:
-      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/definitions.json"
     healthcheck:
       test: nc -z localhost:5672
     attach: false
@@ -58,6 +55,7 @@ services:
     environment:
       APP_MQ_URI: amqp://guest:guest@rabbitmq:5672
       APP_MQ_EXCHANGE: ingress
+      APP_MQ_QUEUE: ingress
       APP_MONGO_URI: mongodb://mongodb/?replicaSet=rs0&directConnection=true
       APP_LOGLEVEL: INFO
     depends_on:
