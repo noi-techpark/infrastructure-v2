@@ -1,0 +1,31 @@
+# Default values for raw-writer.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/noi-techpark/infrastructure-v2/raw-writer
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+env:
+  - name: APP_MONGO_URI
+    value: mongodb://user:password@mongodb
+  - name: APP_MQ_URI
+    value: amqp://user:password@rabbitmq
+  - name: APP_MQ_EXCHANGE
+    value: ingress
+  - name: APP_MQ_QUEUE
+    value: ingress
+  - name: APP_LOGLEVEL
+    value: INFO
+
+podAnnotations: {}
+podLabels: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

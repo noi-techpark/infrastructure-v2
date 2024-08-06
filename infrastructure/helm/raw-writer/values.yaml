@@ -1,0 +1,32 @@
+image:
+  repository: ghcr.io/noi-techpark/infrastructure-v2/raw-writer
+  pullPolicy: Always
+  tag: "v1.0"
+
+env:
+  - name: APP_MQ_URI
+    valueFrom:
+      secretKeyRef: 
+        name: rabbitmq-svcbind
+        key: uri
+  - name: APP_MQ_EXCHANGE
+    value: ingress-test
+  - name: APP_MQ_QUEUE
+    value: ingress-test
+  - name: APP_MONGO_URI
+    valueFrom:
+      secretKeyRef: 
+        name: mongodb-writer-svcbind
+        key: uri
+  - name: APP_LOGLEVEL
+    value: INFO
+  - name: APP_DB_PREFIX
+    value: test-
+
+# resources:
+#   limits:
+#     cpu: 250m   # 250m is equivalent to 0.25 CPU core
+#     memory: 500Mi
+#   requests:
+#     cpu: 100m   # 100m is equivalent to 0.1 CPU core
+#     memory: 100Mi

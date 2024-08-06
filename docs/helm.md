@@ -257,6 +257,19 @@ helm upgrade --install notifier ./infrastructure/helm/notifier/notifier \
   --namespace core
 ```
 
+### Raw writer
+
+```sh
+# must be logged in on ghcr.io for docker push
+(cd infrastructure/raw-writer; ./build.sh)
+```
+
+```sh
+helm upgrade --install raw-writer ./infrastructure/helm/raw-writer/raw-writer \
+  --values infrastructure/helm/raw-writer/values.yaml \
+  --namespace core
+```
+
 ### Nginx ingress
 TODO: values.yaml contains hardcoded subnet of dev environment.
 
