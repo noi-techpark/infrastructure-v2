@@ -94,19 +94,6 @@ kamel run \
     infrastructure/inbound/src/main/java/com/opendatahub/inbound/rest/RestRoute.java
 ```
 
-### Run the **Writer Route (MongoDB)**
-
-```sh
-kamel run \
-  --namespace core \
-  --name writer-route \
-  --property quarkus.mongodb.connection-string="$(kubectl get secret -n core mongodb-writer-svcbind -o jsonpath='{.data.uri}' | base64 -d)" \
-  --property quarkus.mongodb.devservices.enabled=false \
-  --property secret:kamel-credentials \
-  --property rabbitmq.clientName='writer-route' \
-    infrastructure/inbound/src/main/java/com/opendatahub/writer/WriterRoute.java
-```
-
 ### Run the **Fastline Route (WebSocket)**
 
 ```

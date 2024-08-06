@@ -10,9 +10,9 @@ env:
         name: rabbitmq-svcbind
         key: uri
   - name: APP_MQ_EXCHANGE
-    value: ingress-test
+    value: ingress
   - name: APP_MQ_QUEUE
-    value: ingress-test
+    value: ingress
   - name: APP_MONGO_URI
     valueFrom:
       secretKeyRef: 
@@ -20,8 +20,6 @@ env:
         key: uri
   - name: APP_LOGLEVEL
     value: INFO
-  - name: APP_DB_PREFIX
-    value: test-
 
 # resources:
 #   limits:
