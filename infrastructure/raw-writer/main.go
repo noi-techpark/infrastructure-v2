@@ -25,8 +25,10 @@ import (
 var cfg struct {
 	MQ_URI      string
 	MQ_Exchange string
+	MQ_QUEUE    string
 	LogLevel    string `default:"INFO"`
 	MONGO_URI   string
+	DB_PREFIX   string
 }
 
 type mqErr struct {
@@ -73,7 +75,7 @@ func setupDeadletter() {
 func setupMQ() <-chan *message.Message {
 	setupDeadletter()
 
-	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameTopicName)
+	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameConstant(cfg.MQ_QUEUE))
 	amqpConfig.Queue.Arguments = amqp091.Table{"x-dead-letter-exchange": cfg.MQ_Exchange + "-dl"}
 	amqpConfig.Consume.NoRequeueOnNack = true
 
@@ -95,7 +97,7 @@ func setupMQ() <-chan *message.Message {
 func handleMq(messages <-chan *message.Message) {
 	for msg := range messages {
 		go func() {
-			err := handleMsg(msg)
+			err := handleMqMsg(msg)
 
 			if err != nil {
 				slog.Error(err.err, err.ctx...)
@@ -107,7 +109,7 @@ func handleMq(messages <-chan *message.Message) {
 	}
 }
 
-func handleMsg(msg *message.Message) *mqErr {
+func handleMqMsg(msg *message.Message) *mqErr {
 	slog.Debug("received message", "id", msg.UUID, "payload", string(msg.Payload))
 	var body map[string]any
 	if err := json.Unmarshal(msg.Payload, &body); err != nil {
@@ -157,6 +159,15 @@ func parseProvider(body map[string]any) (string, string, error) {
 	return provider[0], provider[1], nil
 }
 
+func initMongo() *mongo.Client {
+	mclient, err := mongoConnect()
+	if err != nil {
+		slog.Error("could not initialize mongo. aborting", "err", err)
+		panic(err)
+	}
+	return mclient
+}
+
 func mongoConnect() (*mongo.Client, error) {
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(cfg.MONGO_URI))
 	if err != nil {
@@ -171,7 +182,7 @@ func mongoConnect() (*mongo.Client, error) {
 }
 
 func mongoWrite(db string, coll string, obj map[string]any, client *mongo.Client) *mqErr {
-	collection := client.Database(db).Collection(coll)
+	collection := client.Database(cfg.DB_PREFIX + db).Collection(coll)
 	_, err := collection.InsertOne(context.TODO(), obj)
 	if err != nil {
 		return NewMqErr("error inserting msg to mongo", err)
@@ -189,13 +200,4 @@ func main() {
 	messages := setupMQ()
 
 	handleMq(messages)
-}
-
-func initMongo() *mongo.Client {
-	mclient, err := mongoConnect()
-	if err != nil {
-		slog.Error("could not initialize mongo. aborting", "err", err)
-		panic(err)
-	}
-	return mclient
 }
