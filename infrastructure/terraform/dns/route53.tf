@@ -23,6 +23,7 @@ locals {
   ]
   service_domains_prod = [
     "push.api",
+    "spreadsheets",
   ]
   service_domains = local.prod ? local.service_domains_prod : local.service_domains_dev
 }
