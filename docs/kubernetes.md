@@ -105,7 +105,7 @@ Install [kubectx](https://github.com/ahmetb/kubectx)
 > kubectx
 
 # Now rename the context to something more handy
-> kubectx <insert the ARN>=consip
+> kubectx consip=<insert the ARN>
 
 # switch to new context
 > kubectx consip
