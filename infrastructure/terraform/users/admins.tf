@@ -15,15 +15,14 @@ resource "aws_iam_group_policy_attachment" "admin_policy_attach" {
 locals {
   prod = var.ENVIRONMENT == "prod"
   admins_dev = [
-    "animeshon",
     "c.zagler",
     "l.miotto",
     "m.rabanser",
     "p.ohnewein",
     "r.cavaliere",
     "r.thoeni",
-    "s.dalvai",
     "s.seppi",
+    "l.pasquarelli",
   ]
   admins_prod = [
     "c.zagler",
@@ -31,8 +30,8 @@ locals {
     "p.ohnewein",
     "r.cavaliere",
     "r.thoeni",
-    "s.dalvai",
     "s.seppi",
+    "l.pasquarelli",
   ]
   admins = local.prod ? local.admins_prod : local.admins_dev
 }
