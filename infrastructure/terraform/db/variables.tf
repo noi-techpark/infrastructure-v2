@@ -15,12 +15,12 @@ variable "AWS_SECRET_ACCESS_KEY" {
 }
 
 variable "DB_INSTANCE_TYPE" {
-  type  = string
+  type    = string
   default = "db.t4g.medium"
 }
 
 variable "DB_INSTANCE_STORAGE_GB" {
-  type  = number
+  type    = number
   default = 20
 }
 
