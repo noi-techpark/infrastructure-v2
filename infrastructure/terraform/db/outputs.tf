@@ -18,3 +18,13 @@ output "odh_postgres_password" {
   value       = aws_db_instance.pg-timeseries.password
   sensitive   = true
 }
+output "odh_postgres_password_bdp" {
+  description = "ODH postgres instance password for bdp user"
+  value       = random_password.pg-timeseries-db-bdp
+  sensitive   = true
+}
+output "odh_postgres_password_bdp_readonly" {
+  description = "ODH postgres instance password for bdp readonly user"
+  value       = random_password.pg-timeseries-db-bdp-readonly
+  sensitive   = true
+}

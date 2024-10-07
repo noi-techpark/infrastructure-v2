@@ -1,12 +1,4 @@
 # RDS instances and related security / network rules
-
-resource "random_password" "pg-timeseries-db-password" {
-  length  = 20
-  upper   = true
-  numeric = true
-  special = false
-}
-
 resource "aws_db_subnet_group" "pg-timeseries" {
   name       = "pg-timeseries"
   subnet_ids = data.aws_subnets.public.ids
