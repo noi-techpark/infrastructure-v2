@@ -28,3 +28,7 @@ output "odh_postgres_password_bdp_readonly" {
   value       = random_password.pg-timeseries-db-bdp-readonly
   sensitive   = true
 }
+output "postgres_homeoffice_sg_id" {
+  description = "Security group ID for postgres access from home"
+  value       = aws_security_group.postgres-homeoffice.id
+}

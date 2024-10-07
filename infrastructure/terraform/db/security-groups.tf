@@ -4,6 +4,12 @@ data "aws_security_group" "default" {
   vpc_id = data.aws_vpc.k8s-vpc.id
 }
 
+resource "aws_security_group" "postgres-homeoffice" {
+  name        = "postgres-homeoffice"
+  description = "Access to postgres from homeoffice"
+  vpc_id      = data.aws_vpc.k8s-vpc.id
+}
+
 resource "aws_security_group" "postgres-test" {
   name        = "postgres"
   description = "Access to postgres testing database"

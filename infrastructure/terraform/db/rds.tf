@@ -18,5 +18,6 @@ resource "aws_db_instance" "pg-timeseries" {
   vpc_security_group_ids = [
     data.aws_security_group.default.id, 
     aws_security_group.postgres-test.id, 
+    aws_security_group.postgres-homeoffice.id
   ]
 }
