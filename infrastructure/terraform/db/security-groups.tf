@@ -16,7 +16,11 @@ resource "aws_security_group" "postgres-test" {
   vpc_id      = data.aws_vpc.k8s-vpc.id
 
   dynamic "ingress" {
-    for_each = concat(local.ip_blocks.docker_hosts_test, local.ip_blocks.eks_test)
+    for_each = concat(
+      local.ip_blocks.docker_hosts_test, 
+      local.ip_blocks.eks_test, 
+      local.ip_blocks.noi_offices
+    )
     content {
       description = ingress.value.descr
       to_port     = 5432

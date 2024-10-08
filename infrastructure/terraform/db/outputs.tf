@@ -20,12 +20,12 @@ output "odh_postgres_password" {
 }
 output "odh_postgres_password_bdp" {
   description = "ODH postgres instance password for bdp user"
-  value       = random_password.pg-timeseries-db-bdp
+  value       = random_password.pg-timeseries-db-bdp.result
   sensitive   = true
 }
 output "odh_postgres_password_bdp_readonly" {
   description = "ODH postgres instance password for bdp readonly user"
-  value       = random_password.pg-timeseries-db-bdp-readonly
+  value       = random_password.pg-timeseries-db-bdp-readonly.result
   sensitive   = true
 }
 output "postgres_homeoffice_sg_id" {
