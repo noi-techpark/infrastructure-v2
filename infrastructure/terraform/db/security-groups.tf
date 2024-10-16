@@ -34,7 +34,8 @@ resource "aws_security_group" "postgres-test" {
 locals {
   ip_blocks = {
     eks_test = [
-      { descr = "eks-development", ip = "52.18.124.50/32" },
+      { descr = "eks-development-public", ip = "52.18.124.50/32" },
+      { descr = "eks-development-internal", ip = "10.0.0.0/16" },
     ]
     noi_offices = [
       { descr = "NOI offices", ip = "46.18.28.240/32" },
