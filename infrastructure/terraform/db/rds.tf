@@ -7,7 +7,7 @@ resource "aws_db_subnet_group" "pg-timeseries" {
 resource "aws_db_instance" "pg-timeseries" {
   identifier             = "pg-timeseries"
   instance_class         = var.DB_INSTANCE_TYPE
-  allocated_storage      = var.DB_INSTANCE_STORAGE_GB
+  allocated_storage      = var.DB_INSTANCE_STORAGE_GB # for testing make this the size it needs after first dump
   engine                 = "postgres"
   engine_version         = "16"
   username               = "postgres"
@@ -20,4 +20,5 @@ resource "aws_db_instance" "pg-timeseries" {
     aws_security_group.postgres-test.id, 
     aws_security_group.postgres-homeoffice.id
   ]
+  #TODO: use GP3 storage
 }

@@ -10,6 +10,20 @@ resource "aws_security_group" "postgres-homeoffice" {
   vpc_id      = data.aws_vpc.k8s-vpc.id
 }
 
+# temporary until migration is done
+resource "aws_security_group" "postgres-dbmigration" {
+  name        = "postgres-migration"
+  description = "Access to postgres from migration server"
+  vpc_id      = data.aws_vpc.k8s-vpc.id
+  ingress {
+    description = "db migration host"
+    to_port     = 5432
+    from_port   = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["18.202.231.229/32"]
+  }
+}
+
 resource "aws_security_group" "postgres-test" {
   name        = "postgres"
   description = "Access to postgres testing database"
