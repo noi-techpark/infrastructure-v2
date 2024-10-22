@@ -22,4 +22,6 @@ resource "aws_db_instance" "pg-timeseries" {
     aws_security_group.postgres-dbmigration.id
   ]
   storage_type = "gp3"
+  storage_throughput = 500
+  iops= 12000
 }

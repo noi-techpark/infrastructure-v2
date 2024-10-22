@@ -11,4 +11,5 @@ grant all privileges on schema elaboration to bdp;
 grant rds_superuser to bdp; 
 create user bdp_readonly with password :'bdp_ro_pw';
 grant USAGE on schema intimev2 to bdp_readonly;
-alter default privileges in schema intimev2 grant select on tables to bdp_readonly;
+set session authorization bdp;
+alter default privileges for user bdp in schema intimev2 grant select on tables to bdp_readonly;
