@@ -19,6 +19,7 @@ locals {
     "push.api",
     "analytics",
     "rabbitmq",
+    "ocpi-neogy.ex",
     "spreadsheets"
   ]
   service_domains_prod = [
