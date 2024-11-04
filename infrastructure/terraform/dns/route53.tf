@@ -20,6 +20,7 @@ locals {
     "analytics",
     "rabbitmq",
     "ocpi-neogy.ex",
+    "ocpi-driwe.ex",
     "spreadsheets"
   ]
   service_domains_prod = [
