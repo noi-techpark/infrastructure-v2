@@ -19,8 +19,9 @@ locals {
     "push.api",
     "analytics",
     "rabbitmq",
-    "ocpi-neogy.ex",
-    "ocpi-driwe.ex",
+    "ocpi-neogy.ex", # Remove this when in production, replaced by neogy.ocpi.ex
+    "neogy.ocpi.ex",
+    "driwe.ocpi.ex",
     "spreadsheets"
   ]
   service_domains_prod = [
