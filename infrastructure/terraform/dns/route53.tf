@@ -20,13 +20,14 @@ locals {
     "analytics",
     "rabbitmq",
     "ocpi-neogy.ex", # Remove this when in production, replaced by neogy.ocpi.ex
-    "neogy.ocpi.ex",
-    "driwe.ocpi.ex",
-    "spreadsheets"
+    "neogy.ocpi.io",
+    "driwe.ocpi.io",
+    "google.spreadsheets.io"
   ]
   service_domains_prod = [
     "push.api",
-    "spreadsheets",
+    "google.spreadsheets.io",
+    "neogy.ocpi.io",
   ]
   service_domains = local.prod ? local.service_domains_prod : local.service_domains_dev
 }
