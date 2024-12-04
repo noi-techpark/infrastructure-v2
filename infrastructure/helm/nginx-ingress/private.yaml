@@ -1,0 +1,18 @@
+controller:
+  name: controller-private
+  ingressClassResource:
+    name: nginx-private
+    enabled: true
+    controllerValue: k8s.io/ingress-nginx-private
+  service:
+    create: true
+    httpPort.enable: false
+    annotations:
+      # Exchange ID with output of terraform dns eks-ingress-name
+      service.beta.kubernetes.io/aws-load-balancer-type: external
+      service.beta.kubernetes.io/aws-load-balancer-name: eks-nginx-private
+      service.beta.kubernetes.io/aws-load-balancer-target-type: ip
+      service.beta.kubernetes.io/aws-load-balancer-eip-allocations: <aws eipalloc ID>
+      service.beta.kubernetes.io/aws-load-balancer-security-groups: eks-private-services
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-subnets: internal-vpc-public-eu-west-1b

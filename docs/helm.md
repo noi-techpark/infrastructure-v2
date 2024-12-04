@@ -278,9 +278,15 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 ```
 
 ```sh
+# the EIP IDs are outputs of the terraform/dns project
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx  --namespace ingress-nginx --create-namespace \
---values infrastructure/helm/nginx-ingress/values.yaml \
+--values infrastructure/helm/nginx-ingress/public.yaml \
 --set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations=eipalloc-0b84603c6d3f425bf"
+
+# Create a separate IngressClass for IP-restricted private services. by using IngressClass: nginx-private, services attach to this load balancer
+helm upgrade --install ingress-nginx-private ingress-nginx/ingress-nginx  --namespace ingress-nginx --create-namespace \
+--values infrastructure/helm/nginx-ingress/private.yaml \
+--set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations=eipalloc-07d1efc36208e5f44"
 ```
 
 ### Certmanager (https certificates)
