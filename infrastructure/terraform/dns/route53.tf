@@ -19,7 +19,7 @@ locals {
     "push.api",
     "analytics",
     "rabbitmq",
-    "anlytics.beta",
+    "analytics.beta",
     "neogy.ocpi.io",
     "driwe.ocpi.io",
     "google.spreadsheets.io"
