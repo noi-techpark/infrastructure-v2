@@ -19,7 +19,7 @@ locals {
     "push.api",
     "analytics",
     "rabbitmq",
-    "ocpi-neogy.ex", # Remove this when in production, replaced by neogy.ocpi.ex
+    "anlytics.beta",
     "neogy.ocpi.io",
     "driwe.ocpi.io",
     "google.spreadsheets.io"

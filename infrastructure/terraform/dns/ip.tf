@@ -4,3 +4,5 @@ resource "aws_eip" "eks-ingress-b" {
       prevent_destroy = true
     }
 }
+resource "aws_eip" "eks-ingress-private" {    
+}
