@@ -10,12 +10,14 @@ locals {
     "r.thoeni",
     "s.seppi",
     "l.pasquarelli",
+    "m.roggia",
   ]
   eks_admins_prod = [
     "c.zagler",
     "r.thoeni",
     "s.seppi",
     "l.pasquarelli",
+    "m.roggia",
   ]
   eks_admins = local.prod ? local.eks_admins_prod : local.eks_admins_dev
 }
