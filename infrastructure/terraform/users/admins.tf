@@ -23,6 +23,7 @@ locals {
     "r.thoeni",
     "s.seppi",
     "l.pasquarelli",
+    "m.roggia",
   ]
   admins_prod = [
     "c.zagler",
@@ -32,6 +33,7 @@ locals {
     "r.thoeni",
     "s.seppi",
     "l.pasquarelli",
+    "m.roggia",
   ]
   admins = local.prod ? local.admins_prod : local.admins_dev
 }
