@@ -1,0 +1,33 @@
+# Default values for raw-writer.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/noi-techpark/infrastructure-v2/router
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+env:
+  - name: APP_MQ_URI
+    value: amqp://user:password@rabbitmq
+  - name: APP_MQ_READY_EXCHANGE
+    value: ready
+  - name: APP_MQ_READY_QUEUE
+    value: ready
+  - name: APP_MQ_ROUTED_EXCHANGE
+    value: routed
+  - name: APP_MQ_ROUTED_QUEUE
+    value: routed
+  - name: APP_LOGLEVEL
+    value: INFO
+
+podAnnotations: {}
+podLabels: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

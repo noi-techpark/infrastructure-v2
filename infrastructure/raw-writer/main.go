@@ -18,6 +18,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -94,6 +95,26 @@ func setupMQ() <-chan *message.Message {
 	return messages
 }
 
+func setupOutMQ() *amqp.Publisher {
+	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameConstant(""))
+	amqpConfig.Exchange.Durable = true
+	amqpConfig.Exchange.AutoDeleted = false
+	amqpConfig.Exchange.Type = "direct"
+
+	amqpConfig.Queue.Exclusive = false
+	amqpConfig.Queue.NoWait = false
+
+	publisher, err := amqp.NewPublisher(
+		amqpConfig,
+		watermill.NewSlogLogger(slog.Default()),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	return publisher
+}
+
 func handleMq(messages <-chan *message.Message) {
 	for msg := range messages {
 		go func() {
@@ -130,7 +151,36 @@ func handleMqMsg(msg *message.Message) *mqErr {
 		return NewMqErr(err.Error(), "json", body)
 	}
 
-	return mongoWrite(db, coll, body, mongoClient)
+	inserted_id := primitive.ObjectID{}
+	atom := NewAtom(
+		NewQuark(func() (interface{}, error) {
+			inserted_id, err = mongoWrite(db, coll, body, mongoClient)
+			return inserted_id, err
+		},
+			func(toRollback interface{}) {
+				id := toRollback.(primitive.ObjectID)
+				mongoDelete(db, coll, id, mongoClient)
+			}),
+		NewQuark(func() (interface{}, error) {
+			messagePayload, err := json.Marshal(map[string]any{
+				"id":         inserted_id.String(),
+				"db":         db,
+				"collection": coll,
+			})
+			if err != nil {
+				return nil, err
+			}
+			msg := message.NewMessage(watermill.NewUUID(), messagePayload)
+			return nil, readyQueue.Publish("ready", msg)
+		}, nil),
+	)
+
+	err = atom.Run()
+	if err != nil {
+		return NewMqErr(err.Error(), err)
+	}
+
+	return nil
 }
 
 func parseTimestamp(body *map[string]any) (time.Time, error) {
@@ -181,21 +231,32 @@ func mongoConnect() (*mongo.Client, error) {
 	return client, nil
 }
 
-func mongoWrite(db string, coll string, obj map[string]any, client *mongo.Client) *mqErr {
+func mongoWrite(db string, coll string, obj map[string]any, client *mongo.Client) (primitive.ObjectID, error) {
 	collection := client.Database(cfg.DB_PREFIX + db).Collection(coll)
-	_, err := collection.InsertOne(context.TODO(), obj)
+	result, err := collection.InsertOne(context.TODO(), obj)
 	if err != nil {
-		return NewMqErr("error inserting msg to mongo", err)
+		return primitive.ObjectID{}, NewMqErr("error inserting msg to mongo", err)
+	}
+	return result.InsertedID.(primitive.ObjectID), nil
+}
+
+func mongoDelete(db string, coll string, id primitive.ObjectID, client *mongo.Client) error {
+	collection := client.Database(cfg.DB_PREFIX + db).Collection(coll)
+	_, err := collection.DeleteOne(context.TODO(), bson.M{"_id": id})
+	if err != nil {
+		return NewMqErr("error deleting msg from mongo", err)
 	}
 	return nil
 }
 
 var mongoClient *mongo.Client
+var readyQueue *amqp.Publisher
 
 func main() {
 	initConfig()
 	initLog()
 	mongoClient = initMongo()
+	readyQueue = setupOutMQ()
 
 	messages := setupMQ()
 

@@ -1,15 +1,20 @@
-FROM maven:3-eclipse-temurin-17-alpine as base
+# SPDX-FileCopyrightText: 2024 NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
 
-RUN mkdir -p /code
+FROM golang:1.22.2-bookworm AS base
 
-# Dev
-FROM base as dev
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT [ "/entrypoint.sh" ]
+FROM base AS build
+WORKDIR /app
+COPY go.mod .
+COPY go.sum .
+COPY *.go .
+RUN CGO_ENABLED=0 GOOS=linux go build -o router
 
-# Build
-FROM base as build
+FROM scratch AS release
+COPY --from=build /app/router /router
+CMD ["/router"]
+
+FROM base AS dev
 WORKDIR /code
-COPY ./ /code
-RUN mvn -B -DskipTests install -Dquarkus.package.type=uber-jar -D quarkus.package.output-name=router
-CMD [ "java", "-jar", "target/router-runner.jar" ]
+CMD ["go", "run", "."]
