@@ -95,7 +95,7 @@ func setupMQ() <-chan *message.Message {
 	return messages
 }
 
-func setupOutMQ() *amqp.Publisher {
+func setupReadyPublisher() *amqp.Publisher {
 	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameConstant(""))
 	amqpConfig.Exchange.Durable = true
 	amqpConfig.Exchange.AutoDeleted = false
@@ -153,26 +153,28 @@ func handleMqMsg(msg *message.Message) *mqErr {
 
 	inserted_id := primitive.ObjectID{}
 	atom := NewAtom(
-		NewQuark(func() (interface{}, error) {
-			inserted_id, err = mongoWrite(db, coll, body, mongoClient)
-			return inserted_id, err
-		},
+		NewQuark(
+			func() (interface{}, error) {
+				inserted_id, err = mongoWrite(db, coll, body, mongoClient)
+				return inserted_id, err
+			},
 			func(toRollback interface{}) {
 				id := toRollback.(primitive.ObjectID)
 				mongoDelete(db, coll, id, mongoClient)
 			}),
-		NewQuark(func() (interface{}, error) {
-			messagePayload, err := json.Marshal(map[string]any{
-				"id":         inserted_id.String(),
-				"db":         db,
-				"collection": coll,
-			})
-			if err != nil {
-				return nil, err
-			}
-			msg := message.NewMessage(watermill.NewUUID(), messagePayload)
-			return nil, readyQueue.Publish("ready", msg)
-		}, nil),
+		NewQuark(
+			func() (interface{}, error) {
+				messagePayload, err := json.Marshal(map[string]any{
+					"id":         inserted_id.Hex(),
+					"db":         db,
+					"collection": coll,
+				})
+				if err != nil {
+					return nil, err
+				}
+				msg := message.NewMessage(watermill.NewUUID(), messagePayload)
+				return nil, readyPublisher.Publish("ready", msg)
+			}, nil),
 	)
 
 	err = atom.Run()
@@ -250,13 +252,13 @@ func mongoDelete(db string, coll string, id primitive.ObjectID, client *mongo.Cl
 }
 
 var mongoClient *mongo.Client
-var readyQueue *amqp.Publisher
+var readyPublisher *amqp.Publisher
 
 func main() {
 	initConfig()
 	initLog()
 	mongoClient = initMongo()
-	readyQueue = setupOutMQ()
+	readyPublisher = setupReadyPublisher()
 
 	messages := setupMQ()
 
