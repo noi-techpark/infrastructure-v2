@@ -21,4 +21,4 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Manually build and push image
-      run: cd ${{WORKING_DIRECTORY}} && ./build.sh
+      run: cd ${{ env.WORKING_DIRECTORY }} && ./build.sh
