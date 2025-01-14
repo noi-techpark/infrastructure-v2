@@ -14,7 +14,7 @@ env:
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/noti-router' || github.ref == 'refs/heads/prod'
+    if: github.ref == 'refs/heads/refactor/noti-router' || github.ref == 'refs/heads/prod'
     runs-on: ubuntu-22.04
     concurrency: odh-v2-core-router-build
     steps:
@@ -32,12 +32,12 @@ jobs:
       run: cd ${{ env.WORKING_DIRECTORY }} && ./build.sh
 
   deploy:
-    if: github.ref == 'refs/heads/noti-router' || github.ref == 'refs/heads/prod'
+    if: github.ref == 'refs/heads/refactor/noti-router' || github.ref == 'refs/heads/prod'
     needs: 
       - build
     runs-on: ubuntu-22.04
     concurrency: odh-v2-core-router-build-deploy
-    environment: ${{ github.ref == 'refs/heads/noti-router' && 'test' || github.ref == 'refs/heads/prod' && 'prod' || 'unknown' }}
+    environment: ${{ github.ref == 'refs/heads/refactor/noti-router' && 'test' || github.ref == 'refs/heads/prod' && 'prod' || 'unknown' }}
     env:
       PROJECT_NAME: tr-echarging-ocpi-neogy
       VALUES_YAML: infrastructure/helm/neogy.yaml
