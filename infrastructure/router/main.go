@@ -74,7 +74,7 @@ func setupReadyStack() <-chan *message.Message {
 
 	// consumer
 	amqpConfig = amqp.NewDurablePubSubConfig(cfg.MQ_URI,
-		amqp.GenerateQueueNameConstant(fmt.Sprintf("%s-q", cfg.MQ_READY_QUEUE)))
+		amqp.GenerateQueueNameConstant(cfg.MQ_READY_QUEUE))
 	amqpConfig.Queue.Arguments = amqp091.Table{"x-dead-letter-exchange": fmt.Sprintf("%s-dl", cfg.MQ_READY_EXCHANGE)}
 	amqpConfig.Exchange.Type = "direct"
 	amqpConfig.Consume.NoRequeueOnNack = true
