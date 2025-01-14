@@ -1,0 +1,24 @@
+name: CI/CD odh-v2-core-router
+
+on: 
+  push:
+    paths:
+      - "infrastructure/router/**"      
+      - "infrastructure/helm/router/**"
+      - ".github/workflows/odh-v2-core-router.yaml"
+  workflow_dispatch:
+
+env:
+  WORKING_DIRECTORY: infrastructure/router
+  KUBERNETES_NAMESPACE: core
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    concurrency: odh-v2-core-router-build
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Manually build and push image
+      run: ./build.sh
