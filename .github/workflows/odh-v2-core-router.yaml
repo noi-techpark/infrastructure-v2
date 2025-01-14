@@ -1,11 +1,11 @@
 name: CI/CD odh-v2-core-router
 
 on: 
-  # push:
-  #   paths:
-  #     - "infrastructure/router/**"      
-  #     - "infrastructure/helm/router/**"
-  #     - ".github/workflows/odh-v2-core-router.yaml"
+  push:
+    paths:
+      - "infrastructure/router/**"      
+      - "infrastructure/helm/router/**"
+      - ".github/workflows/odh-v2-core-router.yaml"
   workflow_dispatch:
 
 env:
