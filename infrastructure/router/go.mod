@@ -3,10 +3,10 @@ module opendatahub.com/infrav2/router
 go 1.22
 
 require (
-	github.com/ThreeDotsLabs/watermill v1.3.5
-	github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.2
+	github.com/ThreeDotsLabs/watermill v1.4.3
+	github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.3
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/rabbitmq/amqp091-go v1.9.0
+	github.com/rabbitmq/amqp091-go v1.10.0
 )
 
 require (
