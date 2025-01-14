@@ -45,6 +45,10 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Deploy
+        run: echo "Deploying to environment: $ENVIRONMENT"
+        environment: ${{ secrets[vars.TEST_VAR] }}
+
       # - name: Deploy on cluster  
       #   uses: noi-techpark/github-actions/helm-deploy@v2
       #   with:
