@@ -1,11 +1,11 @@
 name: CI/CD odh-v2-core-router
 
 on: 
-  push:
-    paths:
-      - "infrastructure/router/**"      
-      - "infrastructure/helm/router/**"
-      - ".github/workflows/odh-v2-core-router.yaml"
+  # push:
+  #   paths:
+  #     - "infrastructure/router/**"      
+  #     - "infrastructure/helm/router/**"
+  #     - ".github/workflows/odh-v2-core-router.yaml"
   workflow_dispatch:
 
 env:
@@ -21,4 +21,4 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Manually build and push image
-      run: ./build.sh
+      run: cd ${{WORKING_DIRECTORY}} && ./build.sh
