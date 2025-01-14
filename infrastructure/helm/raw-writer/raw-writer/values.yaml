@@ -20,6 +20,8 @@ env:
     value: ingress
   - name: APP_MQ_QUEUE
     value: ingress
+  - name: APP_MQ_READY_EXCHANGE
+    value: ready
   - name: APP_LOGLEVEL
     value: INFO
 

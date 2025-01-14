@@ -24,12 +24,13 @@ import (
 )
 
 var cfg struct {
-	MQ_URI      string
-	MQ_Exchange string
-	MQ_QUEUE    string
-	LogLevel    string `default:"INFO"`
-	MONGO_URI   string
-	DB_PREFIX   string
+	MQ_URI            string
+	MQ_Exchange       string
+	MQ_QUEUE          string
+	MQ_READY_EXCHANGE string
+	LogLevel          string `default:"INFO"`
+	MONGO_URI         string
+	DB_PREFIX         string
 }
 
 type mqErr struct {
@@ -96,6 +97,8 @@ func setupMQ() <-chan *message.Message {
 }
 
 func setupReadyPublisher() *amqp.Publisher {
+	// setup only open a connection with rabbitmq and tells publisher that
+	// exchange needs to be "direct". Exchange creation is delegated to message publish
 	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameConstant(""))
 	amqpConfig.Exchange.Durable = true
 	amqpConfig.Exchange.AutoDeleted = false
@@ -173,7 +176,7 @@ func handleMqMsg(msg *message.Message) *mqErr {
 					return nil, err
 				}
 				msg := message.NewMessage(watermill.NewUUID(), messagePayload)
-				return nil, readyPublisher.Publish("ready", msg)
+				return nil, readyPublisher.Publish(cfg.MQ_READY_EXCHANGE, msg)
 			}, nil),
 	)
 
