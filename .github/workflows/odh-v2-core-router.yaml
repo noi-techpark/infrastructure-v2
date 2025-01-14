@@ -48,7 +48,7 @@ jobs:
       - name: Deploy
         run: echo "Deploying to environment ${{ env.FOO }}"
         env:
-          FOO: ${{ secrets[vars.TEST_VAR] }}
+          FOO: ${{ vars.TEST_VAR }}
 
       # - name: Deploy on cluster  
       #   uses: noi-techpark/github-actions/helm-deploy@v2
