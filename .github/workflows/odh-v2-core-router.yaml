@@ -11,6 +11,9 @@ on:
 env:
   WORKING_DIRECTORY: infrastructure/router
   KUBERNETES_NAMESPACE: core
+  KUBERNETES_VALUE_PATH: infrastructure/helm/router/values.yaml
+  KUBERNETES_CHART_PATH: infrastructure/helm/router/router
+  PROJECT_NAME: router
 
 jobs:
   build:
@@ -38,9 +41,6 @@ jobs:
     runs-on: ubuntu-22.04
     concurrency: odh-v2-core-router-build-deploy
     environment: ${{ github.ref == 'refs/heads/refactor/noti-router' && 'test' || github.ref == 'refs/heads/prod' && 'prod' || 'unknown' }}
-    env:
-      PROJECT_NAME: tr-echarging-ocpi-neogy
-      VALUES_YAML: infrastructure/helm/neogy.yaml
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -50,14 +50,14 @@ jobs:
         env:
           FOO: ${{ vars.TEST_VAR }}
 
-      # - name: Deploy on cluster  
-      #   uses: noi-techpark/github-actions/helm-deploy@v2
-      #   with:
-      #     k8s-name: ${{ env.PROJECT_NAME }}
-      #     k8s-namespace: ${{ env.KUBERNETES_NAMESPACE }}
-      #     chart-path: helm/generic-collector
-      #     values-file: ${{ env.WORKING_DIRECTORY }}/${{ env.VALUES_YAML }}
-      #     aws-access-key-id: ${{ secrets[vars.AWS_KEY_ID] }}
-      #     aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
-      #     aws-eks-cluster-name: aws-main-eu-01
-      #     aws-region: eu-west-1
+      - name: Deploy on cluster
+        uses: noi-techpark/github-actions/helm-deploy@v2
+        with:
+          k8s-name: ${{ env.PROJECT_NAME }}
+          k8s-namespace: ${{ env.KUBERNETES_NAMESPACE }}
+          chart-path: ${{ env.KUBERNETES_CHART_PATH }}
+          values-file: ${{ env.KUBERNETES_VALUE_PATH }}
+          aws-access-key-id: ${{ secrets[vars.AWS_KEY_ID] }}
+          aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
+          aws-eks-cluster-name: aws-main-eu-01
+          aws-region: eu-west-1

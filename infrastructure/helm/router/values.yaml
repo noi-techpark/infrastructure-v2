@@ -10,13 +10,13 @@ env:
         name: rabbitmq-svcbind
         key: uri
   - name: APP_MQ_READY_EXCHANGE
-    value: ready
+    value: test_ready
   - name: APP_MQ_READY_QUEUE
-    value: ready
+    value: test_ready
   - name: APP_MQ_ROUTED_EXCHANGE
-    value: routed
+    value: test_routed
   - name: APP_MQ_ROUTED_QUEUE
-    value: routed
+    value: test_routed
   - name: APP_LOGLEVEL
     value: INFO
 
