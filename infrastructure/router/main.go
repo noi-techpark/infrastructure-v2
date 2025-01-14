@@ -177,7 +177,7 @@ func handleMqMsg(msg *message.Message) *mqErr {
 	slog.Debug("unmarshalled json", "json", body)
 	routing_key, err := generateRoutingKey(body)
 	if err != nil {
-		return NewMqErr(err.Error(), err)
+		return NewMqErr(err.Error(), "json", body)
 	}
 
 	routed_msg := message.NewMessage(watermill.NewUUID(), msg.Payload)
