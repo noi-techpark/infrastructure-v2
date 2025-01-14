@@ -205,28 +205,6 @@ helm upgrade rabbitmq bitnami/rabbitmq \
 kubectl exec -n core rabbitmq-0 --container rabbitmq -- rabbitmqctl enable_feature_flag all
 ```
 
-### Camel K
-
-**Tips: install `Kamel CLI` and read the Camel K [documentation](https://camel.apache.org/camel-k/1.9.x/running/running.html).**
-
-```sh
-kubectl create secret ....
-# create registry secrets as outlined in secrets.md
-
-```
-
-```sh
-helm repo add camel-k https://apache.github.io/camel-k/charts
-```
-
-```sh
-
-helm upgrade --install camel-k camel-k/camel-k \
-  --values infrastructure/helm/camel-k/values.yaml \
-  --version 2.2.0 \
-  --namespace core
-```
-
 ### Mosquitto
 
 ```sh
