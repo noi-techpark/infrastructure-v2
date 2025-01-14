@@ -14,6 +14,7 @@ env:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod'
     runs-on: ubuntu-22.04
     concurrency: odh-v2-core-router-build
     steps:
@@ -29,3 +30,29 @@ jobs:
 
     - name: Manually build and push image
       run: cd ${{ env.WORKING_DIRECTORY }} && ./build.sh
+
+  deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod'
+    needs: 
+      - build
+    runs-on: ubuntu-22.04
+    concurrency: odh-v2-core-router-build-deploy
+    environment: ${{ github.ref == 'refs/heads/main' && 'test' || github.ref == 'refs/heads/prod' && 'prod' || 'unknown' }}
+    env:
+      PROJECT_NAME: tr-echarging-ocpi-neogy
+      VALUES_YAML: infrastructure/helm/neogy.yaml
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # - name: Deploy on cluster  
+      #   uses: noi-techpark/github-actions/helm-deploy@v2
+      #   with:
+      #     k8s-name: ${{ env.PROJECT_NAME }}
+      #     k8s-namespace: ${{ env.KUBERNETES_NAMESPACE }}
+      #     chart-path: helm/generic-collector
+      #     values-file: ${{ env.WORKING_DIRECTORY }}/${{ env.VALUES_YAML }}
+      #     aws-access-key-id: ${{ secrets[vars.AWS_KEY_ID] }}
+      #     aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
+      #     aws-eks-cluster-name: aws-main-eu-01
+      #     aws-region: eu-west-1
