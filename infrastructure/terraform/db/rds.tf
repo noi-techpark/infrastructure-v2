@@ -24,4 +24,15 @@ resource "aws_db_instance" "pg-timeseries" {
   storage_type = "gp3"
   storage_throughput = 500
   iops= 12000
+  
+  # Backups:
+  backup_retention_period = 7
+  backup_window = "02:00-04:30"
+  copy_tags_to_snapshot = true
+  
+  # Maintenance:
+  maintenance_window = "Thu:01:15-Thu:01:45"
+  auto_minor_version_upgrade = true
+
+  deletion_protection = true
 }
