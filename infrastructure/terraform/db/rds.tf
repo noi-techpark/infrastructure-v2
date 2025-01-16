@@ -34,5 +34,6 @@ resource "aws_db_instance" "pg-timeseries" {
   maintenance_window = "Thu:01:15-Thu:01:45"
   auto_minor_version_upgrade = true
 
-  deletion_protection = true
+  deletion_protection = false
+  apply_immediately = false
 }
