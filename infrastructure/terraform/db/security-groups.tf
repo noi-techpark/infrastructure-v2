@@ -55,6 +55,7 @@ locals {
       { descr = "NOI offices", ip = "46.18.28.240/32" },
       { descr = "NOI offices", ip = "46.18.28.241/32" },
       { descr = "NOI offices", ip = "46.18.28.242/32" },
+      { descr = "NOI offices", ip = "46.18.28.23/32" },
     ]
     docker_hosts_test = [
       { descr = "docker-01-test", ip = "34.246.48.94/32" },
