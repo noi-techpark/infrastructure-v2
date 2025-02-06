@@ -1,11 +1,11 @@
-name: CI/CD odh-v2-core-writer
+name: CI/CD odh-v2-core-bridge
 
 on: 
   push:
     paths:
       - "infrastructure/raw-data-bridge/**"      
       - "infrastructure/helm/raw-data-bridge/**"
-      - ".github/workflows/odh-v2-core-writer.yaml"
+      - ".github/workflows/odh-v2-core-bridge.yaml"
   workflow_dispatch:
 
 env:
@@ -19,7 +19,7 @@ jobs:
   build:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod'
     runs-on: ubuntu-22.04
-    concurrency: odh-v2-core-writer-build
+    concurrency: odh-v2-core-bridge-build
     steps:
     - name: Checkout source code
       uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
     needs: 
       - build
     runs-on: ubuntu-22.04
-    concurrency: odh-v2-core-writer-build-deploy
+    concurrency: odh-v2-core-bridge-build-deploy
     environment: ${{ github.ref == 'refs/heads/main' && 'test' || github.ref == 'refs/heads/prod' && 'prod' || 'unknown' }}
     steps:
       - name: Checkout source code
