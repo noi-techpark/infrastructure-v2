@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net/url"
 	"os"
 	"reflect"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/noi-techpark/go-opendatahub-ingest/urn"
 	"github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -149,9 +151,18 @@ func handleMqMsg(msg *message.Message) *mqErr {
 	body["bsontimestamp"] = timestamp
 
 	// parse provier string to retrieve mongo db and collection names
-	db, coll, err := parseProvider(body)
+	provider, err := getProvider(body)
 	if err != nil {
 		return NewMqErr(err.Error(), "json", body)
+	}
+	db, coll, err := constructTableTarget(provider)
+	if err != nil {
+		return NewMqErr(err.Error(), "json", body)
+	}
+
+	u, ok := urn.RawUrnFromProviderURI(provider)
+	if !ok {
+		return NewMqErr("provider generated invalid urn", "json", body)
 	}
 
 	inserted_id := primitive.ObjectID{}
@@ -167,10 +178,13 @@ func handleMqMsg(msg *message.Message) *mqErr {
 			}),
 		NewQuark(
 			func() (interface{}, error) {
+				// concat document id to urn
+				u.AddNSS(inserted_id.Hex())
 				messagePayload, err := json.Marshal(map[string]any{
 					"id":         inserted_id.Hex(),
 					"db":         db,
 					"collection": coll,
+					"urn":        u.String(),
 				})
 				if err != nil {
 					return nil, err
@@ -201,17 +215,26 @@ func parseTimestamp(body *map[string]any) (time.Time, error) {
 	return t, nil
 }
 
-func parseProvider(body map[string]any) (string, string, error) {
+func getProvider(body map[string]any) (string, error) {
 	// provider string is in format "db/collection"
 	providerstr, ok := body["provider"]
 	if !ok || reflect.TypeOf(providerstr).Kind() != reflect.String {
-		return "", "", errors.New("provider missing or wrong type")
+		return "", errors.New("provider missing or wrong type")
 	}
-	provider := strings.SplitN(providerstr.(string), "/", 2)
-	if provider == nil || len(provider) != 2 {
-		return "", "", fmt.Errorf("provider format invalid: %s", providerstr)
+	uri, err := url.ParseRequestURI("opendatahub:" + providerstr.(string))
+	if err != nil {
+		return "", err
 	}
-	return provider[0], provider[1], nil
+
+	return uri.Opaque, nil
+}
+
+func constructTableTarget(provider string) (string, string, error) {
+	provider_tokens := strings.Split(provider, "/")
+	if len(provider_tokens) < 2 {
+		return "", "", fmt.Errorf("provider format invalid: %s", provider)
+	}
+	return provider_tokens[0], strings.Join(provider_tokens[1:], "."), nil
 }
 
 func initMongo() *mongo.Client {

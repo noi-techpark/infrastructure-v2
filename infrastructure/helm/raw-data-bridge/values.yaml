@@ -1,0 +1,18 @@
+image:
+  repository: ghcr.io/noi-techpark/infrastructure-v2/raw-data-bridge
+  pullPolicy: Always
+  tag: "v1.0"
+
+env:
+  - name: APP_MONGO_URI
+    value: mongodb://mongodb-headless:27017/
+  - name: APP_LOGLEVEL
+    value: INFO
+
+# resources:
+#   limits:
+#     cpu: 250m   # 250m is equivalent to 0.25 CPU core
+#     memory: 500Mi
+#   requests:
+#     cpu: 100m   # 100m is equivalent to 0.1 CPU core
+#     memory: 100Mi

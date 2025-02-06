@@ -9,11 +9,13 @@ import (
 	"log/slog"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/noi-techpark/go-opendatahub-ingest/urn"
 	"github.com/rabbitmq/amqp091-go"
 )
 
@@ -155,17 +157,18 @@ func handleMq(messages <-chan *message.Message) {
 }
 
 func generateRoutingKey(body map[string]any) (string, error) {
-	// body must include "db" and "collection" field and we construct routing key
-	// as db.collection
-	db, ok := body["db"]
-	if !ok || reflect.TypeOf(db).Kind() != reflect.String {
-		return "", errors.New("'db' payload field missing or wrong type")
+	// body must include "urn" field and we construct routing key
+	// NSS without last part replacing : -> .
+	body_urn, ok := body["urn"]
+	if !ok || reflect.TypeOf(body_urn).Kind() != reflect.String {
+		return "", errors.New("'urn' payload field missing or wrong type")
 	}
-	collection, ok := body["collection"]
-	if !ok || reflect.TypeOf(collection).Kind() != reflect.String {
-		return "", errors.New("'collection' payload field missing or wrong type")
+	u, ok := urn.Parse(body_urn.(string))
+	if !ok {
+		return "", errors.New("invalid 'urn' format")
 	}
-	return fmt.Sprintf("%s.%s", db, collection), nil
+
+	return strings.Join(u.GetNSSWithoutID(), "."), nil
 }
 
 func handleMqMsg(msg *message.Message) *mqErr {

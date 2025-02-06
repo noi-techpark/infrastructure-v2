@@ -1,0 +1,32 @@
+# Default values for raw-data-bridge.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/noi-techpark/infrastructure-v2/raw-data-bridge
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  port: 2000
+  type: ClusterIP
+  
+health:
+  delay: 30
+
+env:
+  - name: APP_MONGO_URI
+    value: mongodb://user:password@mongodb
+  - name: APP_LOGLEVEL
+    value: INFO
+
+podAnnotations: {}
+podLabels: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
