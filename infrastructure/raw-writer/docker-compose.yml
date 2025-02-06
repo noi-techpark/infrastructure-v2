@@ -6,8 +6,6 @@ services:
       target: dev
     env_file:
       - .env
-    ports:
-      - 2000:2000
     volumes:
       - .:/code
       - pkg:/go/pkg/mod
