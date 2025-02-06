@@ -1,0 +1,24 @@
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: . 
+      target: dev
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+      - pkg:/go/pkg/mod
+    working_dir: /code
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    attach: false
+
+volumes:
+  pkg:

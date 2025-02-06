@@ -1,0 +1,58 @@
+name: CI/CD odh-v2-core-router
+
+on: 
+  push:
+    paths:
+      - "infrastructure/router/**"      
+      - "infrastructure/helm/router/**"
+      - ".github/workflows/odh-v2-core-router.yaml"
+  workflow_dispatch:
+
+env:
+  WORKING_DIRECTORY: infrastructure/router
+  KUBERNETES_NAMESPACE: core
+  KUBERNETES_VALUE_PATH: infrastructure/helm/router/values.yaml
+  KUBERNETES_CHART_PATH: infrastructure/helm/router/router
+  PROJECT_NAME: router
+
+jobs:
+  build:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod'
+    runs-on: ubuntu-22.04
+    concurrency: odh-v2-core-router-build
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Log in to GitHub Docker Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Manually build and push image
+      run: cd ${{ env.WORKING_DIRECTORY }} && ./build.sh
+
+  deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod'
+    needs: 
+      - build
+    runs-on: ubuntu-22.04
+    concurrency: odh-v2-core-router-build-deploy
+    environment: ${{ github.ref == 'refs/heads/main' && 'test' || github.ref == 'refs/heads/prod' && 'prod' || 'unknown' }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Deploy on cluster
+        uses: noi-techpark/github-actions/helm-deploy@v2
+        with:
+          k8s-name: ${{ env.PROJECT_NAME }}
+          k8s-namespace: ${{ env.KUBERNETES_NAMESPACE }}
+          chart-path: ${{ env.KUBERNETES_CHART_PATH }}
+          values-file: ${{ env.KUBERNETES_VALUE_PATH }}
+          aws-access-key-id: ${{ secrets[vars.AWS_KEY_ID] }}
+          aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
+          aws-eks-cluster-name: aws-main-eu-01
+          aws-region: eu-west-1

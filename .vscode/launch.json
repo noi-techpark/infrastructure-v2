@@ -5,12 +5,28 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch file",
+            "name": "Launch Writer",
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${file}",
-            "envFile": "${fileDirname}/.env"
+            "program": "${workspaceFolder}/infrastructure/raw-writer",
+            "envFile": "${workspaceFolder}/infrastructure/raw-writer/.env"
+        },
+        {
+            "name": "Launch Router",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/infrastructure/router",
+            "envFile": "${workspaceFolder}/infrastructure/router/.env"
+        },
+        {
+            "name": "Launch Lookup",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/infrastructure/raw-data-bridge",
+            "envFile": "${workspaceFolder}/infrastructure/raw-data-bridge/.env"
         }
     ]
 }

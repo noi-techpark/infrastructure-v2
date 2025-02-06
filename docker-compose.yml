@@ -52,10 +52,12 @@ services:
   # Writer service listens on ingress queue and writes raw data to mongodb
   writer:
     image: ghcr.io/noi-techpark/infrastructure-v2/raw-writer:latest
+    pull_policy: always
     environment:
       APP_MQ_URI: amqp://guest:guest@rabbitmq:5672
       APP_MQ_EXCHANGE: ingress
       APP_MQ_QUEUE: ingress
+      APP_MQ_READY_EXCHANGE: ready
       APP_MONGO_URI: mongodb://mongodb/?replicaSet=rs0&directConnection=true
       APP_LOGLEVEL: INFO
     depends_on:
@@ -64,42 +66,21 @@ services:
       rabbitmq:
         condition: service_healthy
 
-  # Notifier service listens on mongodb oplog and generates an event when data is inserted
-  notifier:
-    image: ghcr.io/noi-techpark/infrastructure-v2/notifier:latest
+  # Router service listens on ready exchange (where writer writes) and distributes messages according to routing key
+  router:
+    image: ghcr.io/noi-techpark/infrastructure-v2/router:latest
+    pull_policy: always
+    environment:
+      APP_MQ_URI: amqp://guest:guest@rabbitmq:5672
+      APP_MQ_READY_EXCHANGE: ready
+      APP_MQ_READY_QUEUE: ready
+      APP_MQ_ROUTED_EXCHANGE: routed
+      APP_MQ_ROUTED_QUEUE: routed
     depends_on:
-      mongodb:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
       mongodb-init:
         condition: service_completed_successfully
-    environment:
-      MONGODB_CONNECTION_STRING: mongodb://mongodb:27017?directConnection=true
-      MONGODB_CONNECTION_REPLICA_SET: rs0
-      RABBITMQ_CLUSTER_URL: amqp://guest:guest@rabbitmq:5672/
-
-  # Router service listens on ready exchange (where notifier writes) and distributes messages according to routing key
-  router:
-    build:
-      context: infrastructure/router
-      dockerfile: Dockerfile
-      target: dev
-    environment:
-      RABBITMQ_CLUSTER_URL: rabbitmq:5672
-      RABBITMQ_USER: guest
-      RABBITMQ_PASSWORD: guest
-      RABBITMQ_CLIENTNAME: writer
-    volumes:
-      - ./infrastructure/router:/code
-      - mvn-cache:/code/.mvn
-    depends_on:
-      - notifier
-    working_dir: /code
-    command: ["mvn -B quarkus:dev"]
-
-volumes:
-  mvn-cache:
+      rabbitmq:
+        condition: service_healthy
 
 networks:
   default:

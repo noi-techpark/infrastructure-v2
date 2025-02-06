@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/noi-techpark/infrastructure-v2/raw-writer
+  repository: ghcr.io/noi-techpark/infrastructure-v2/router
   pullPolicy: Always
   tag: "v1.0"
 
@@ -9,17 +9,14 @@ env:
       secretKeyRef: 
         name: rabbitmq-svcbind
         key: uri
-  - name: APP_MQ_EXCHANGE
-    value: ingress
-  - name: APP_MQ_QUEUE
-    value: ingress
   - name: APP_MQ_READY_EXCHANGE
     value: ready
-  - name: APP_MONGO_URI
-    valueFrom:
-      secretKeyRef: 
-        name: mongodb-writer-svcbind
-        key: uri
+  - name: APP_MQ_READY_QUEUE
+    value: ready
+  - name: APP_MQ_ROUTED_EXCHANGE
+    value: routed
+  - name: APP_MQ_ROUTED_QUEUE
+    value: routed
   - name: APP_LOGLEVEL
     value: INFO
 

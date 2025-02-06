@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: . 
+      target: dev
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+      - pkg:/go/pkg/mod
+    working_dir: /code
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+    command: --bind_ip localhost,mongodb,127.0.0.1
+    volumes:
+      - mongo:/data/db
+    attach: false
+
+volumes:
+  pkg:
+  mongo:

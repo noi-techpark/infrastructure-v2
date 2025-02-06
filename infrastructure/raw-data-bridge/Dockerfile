@@ -2,18 +2,19 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-FROM golang:1.22.2-bookworm AS base
+FROM golang:1.23.4-bookworm AS base
 
 FROM base AS build
 WORKDIR /app
 COPY go.mod .
 COPY go.sum .
-COPY *.go .
-RUN CGO_ENABLED=0 GOOS=linux go build -o router
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o raw-data-bridge
 
 FROM scratch AS release
-COPY --from=build /app/router /router
-CMD ["/router"]
+COPY --from=build /app/raw-data-bridge /raw-data-bridge
+CMD ["/raw-data-bridge"]
+
 
 FROM base AS dev
 WORKDIR /code
