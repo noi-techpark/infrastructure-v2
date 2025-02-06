@@ -5,7 +5,10 @@ image:
 
 env:
   - name: APP_MONGO_URI
-    value: mongodb://mongodb-headless:27017/
+    valueFrom:
+      secretKeyRef: 
+        name: mongodb-collector-svcbind
+        key: uri
   - name: APP_LOGLEVEL
     value: INFO
 
