@@ -20,7 +20,7 @@ resource "aws_security_group" "postgres-dbmigration" {
     to_port     = 5432
     from_port   = 5432
     protocol    = "tcp"
-    cidr_blocks = ["18.202.231.229/32"]
+    cidr_blocks = ["52.213.235.137/32"]
   }
 }
 
