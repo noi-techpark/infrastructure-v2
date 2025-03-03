@@ -29,6 +29,9 @@ SPDX-License-Identifier: CC0-1.0
 
 * [Remote RabbitMQ Queue Manager](docs/devops/rabbitmq_dev_route.md)
 
+## HowTo
+* [Update Core](docs/howtos/update-core.md)
+
 --- 
 
 ## Overview

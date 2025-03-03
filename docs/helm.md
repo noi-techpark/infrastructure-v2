@@ -235,6 +235,19 @@ helm upgrade --install notifier ./infrastructure/helm/notifier/notifier \
   --namespace core
 ```
 
+### Router
+
+```sh
+# must be logged in on ghcr.io for docker push
+(cd infrastructure/router; ./build.sh)
+```
+
+```sh
+helm upgrade --install router ./infrastructure/helm/router/router \
+  --values infrastructure/helm/router/values.yaml \
+  --namespace core
+```
+
 ### Raw writer
 
 ```sh
