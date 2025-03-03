@@ -21,7 +21,7 @@ We designed the system to work with `Provider URI`s which identify who sent/from
 
 The `Provider URI` is specified in inbound and it's propagated to the whole system.
 
-`Provider URI` has the same format of a standard **Web URI** and and should be decided using this [guideline](docs/guidelines.md#datacollectors-provider-standard).
+`Provider URI` has the same format of a standard **Web URI** and and should be decided using this [guideline](docs/guidelines.md#datacollectors-uri-provider-standard).
 
 ## Dead Letters
 
