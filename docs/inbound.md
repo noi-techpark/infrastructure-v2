@@ -15,37 +15,13 @@ Any data ingested thought the inbounds is incapsulated in a standardized message
 
 ## Provider URI
 
-When a provider pushes data to Open Data Hub's inbounds, or when Hopen Data Hub collects data from a provider, the system needs to identify where the data comes from.
+When a provider pushes data to Open Data Hub's inbounds, or when Open Data Hub collects data from a provider, the system needs to identify where the data comes from.
 
 We designed the system to work with `Provider URI`s which identify who sent/from who we collect the data.
 
 The `Provider URI` is specified in inbound and it's propagated to the whole system.
 
-`Provider URI` has the same format of a standard **Web URI**
-
-Example:
-
-```
-skidata/carezza/paolina?fastline=true
-```
-
-The `path` of the `URI` is used by the system to identify `provider` and eventual `subdomains` (in this example `carezza/paolina`).
-There is no limit to the amount of `subdomains` that can be specified, `subdomains` are also optional and can be omitted:
-
-```
-skidata?fastline=true
-```
-
-Later the system will use `provider` and `subdomains` to [write](./write-route.md) in the **Raw Data Table** and how to [route](./router-route.md) the message to the right **Transformer**.
-
-The `query parameters` of the `URI` are used by the system to perform special operation or routing of the data ingested.
-
-For example the above `Provider URI` has the query parameter 
-```
-fastline=true
-```
-
-MQTT Route will capture this parameter and detect the request by the provider to use the [Fastline Outbound](./fastline-route.md) in order to expose the raw content of the message in real-time.
+`Provider URI` has the same format of a standard **Web URI** and and should be decided using this [guideline](docs/guidelines.md#datacollectors-provider-standard).
 
 ## Dead Letters
 

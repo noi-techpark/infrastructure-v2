@@ -248,6 +248,19 @@ helm upgrade --install raw-writer ./infrastructure/helm/raw-writer/raw-writer \
   --namespace core
 ```
 
+### Raw Data Bridge
+
+```sh
+# must be logged in on ghcr.io for docker push
+(cd infrastructure/raw-data-bridge; ./build.sh)
+```
+
+```sh
+helm upgrade --install raw-data-bridge ./infrastructure/helm/raw-data-bridge/raw-data-bridge \
+  --values infrastructure/helm/raw-data-bridge/values.yaml \
+  --namespace core
+```
+
 ### Nginx ingress
 TODO: values.yaml contains hardcoded subnet of dev environment.
 

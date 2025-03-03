@@ -17,6 +17,7 @@ SPDX-License-Identifier: CC0-1.0
 
 ## Concepts
 
+- [Guidelines](docs/guidelines.md)
 - [Terraform](docs/terraform.md)
 - [Kubernetes](docs/kubernetes.md)
 - [Helm](docs/helm.md)
