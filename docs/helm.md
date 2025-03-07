@@ -335,7 +335,9 @@ helm upgrade --install ninja-api infrastructure/helm/ninja-api/ninja-api --names
 ### Mobility core / writer
 Endpoint where data collectors and elaborations push their mobility data. Also maintains and versions the mobility database schema
 ```sh
-helm upgrade --install bdp-core infrastructure/helm/bdp-core/bdp-core --namespace core --values infrastructure/helm/bdp-core/values.yaml
+helm upgrade --install --namespace core bdp-core  \
+https://github.com/noi-techpark/bdp-core/raw/refs/heads/main/infrastructure/helm/bdp-core-2.0.0.tgz \
+--values https://raw.githubusercontent.com/noi-techpark/bdp-core/refs/heads/main/infrastructure/helm/test.yaml
 ```
 ### Analytics
 Frontend application that uses Ninja-API to visualize mobility data on maps and charts
