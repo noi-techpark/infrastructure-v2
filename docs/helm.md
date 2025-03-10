@@ -328,16 +328,21 @@ Image tags are hardcoded, so upgrading the applications has to be done by updati
 
 ### Ninja API
 Outbound mobility API used to query mobility data
-TODO: rewrite to /v2/ context and add the STA mobility proxies
+Relies on external proxy to do SSL currently
 ```sh
-helm upgrade --install ninja-api infrastructure/helm/ninja-api/ninja-api --namespace core --values infrastructure/helm/ninja-api/values.yaml
+helm upgrade --install --namespace core ninja-api  \
+https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/raw/refs/heads/main/infrastructure/helm/ninja-api-2.0.0.tgz \
+--values https://raw.githubusercontent.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/refs/heads/main/infrastructure/helm/test.yaml
 ```
 ### Mobility core / writer
 Endpoint where data collectors and elaborations push their mobility data. Also maintains and versions the mobility database schema
+Relies on external proxy to do SSL currently
 ```sh
 helm upgrade --install --namespace core bdp-core  \
 https://github.com/noi-techpark/bdp-core/raw/refs/heads/main/infrastructure/helm/bdp-core-2.0.0.tgz \
---values https://raw.githubusercontent.com/noi-techpark/bdp-core/refs/heads/main/infrastructure/helm/test.yaml
+--values https://raw.githubusercontent.com/noi-techpark/bdp-core/refs/heads/main/infrastructure/helm/test.yaml \
+--set-string env.LOG_APPLICATION_VERSION=helm-setup \
+--set-string oauth.clientSecret=************
 ```
 ### Analytics
 Frontend application that uses Ninja-API to visualize mobility data on maps and charts
