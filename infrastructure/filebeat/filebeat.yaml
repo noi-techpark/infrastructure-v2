@@ -121,6 +121,10 @@ data:
             matchers:
             - logs_path:
                 logs_path: "/var/log/containers/"
+        - decode_json_fields:
+            fields: ["message"]
+            target: "json"
+            overwrite_keys: true
 
     # To enable hints based autodiscover, remove `filebeat.inputs` configuration and uncomment this:
     #filebeat.autodiscover:
