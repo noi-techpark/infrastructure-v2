@@ -1,16 +1,20 @@
 image:
-  repository: ghcr.io/noi-techpark/infrastructure-v2/raw-data-bridge
-  pullPolicy: Always
+  repository: kind/infrastructure-v2/raw-data-bridge
+  pullPolicy: IfNotPresent
   tag: "v1.0"
 
 env:
+  - name: SERVICE_NAME
+    value: raw-data-bridge
   - name: APP_MONGO_URI
-    valueFrom:
-      secretKeyRef: 
-        name: mongodb-collector-svcbind
-        key: uri
+    value: mongodb+srv://mongodb-headless.core.svc.cluster.local/?tls=false&ssl=false
   - name: APP_LOGLEVEL
-    value: INFO
+    value: DEBUG  
+  - name: LOG_LEVEL
+    value: DEBUG
+
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: http://tempo.grafana.svc.cluster.local:4317
 
 # resources:
 #   limits:

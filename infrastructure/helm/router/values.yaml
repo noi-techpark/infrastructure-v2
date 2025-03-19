@@ -1,14 +1,13 @@
 image:
-  repository: ghcr.io/noi-techpark/infrastructure-v2/router
-  pullPolicy: Always
+  repository: kind/infrastructure-v2/router
+  pullPolicy: IfNotPresent
   tag: "v1.0"
 
 env:
+  - name: SERVICE_NAME
+    value: router
   - name: APP_MQ_URI
-    valueFrom:
-      secretKeyRef: 
-        name: rabbitmq-svcbind
-        key: uri
+    value: amqp://user:zAPl04iM1L10YAKU@rabbitmq-cluster-headless.default.svc.cluster.local:5672
   - name: APP_MQ_READY_EXCHANGE
     value: ready
   - name: APP_MQ_READY_QUEUE
@@ -18,7 +17,12 @@ env:
   - name: APP_MQ_ROUTED_QUEUE
     value: routed
   - name: APP_LOGLEVEL
-    value: INFO
+    value: DEBUG
+  - name: LOG_LEVEL
+    value: DEBUG
+
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: http://tempo.grafana.svc.cluster.local:4317
 
 # resources:
 #   limits:

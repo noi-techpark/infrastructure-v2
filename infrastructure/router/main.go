@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"os"
 	"reflect"
 	"strings"
 
@@ -16,7 +15,10 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/noi-techpark/go-opendatahub-ingest/urn"
-	"github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel/codes"
+	"opendatahub.com/x/gotel"
+	"opendatahub.com/x/logger"
+	"opendatahub.com/x/qmill"
 )
 
 var cfg struct {
@@ -45,109 +47,23 @@ func initConfig() {
 	}
 }
 
-func initLog() {
-	level := &slog.LevelVar{}
-	level.UnmarshalText([]byte(cfg.LogLevel))
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: level,
-	})))
-}
-
-// Ready stack is the ready-q and ready-dl bind to ready exchange.
-// Here we find all messages successfully written to raw-data.
-// The ready-dl is ment to contain messages sent to ready exchange but which for some reason we couldn't publish to "routed" exchange
-//
-// setupReadyStack setups both queues and returns the consumer for ready-q
-func setupReadyStack() <-chan *message.Message {
-	// ready-dl
-	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameTopicName)
-
-	subscriber, err := amqp.NewSubscriber(
-		amqpConfig,
-		watermill.NewSlogLogger(slog.Default()),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	if err := subscriber.SubscribeInitialize(fmt.Sprintf("%s-dl", cfg.MQ_READY_QUEUE)); err != nil {
-		panic(err)
-	}
-
-	// consumer
-	amqpConfig = amqp.NewDurablePubSubConfig(cfg.MQ_URI,
-		amqp.GenerateQueueNameConstant(cfg.MQ_READY_QUEUE))
-	amqpConfig.Queue.Arguments = amqp091.Table{"x-dead-letter-exchange": fmt.Sprintf("%s-dl", cfg.MQ_READY_EXCHANGE)}
-	amqpConfig.Exchange.Type = "direct"
-	amqpConfig.Consume.NoRequeueOnNack = true
-
-	subscriber, err = amqp.NewSubscriber(
-		amqpConfig,
-		watermill.NewSlogLogger(slog.Default()),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	messages, err := subscriber.Subscribe(context.Background(), cfg.MQ_READY_EXCHANGE)
-	if err != nil {
-		panic(err)
-	}
-	return messages
-}
-
-// Routed stack is composed by routed exchange and routed-dl queue.
-// Messages read from "ready-q" are routed using a derived routing_key to routed exchange.
-// routed-dl queue us used as alternate-exchange to handle all those messages published with a routing key not bind to any queue
-//
-// setupRoutedStack setups routed-dl queue and returns routed exchange publisher
-func setupRoutedStack() *amqp.Publisher {
-	// routed-dl
-	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameConstant(fmt.Sprintf("%s-dl", cfg.MQ_ROUTED_QUEUE)))
-	amqpConfig.Exchange.GenerateName = func(n string) string { return fmt.Sprintf("%s-dl", cfg.MQ_ROUTED_EXCHANGE) }
-
-	subscriber, err := amqp.NewSubscriber(
-		amqpConfig,
-		watermill.NewSlogLogger(slog.Default()),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	if err := subscriber.SubscribeInitialize(fmt.Sprintf("%s-dl", cfg.MQ_ROUTED_QUEUE)); err != nil {
-		panic(err)
-	}
-
-	// publisher
-	amqpConfig = amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameTopicName)
-	amqpConfig.Publish.GenerateRoutingKey = func(topic string) string { return topic }
-	amqpConfig.Exchange.Durable = true
-	amqpConfig.Exchange.AutoDeleted = false
-	amqpConfig.Exchange.Type = "topic"
-	amqpConfig.Exchange.GenerateName = func(n string) string { return cfg.MQ_ROUTED_QUEUE }
-	amqpConfig.Exchange.Arguments = amqp091.Table{"alternate-exchange": fmt.Sprintf("%s-dl", cfg.MQ_ROUTED_EXCHANGE)}
-
-	amqpConfig.Queue.Exclusive = false
-	amqpConfig.Queue.NoWait = false
-
-	publisher, err := amqp.NewPublisher(
-		amqpConfig,
-		watermill.NewSlogLogger(slog.Default()),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	return publisher
-}
-
 func handleMq(messages <-chan *message.Message) {
 	for msg := range messages {
 		go func() {
+			ctx := msg.Context()
+			defer gotel.GetSpan(ctx).End()
+			log := logger.Get(ctx)
+
 			err := handleMqMsg(msg)
 
 			if err != nil {
-				slog.Error(err.err, err.ctx...)
+				log.Error(err.err, err.ctx...)
+				span := gotel.GetSpan(ctx)
+				if span != nil && span.IsRecording() {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
+				}
+
 				msg.Nack()
 			} else {
 				msg.Ack()
@@ -172,19 +88,22 @@ func generateRoutingKey(body map[string]any) (string, error) {
 }
 
 func handleMqMsg(msg *message.Message) *mqErr {
-	slog.Debug("received message", "id", msg.UUID, "payload", string(msg.Payload))
+	ctx := msg.Context()
+	log := logger.Get(ctx)
+
+	log.Debug("received message", "id", msg.UUID, "payload", string(msg.Payload))
 	var body map[string]any
 	if err := json.Unmarshal(msg.Payload, &body); err != nil {
 		return NewMqErr("cannot unmarshal json", "payload", string(msg.Payload))
 	}
-	slog.Debug("unmarshalled json", "json", body)
+	log.Debug("unmarshalled json", "json", body)
 	routing_key, err := generateRoutingKey(body)
 	if err != nil {
 		return NewMqErr(err.Error(), "json", body)
 	}
 
 	routed_msg := message.NewMessage(watermill.NewUUID(), msg.Payload)
-	err = publisher.Publish(routing_key, routed_msg)
+	err = routed.Publish(ctx, publisher, routed_msg, routing_key)
 
 	if err != nil {
 		return NewMqErr("cannot publish message", err)
@@ -193,12 +112,53 @@ func handleMqMsg(msg *message.Message) *mqErr {
 }
 
 var publisher *amqp.Publisher
+var routed *qmill.QMill
 
 func main() {
 	initConfig()
-	initLog()
-	publisher = setupRoutedStack()
-	messages := setupReadyStack()
+	logger.InitLogging()
 
-	handleMq(messages)
+	telc, err := gotel.NewConfigFromEnv()
+	if err != nil {
+		log.Panic("Unable to initialize telemetry config", err)
+	}
+	tel, err := gotel.NewTelemetry(context.Background(), telc)
+	if err != nil {
+		log.Panic("Unable to initialize config", err)
+	}
+
+	subs, err := qmill.NewQmill(cfg.MQ_URI,
+		qmill.WithQueue(cfg.MQ_READY_QUEUE, true),
+		qmill.WithBind(cfg.MQ_READY_EXCHANGE, ""),
+		qmill.WithDeadLetter(fmt.Sprintf("%s-dl", cfg.MQ_READY_QUEUE), "fanout"),
+		qmill.WithNoRequeueOnNack(true),
+		qmill.WithLogger(watermill.NewSlogLogger(slog.Default())),
+		qmill.WithTracing(tel),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	routed, err = qmill.NewQmill(cfg.MQ_URI,
+		qmill.WithExchange(cfg.MQ_ROUTED_EXCHANGE, "topic", true),
+		qmill.WithAlternateExchange(fmt.Sprintf("%s-dl", cfg.MQ_ROUTED_EXCHANGE), "topic"),
+		qmill.WithNoRequeueOnNack(true),
+		qmill.WithLogger(watermill.NewSlogLogger(slog.Default())),
+		qmill.WithTracing(tel),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	publisher, err = routed.GetPublisher()
+	if err != nil {
+		log.Panic("Unable to initialize publisher", err)
+	}
+
+	sub, err := subs.GetSubscriber(context.Background())
+	if err != nil {
+		log.Panic("Unable to initialize sub", err)
+	}
+
+	handleMq(sub)
 }
