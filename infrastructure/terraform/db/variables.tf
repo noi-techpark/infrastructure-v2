@@ -23,4 +23,11 @@ variable "DB_INSTANCE_STORAGE_GB" {
   type    = number
   default = 20
 }
-
+variable "DB_INSTANCE_STORAGE_IOPS" {
+  type    = number
+  default = 12000
+}
+variable "DB_INSTANCE_STORAGE_THROUGHPUT" {
+  type    = number
+  default = 500
+}
