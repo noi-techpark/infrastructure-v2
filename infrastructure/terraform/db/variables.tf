@@ -14,6 +14,11 @@ variable "AWS_SECRET_ACCESS_KEY" {
   default = ""
 }
 
+variable "ENVIRONMENT" {
+  type    = string
+  default = "dev"
+}
+
 variable "DB_INSTANCE_TYPE" {
   type    = string
   default = "db.t4g.medium"

@@ -17,7 +17,7 @@ resource "aws_db_instance" "pg-timeseries" {
   skip_final_snapshot    = true
   vpc_security_group_ids = [
     data.aws_security_group.default.id, 
-    aws_security_group.postgres-test.id, 
+    aws_security_group.postgres.id, 
     aws_security_group.postgres-homeoffice.id,
     aws_security_group.postgres-dbmigration.id
   ]
@@ -35,5 +35,5 @@ resource "aws_db_instance" "pg-timeseries" {
   auto_minor_version_upgrade = true
 
   deletion_protection = true
-  apply_immediately = false
+  apply_immediately = true
 }
