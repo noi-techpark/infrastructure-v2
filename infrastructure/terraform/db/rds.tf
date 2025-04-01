@@ -18,8 +18,7 @@ resource "aws_db_instance" "pg-timeseries" {
   vpc_security_group_ids = [
     data.aws_security_group.default.id, 
     aws_security_group.postgres.id, 
-    aws_security_group.postgres-homeoffice.id,
-    aws_security_group.postgres-dbmigration.id
+    aws_security_group.postgres-homeoffice.id
   ]
   storage_type = "gp3"
   storage_throughput = var.DB_INSTANCE_STORAGE_THROUGHPUT

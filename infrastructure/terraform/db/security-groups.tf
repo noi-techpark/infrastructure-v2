@@ -10,20 +10,6 @@ resource "aws_security_group" "postgres-homeoffice" {
   vpc_id      = data.aws_vpc.k8s-vpc.id
 }
 
-# temporary until migration is done
-resource "aws_security_group" "postgres-dbmigration" {
-  name        = "postgres-migration"
-  description = "Access to postgres from migration server"
-  vpc_id      = data.aws_vpc.k8s-vpc.id
-  ingress {
-    description = "db migration host"
-    to_port     = 5432
-    from_port   = 5432
-    protocol    = "tcp"
-    cidr_blocks = ["54.246.124.179/32"]
-  }
-}
-
 resource "aws_security_group" "postgres" {
   name        = "postgres"
   description = "Access to postgres database"
@@ -70,6 +56,7 @@ locals {
       { descr = "docker-04-prod", ip = "54.74.196.120/32" },
       { descr = "docker-05-prod", ip = "52.214.190.58/32" },
     ]
+    grafana = [{descr = "grafana", ip = "52.214.46.195/32"}]
   }
   ip_blocks_test = concat(
     local.ip_blocks.docker_hosts_test, 
@@ -79,7 +66,8 @@ locals {
   ip_blocks_prod = concat(
     local.ip_blocks.docker_hosts_prod, 
     local.ip_blocks.eks_prod, 
-    local.ip_blocks.noi_offices
+    local.ip_blocks.noi_offices,
+    local.ip_blocks.grafana
   )
   postgres_whitelist = local.prod ? local.ip_blocks_prod : local.ip_blocks_test
 }
