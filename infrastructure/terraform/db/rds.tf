@@ -35,4 +35,8 @@ resource "aws_db_instance" "pg-timeseries" {
 
   deletion_protection = true
   apply_immediately = true
+  
+  tags = {
+    GCPBackup = true
+  }
 }

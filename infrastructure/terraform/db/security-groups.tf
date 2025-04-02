@@ -57,6 +57,7 @@ locals {
       { descr = "docker-05-prod", ip = "52.214.190.58/32" },
     ]
     grafana = [{descr = "grafana", ip = "52.214.46.195/32"}]
+    gcp_backup = [{descr = "gcp_backup", ip = "34.90.97.156/32"}]
   }
   ip_blocks_test = concat(
     local.ip_blocks.docker_hosts_test, 
@@ -67,7 +68,8 @@ locals {
     local.ip_blocks.docker_hosts_prod, 
     local.ip_blocks.eks_prod, 
     local.ip_blocks.noi_offices,
-    local.ip_blocks.grafana
+    local.ip_blocks.grafana,
+    local.ip_blocks.gcp_backup,
   )
   postgres_whitelist = local.prod ? local.ip_blocks_prod : local.ip_blocks_test
 }
