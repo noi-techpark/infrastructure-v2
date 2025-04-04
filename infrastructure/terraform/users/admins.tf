@@ -22,7 +22,6 @@ locals {
     "r.cavaliere",
     "r.thoeni",
     "s.seppi",
-    "l.pasquarelli",
     "m.roggia",
   ]
   admins_prod = [
@@ -32,7 +31,6 @@ locals {
     "r.cavaliere",
     "r.thoeni",
     "s.seppi",
-    "l.pasquarelli",
     "m.roggia",
   ]
   admins = local.prod ? local.admins_prod : local.admins_dev
