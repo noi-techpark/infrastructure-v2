@@ -41,6 +41,10 @@ locals {
 resource "aws_iam_user" "admins" {
   for_each = toset(local.admins)
   name = each.value
+  lifecycle {
+    # Ignore changes in tags because when generating access keys, they show up here
+    ignore_changes = [ tags ]
+  }
 }
 
 resource "aws_iam_group_membership" "admin_members" {
