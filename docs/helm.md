@@ -84,6 +84,13 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
   --namespace kube-system
 ```
 
+### Amazon GP3 Storage class
+
+
+```sh
+kubectl apply -f infrastructure/helm/aws-storage-class/gp3.yaml
+```
+
 ### Velero
 
 https://aws.amazon.com/blogs/containers/backup-and-restore-your-amazon-eks-cluster-resources-using-velero/
