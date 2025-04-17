@@ -27,23 +27,23 @@ serviceBindings:
 #     command: ["curl -f --user $RABBITMQ_USERNAME:$RABBITMQ_PASSWORD 127.0.0.1:15672/api/health/checks/local-alarms"]
 
 # Set up the ALB ingress for the RabbitMQ Management Console (UI).
-#ingress:
-#  enabled: true
-#
-#  annotations:
-#    cert-manager.io/issuer: "letsencrypt-prod"
-#
-#  ingressClassName: nginx
-#  hostname: rabbitmq.dev.testingmachine.eu
-#  tls:
-#    - hosts:
-#      - rabbitmq.dev.testingmachine.eu
-#      secretName: tls-rabbitmq
-#  hosts:
-#    - host: rabbitmq.dev.testingmachine.eu
-#      paths: 
-#        - path: "/"
-#pathType: Prefix
+ingress:
+ enabled: true
+
+ annotations:
+   cert-manager.io/issuer: "letsencrypt-prod"
+
+ ingressClassName: nginx-private
+ hostname: rabbitmq.dev.testingmachine.eu
+ tls:
+   - hosts:
+     - rabbitmq.dev.testingmachine.eu
+     secretName: tls-rabbitmq
+ hosts:
+   - host: rabbitmq.dev.testingmachine.eu
+     paths: 
+       - path: "/"
+        #pathType: Prefix
 
 extraConfiguration: |
   consumer_timeout = 60000
@@ -55,6 +55,29 @@ resources:
   requests:
     cpu: 100m   # 100m is equivalent to 0.1 CPU core
     memory: 500Mi
+
+# See: https://www.rabbitmq.com/docs/prometheus#default-endpoint
+metrics:
+  enabled: true
+  serviceMonitor:
+    namespace: monitoring
+
+    default:
+      enabled: true
+      interval: 90s
+      scrapeTimeout: 30s
+
+    detailed:
+      enabled: true
+      interval: 90s
+      scrapeTimeout: 30s
+      family:
+        - queue_coarse_metrics
+        - queue_consumer_count
+        - queue_delivery_metrics
+        - rabbitmq_detailed_queue_consumers
+        - exchange_metrics
+        - queue_exchange_metrics
 
 clustering:
   forceBoot: true

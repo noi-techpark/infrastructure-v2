@@ -4,15 +4,15 @@ import (
 	"context"
 	"log"
 	"log/slog"
-	"os"
 
 	"github.com/kelseyhightower/envconfig"
+	"github.com/noi-techpark/opendatahub-go-sdk/ingest/ms"
+	"github.com/noi-techpark/opendatahub-go-sdk/tel"
 	"golang.org/x/sync/errgroup"
 	"opendatahub.com/infrav2/raw-data-bridge/rdt"
 )
 
 var cfg struct {
-	LogLevel  string `default:"INFO"`
 	MONGO_URI string
 	DB_PREFIX string
 }
@@ -24,17 +24,9 @@ func initConfig() {
 	}
 }
 
-func initLog() {
-	level := &slog.LevelVar{}
-	level.UnmarshalText([]byte(cfg.LogLevel))
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: level,
-	})))
-}
-
 func main() {
-	initConfig()
-	initLog()
+	ms.InitWithEnv(context.Background(), "APP", &cfg)
+	defer tel.FlushOnPanic()
 	rdt.InitRawDataConnection(cfg.MONGO_URI)
 
 	s := NewServer(context.Background())

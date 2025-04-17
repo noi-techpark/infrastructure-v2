@@ -1,0 +1,120 @@
+fullnameOverride: "prometheus"
+cleanPrometheusOperatorObjectNames: true
+
+prometheus:
+  prometheusSpec:
+    podAntiAffinity: "hard"
+    # We could not deploy 2 replicas without a Thanos we combining prometheus with grafana-metrics-generator.
+    # This because metrics-generator pushes to prometheus using remote_writer, but it selects one replica randomly,
+    # grafana then connects to a random replica which might not have the metrics.
+    # To have full HA we need Thanos acting as load balancer for grafana queries and as remote-receiver (excluding completely prometheus from remote-write)
+    # replicas: 2
+    replicas: 1
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: "gp3"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+    retention: 15d
+    retentionSize: 40GiB
+    enableAdminAPI: true
+    enableRemoteWriteReceiver: true
+
+    serviceMonitorSelector: {}
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+
+  ingress:
+    enabled: true
+
+    annotations:
+      cert-manager.io/issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/auth-type: basic
+      nginx.ingress.kubernetes.io/auth-secret: prometheus-basic-auth  # Name of the secret containing .htpasswd
+      nginx.ingress.kubernetes.io/auth-realm: "Protected Area"  # Custom realm for basic auth
+
+    ingressClassName: nginx-private
+    tls:
+      - hosts:
+          - prometheus.dev.testingmachine.eu
+        secretName: tls-prometheus
+    hosts:
+      - prometheus.dev.testingmachine.eu
+    paths: 
+      - "/"
+
+    # thanos:
+    #   baseImage: "thanosio/thanos"
+    #   version: "v0.24.0"
+    #   objectStorageConfig:
+    #     key: "s3-config"
+
+  # thanosService:
+  #   enabled: true # this will enable a service for service discovery
+  #   annotations: {}
+  #   labels: {}
+  #   externalTrafficPolicy: Cluster
+  #   type: ClusterIP
+  #   portName: grpc
+  #   port: 10901
+  #   targetPort: "grpc"
+  #   httpPortName: http
+  #   httpPort: 10902
+  #   targetHttpPort: "http"
+  #   clusterIP: ""
+  #   nodePort: 30901
+  #   httpNodePort: 30902
+
+alertmanager:
+  alertmanagerSpec:
+    replicas: 1
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: "gp3"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 15Gi
+
+kubeProxy:
+  enabled: true
+
+kubeScheduler:
+  enabled: true
+
+kubeEtcd:
+  enabled: true
+
+coreDns:
+  enabled: true
+
+kubeDns:
+  enabled: false
+
+kubeControllerManager:
+  enabled: true
+
+kubelet:
+  enabled: true
+
+kubeApiServer:
+  enabled: true
+
+grafana:
+  enabled: false
+
+prometheusOperator:
+  enabled: true
+
+kube-state-metrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheus-node-exporter:
+  enabled: true

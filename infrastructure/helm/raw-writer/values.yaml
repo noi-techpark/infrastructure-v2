@@ -9,20 +9,31 @@ env:
       secretKeyRef: 
         name: rabbitmq-svcbind
         key: uri
-  - name: APP_MQ_EXCHANGE
+  - name: APP_MQ_INGRESS_EXCHANGE
     value: ingress
-  - name: APP_MQ_QUEUE
-    value: ingress
+  - name: APP_MQ_INGRESS_QUEUE
+    value: ingress 
+  - name: APP_MQ_INGRESS_DL_QUEUE
+    value: ingress-dl
   - name: APP_MQ_READY_EXCHANGE
     value: ready
+  - name: APP_MQ_READY_QUEUE
+    value: ready
+  - name: APP_MQ_READY_DL_QUEUE
+    value: ready-dl
+  - name: APP_MQ_CLIENT_NAME
+    value: raw-writer
   - name: APP_MONGO_URI
     valueFrom:
       secretKeyRef: 
         name: mongodb-writer-svcbind
         key: uri
-  - name: APP_LOGLEVEL
+  - name: APP_LOG_LEVEL
     value: INFO
-
+  - name: SERVICE_NAME
+    value: raw-writer
+  - name: TELEMETRY_TRACE_GRPC_ENDPOINT
+    value: tempo-distributor-discovery.monitoring.svc.cluster.local:4317
 # resources:
 #   limits:
 #     cpu: 250m   # 250m is equivalent to 0.25 CPU core

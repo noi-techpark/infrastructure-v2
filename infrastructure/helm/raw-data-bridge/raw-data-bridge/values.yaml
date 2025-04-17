@@ -30,3 +30,6 @@ resources: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+ingress:
+  enabled: false

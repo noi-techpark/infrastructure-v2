@@ -14,25 +14,34 @@ import (
 	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
-	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/noi-techpark/go-opendatahub-ingest/urn"
-	"github.com/rabbitmq/amqp091-go"
+	"github.com/noi-techpark/opendatahub-go-sdk/ingest/ms"
+	"github.com/noi-techpark/opendatahub-go-sdk/ingest/urn"
+	"github.com/noi-techpark/opendatahub-go-sdk/qmill"
+	"github.com/noi-techpark/opendatahub-go-sdk/tel"
+	"github.com/noi-techpark/opendatahub-go-sdk/tel/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var cfg struct {
-	MQ_URI            string
-	MQ_Exchange       string
-	MQ_QUEUE          string
-	MQ_READY_EXCHANGE string
-	LogLevel          string `default:"INFO"`
-	MONGO_URI         string
-	DB_PREFIX         string
+	MQ_URI              string
+	MQ_INGRESS_EXCHANGE string
+	MQ_INGRESS_QUEUE    string
+	MQ_INGRESS_DL_QUEUE string
+	MQ_READY_EXCHANGE   string
+	MQ_READY_QUEUE      string
+	MQ_READY_DL_QUEUE   string
+	MQ_CLIENT_NAME      string
+	MONGO_URI           string
+	DB_PREFIX           string
 }
 
 type mqErr struct {
@@ -52,81 +61,23 @@ func initConfig() {
 	}
 }
 
-func initLog() {
-	level := &slog.LevelVar{}
-	level.UnmarshalText([]byte(cfg.LogLevel))
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: level,
-	})))
-}
-
-func setupDeadletter() {
-	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameTopicName)
-
-	subscriber, err := amqp.NewSubscriber(
-		amqpConfig,
-		watermill.NewSlogLogger(slog.Default()),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	if err := subscriber.SubscribeInitialize(cfg.MQ_Exchange + "-dl"); err != nil {
-		panic(err)
-	}
-}
-
-func setupMQ() <-chan *message.Message {
-	setupDeadletter()
-
-	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameConstant(cfg.MQ_QUEUE))
-	amqpConfig.Queue.Arguments = amqp091.Table{"x-dead-letter-exchange": cfg.MQ_Exchange + "-dl"}
-	amqpConfig.Consume.NoRequeueOnNack = true
-
-	subscriber, err := amqp.NewSubscriber(
-		amqpConfig,
-		watermill.NewSlogLogger(slog.Default()),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	messages, err := subscriber.Subscribe(context.Background(), cfg.MQ_Exchange)
-	if err != nil {
-		panic(err)
-	}
-	return messages
-}
-
-func setupReadyPublisher() *amqp.Publisher {
-	// setup only open a connection with rabbitmq and tells publisher that
-	// exchange needs to be "direct". Exchange creation is delegated to message publish
-	amqpConfig := amqp.NewDurablePubSubConfig(cfg.MQ_URI, amqp.GenerateQueueNameConstant(""))
-	amqpConfig.Exchange.Durable = true
-	amqpConfig.Exchange.AutoDeleted = false
-	amqpConfig.Exchange.Type = "direct"
-
-	amqpConfig.Queue.Exclusive = false
-	amqpConfig.Queue.NoWait = false
-
-	publisher, err := amqp.NewPublisher(
-		amqpConfig,
-		watermill.NewSlogLogger(slog.Default()),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	return publisher
-}
-
 func handleMq(messages <-chan *message.Message) {
 	for msg := range messages {
 		go func() {
+			ctx := msg.Context()
+			span := trace.SpanFromContext(ctx)
+			defer span.End()
+			log := logger.Get(ctx)
+
 			err := handleMqMsg(msg)
 
 			if err != nil {
-				slog.Error(err.err, err.ctx...)
+				log.Error(err.err, err.ctx...)
+				if span != nil && span.IsRecording() {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
+				}
+
 				msg.Nack()
 			} else {
 				msg.Ack()
@@ -136,12 +87,15 @@ func handleMq(messages <-chan *message.Message) {
 }
 
 func handleMqMsg(msg *message.Message) *mqErr {
-	slog.Debug("received message", "id", msg.UUID, "payload", string(msg.Payload))
+	ctx := msg.Context()
+	log := logger.Get(ctx)
+
+	log.Debug("received message", "id", msg.UUID, "payload", string(msg.Payload))
 	var body map[string]any
 	if err := json.Unmarshal(msg.Payload, &body); err != nil {
 		return NewMqErr("cannot unmarshal json", "payload", string(msg.Payload))
 	}
-	slog.Debug("unmarshalled json", "json", body)
+	log.Debug("unmarshalled json", "json", body)
 
 	// parse timestamp field, put into bsontimestamp
 	timestamp, err := parseTimestamp(&body)
@@ -169,7 +123,7 @@ func handleMqMsg(msg *message.Message) *mqErr {
 	atom := NewAtom(
 		NewQuark(
 			func() (interface{}, error) {
-				inserted_id, err = mongoWrite(db, coll, body, mongoClient)
+				inserted_id, err = mongoWrite(ctx, db, coll, body, mongoClient)
 				return inserted_id, err
 			},
 			func(toRollback interface{}) {
@@ -189,14 +143,13 @@ func handleMqMsg(msg *message.Message) *mqErr {
 				if err != nil {
 					return nil, err
 				}
-				msg := message.NewMessage(watermill.NewUUID(), messagePayload)
-				return nil, readyPublisher.Publish(cfg.MQ_READY_EXCHANGE, msg)
+				return nil, readyPublisher.Publish(ctx, messagePayload, "")
 			}, nil),
 	)
 
 	err = atom.Run()
 	if err != nil {
-		return NewMqErr(err.Error(), err)
+		return NewMqErr(err.Error(), "json", body)
 	}
 
 	return nil
@@ -259,11 +212,26 @@ func mongoConnect() (*mongo.Client, error) {
 	return client, nil
 }
 
-func mongoWrite(db string, coll string, obj map[string]any, client *mongo.Client) (primitive.ObjectID, error) {
+func mongoWrite(ctx context.Context, db string, coll string, obj map[string]any, client *mongo.Client) (primitive.ObjectID, error) {
+	// Start a new client span for the MongoDB FindOne operation.
+	tracer := otel.Tracer(tel.GetServiceName())
+	_, span := tracer.Start(ctx, "write-raw", trace.WithSpanKind(trace.SpanKindClient))
+	defer span.End()
+
+	// Set attributes for the MongoDB operation.
+	span.SetAttributes(
+		attribute.String("db.system", "mongodb"),
+		attribute.String("db.name", "mongo-raw-data-table"),
+		attribute.String("db.operation", "InsertOne"),
+		attribute.String("db.mongodb.db", db),
+		attribute.String("db.mongodb.collection", coll),
+		attribute.String("peer.host", "mongo-raw-data-table"),
+	)
+
 	collection := client.Database(cfg.DB_PREFIX + db).Collection(coll)
 	result, err := collection.InsertOne(context.TODO(), obj)
 	if err != nil {
-		return primitive.ObjectID{}, NewMqErr("error inserting msg to mongo", err)
+		return primitive.ObjectID{}, NewMqErr("error inserting msg to mongo", "err", err)
 	}
 	return result.InsertedID.(primitive.ObjectID), nil
 }
@@ -272,21 +240,45 @@ func mongoDelete(db string, coll string, id primitive.ObjectID, client *mongo.Cl
 	collection := client.Database(cfg.DB_PREFIX + db).Collection(coll)
 	_, err := collection.DeleteOne(context.TODO(), bson.M{"_id": id})
 	if err != nil {
-		return NewMqErr("error deleting msg from mongo", err)
+		return NewMqErr("error deleting msg from mongo", "err", err)
 	}
 	return nil
 }
 
 var mongoClient *mongo.Client
-var readyPublisher *amqp.Publisher
+var readyPublisher *qmill.QMill
 
 func main() {
-	initConfig()
-	initLog()
+	ms.InitWithEnv(context.Background(), "APP", &cfg)
+	defer tel.FlushOnPanic()
+
 	mongoClient = initMongo()
-	readyPublisher = setupReadyPublisher()
 
-	messages := setupMQ()
+	subMill, err := qmill.NewSubscriberQmill(context.Background(), cfg.MQ_URI, cfg.MQ_CLIENT_NAME,
+		qmill.WithExchange(cfg.MQ_INGRESS_EXCHANGE, "fanout", true),
+		qmill.WithQueue(cfg.MQ_INGRESS_QUEUE, true),
+		qmill.WithBind(cfg.MQ_INGRESS_QUEUE, ""),
+		qmill.WithDeadLetter(cfg.MQ_INGRESS_DL_QUEUE, "fanout"),
+		qmill.WithNoRequeueOnNack(true),
+		qmill.WithLogger(watermill.NewSlogLogger(slog.Default())),
+	)
+	if err != nil {
+		slog.Error("failed to initialize subscriber channel", "err", err)
+		os.Exit(1)
+	}
 
-	handleMq(messages)
+	readyPublisher, err = qmill.NewPublisherQmill(context.Background(), cfg.MQ_URI, cfg.MQ_CLIENT_NAME,
+		qmill.WithExchange(cfg.MQ_READY_EXCHANGE, "direct", true),
+		qmill.WithQueue(cfg.MQ_READY_QUEUE, true),
+		qmill.WithBind(cfg.MQ_READY_EXCHANGE, ""),
+		qmill.WithDeadLetter(cfg.MQ_READY_DL_QUEUE, "fanout"),
+		qmill.WithNoRequeueOnNack(true),
+		qmill.WithLogger(watermill.NewSlogLogger(slog.Default())),
+	)
+	if err != nil {
+		slog.Error("failed to initialize publisher channel", "err", err)
+		os.Exit(1)
+	}
+
+	handleMq(subMill.Sub())
 }

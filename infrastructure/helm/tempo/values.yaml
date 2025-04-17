@@ -1,0 +1,87 @@
+# values.yaml for Tempo Distributed Helm Deployment
+
+# tempo:
+
+# server:
+#   logLevel: debug
+
+traces:
+  otlp:
+    grpc:
+      enabled: true
+
+# Metrics generator config for remote write to Prometheus
+metricsGenerator:
+  enabled: true
+# Remote write URL for sending metrics to Prometheus
+  config:
+    storage:
+      remote_write:
+        - url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+
+# Persistent storage configuration for ingester using gp3
+ingester:
+  persistence:
+    enabled: true
+    storageClass: "gp3"
+    size: 50Gi  # Adjust size as required
+
+  persistentVolumeClaimRetentionPolicy:
+    # -- Enable Persistent volume retention policy for StatefulSet
+    enabled: true
+    # -- Volume retention behavior when the replica count of the StatefulSet is reduced
+    whenScaled: Retain
+    # -- Volume retention behavior that applies when the StatefulSet is deleted
+    whenDeleted: Retain
+    
+# Configuration for the compactor
+compactor:
+  config:
+    compaction:
+      # -- Duration to keep blocks
+      block_retention: "720h"  # 30 days retention (30 days * 24 hours = 720h)
+
+# Configuration for the gateway
+gateway:
+  # -- Specifies whether the gateway should be enabled
+  enabled: true
+
+  # Basic auth configuration
+  basicAuth:
+    # -- Enables basic authentication for the gateway
+    enabled: true
+    existingSecret: tempo-gateway-basic-auth
+
+  # Ingress configuration to allow external Grafana access
+  ingress:
+    enabled: true
+    annotations:
+      cert-manager.io/issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/enable-cors: "true"  # Enable CORS
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"  # Allow requests from Grafana's domain
+      nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS"  # Allow the necessary HTTP methods
+      nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization"  # Allow necessary headers
+    ingressClassName: nginx-private
+    tls:
+      - hosts:
+          - tempo.dev.testingmachine.eu
+        secretName: tls-tempo
+    hosts:
+      - host: tempo.dev.testingmachine.eu
+        paths:
+          - path: /
+            pathType: Prefix
+
+# Prometheus ServiceMonitor configuration
+metaMonitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+
+# need to enable metrics generation using overrides
+overrides:
+  defaults:
+    metrics_generator:
+      processors:
+        - service-graphs
+        - span-metrics
