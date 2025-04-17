@@ -154,6 +154,24 @@ helm upgrade mongodb bitnami/mongodb \
   done
 ```
 ```sh
+# Create servicebind secrets for the default users
+  for MONGO_USER in prometheus
+  do
+    MONGO_PW=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 12`;
+    KSECRET_NAME=mongodb-${MONGO_USER}-svcbind
+    kubectl create secret generic $KSECRET_NAME \
+      --namespace monitoring \
+      --type='servicebinding.io/mongodb' \
+      --from-literal=type='mongodb' \
+      --from-literal=provider='bitnami' \
+      --from-literal=host='mongodb-headless.core.svc.cluster.local' \
+      --from-literal=port='27017' \
+      --from-literal=username="${MONGO_USER}"\
+      --from-literal=password="$MONGO_PW" \
+      --from-literal=uri="mongodb+srv://${MONGO_USER}:${MONGO_PW}@mongodb-headless.core.svc.cluster.local/?tls=false&ssl=false"
+  done
+```
+```sh
 # Run a mongodb client container. Then within the container execute the create user script.
 # Credentials for the single users are extracted via kubectl from the corresponding secrets (see secrets.md for how to create them)
 export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace core mongodb -o jsonpath='{.data.mongodb-root-password}' | base64 -d)
@@ -180,6 +198,13 @@ mongosh 'mongodb+srv://mongodb-headless.core.svc.cluster.local/admin?tls=false' 
 	    roles: [ { role: 'readAnyDatabase', db: 'admin' } ]
 	  }
 	);
+  db.createUser(
+	  {
+	    user: '`kubectl get secret --namespace monitoring mongodb-prometheus-svcbind -o jsonpath='{.data.username}' | base64 -d`',
+	    pwd: '`kubectl get secret --namespace monitoring mongodb-prometheus-svcbind -o jsonpath='{.data.password}' | base64 -d`',
+	    roles: [ { role:'clusterMonitor', db:'admin' }, { role:'read', db:'local' } ]
+	  }
+	);
 "
 ```
 
@@ -187,6 +212,54 @@ mongosh 'mongodb+srv://mongodb-headless.core.svc.cluster.local/admin?tls=false' 
 
 ```sh
 helm repo add bitnami https://charts.bitnami.com/bitnami
+```
+
+### Grafana tempo gateway secret
+1. Install `htpasswd`
+
+```sh
+PASSWORD=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24`;
+
+# Generate the htpasswd string
+HTPASSWD=$(htpasswd -nb operator "$PASSWORD")
+
+# Create the Kubernetes secret with the generated values
+kubectl create secret generic tempo-gateway-basic-auth -n monitoring \
+  --from-literal=.htpasswd="$HTPASSWD" \
+  --from-literal=.username="operator" \
+  --from-literal=.password="$PASSWORD"
+```
+
+### Prometheus secret
+1. Install `htpasswd`
+
+```sh
+PASSWORD=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24`;
+
+# Generate the htpasswd string
+HTPASSWD=$(htpasswd -nb operator "$PASSWORD")
+
+# Create the Kubernetes secret with the generated values
+kubectl create secret generic prometheus-basic-auth -n monitoring \
+  --from-literal=auth="$HTPASSWD" \
+  --from-literal=.username="operator" \
+  --from-literal=.password="$PASSWORD"
+```
+
+### Raw Data Bridge secret
+1. Install `htpasswd`
+
+```sh
+PASSWORD=`head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24`;
+
+# Generate the htpasswd string
+HTPASSWD=$(htpasswd -nb operator "$PASSWORD")
+
+# Create the Kubernetes secret with the generated values
+kubectl create secret generic raw-data-bridge-basic-auth -n core \
+  --from-literal=auth="$HTPASSWD" \
+  --from-literal=.username="operator" \
+  --from-literal=.password="$PASSWORD"
 ```
 
 #### Initial setup
@@ -307,7 +380,7 @@ helm install \
   
 # Create the letsencrypt issuers. 
 # TODO: create a route53 issuer so we can use dns instead of http challenges
-for NAMESPACE in core collector
+for NAMESPACE in core collector monitoring
 do
   kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-staging-clusterissuer.yaml
   kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml

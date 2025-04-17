@@ -22,7 +22,10 @@ locals {
     "analytics.beta",
     "neogy.ocpi.io",
     "driwe.ocpi.io",
-    "google.spreadsheets.io"
+    "google.spreadsheets.io",
+    "prometheus",
+    "tempo",
+    "raw"
   ]
   service_domains_prod = [
     "push.api",

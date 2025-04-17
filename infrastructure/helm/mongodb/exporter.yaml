@@ -1,0 +1,65 @@
+extraArgs:
+  - --collect-all
+  - --compatible-mode
+  - --discovering-mode
+  - --mongodb.direct-connect=false
+  # - --log.level=debug
+
+image:
+  pullPolicy: IfNotPresent
+  repository: percona/mongodb_exporter
+  tag: ""
+
+imagePullSecrets: []
+
+fullnameOverride: "mongodb-prometheus-exporter"
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: metrics
+  initialDelaySeconds: 10
+
+# Name of an externally managed secret (in the same namespace) containing the connection uri as key `mongodb-uri`.
+# If this is provided, the value mongodb.uri is ignored.
+# If the multi-target mode is enabled, this value will be ignored.
+existingSecret:
+  name: mongodb-prometheus-svcbind
+  key: uri
+
+nameOverride: ""
+
+port: "9216"
+
+replicas: 1
+
+# resources:
+#   limits:
+#     cpu: 250m
+#     memory: 192Mi
+#   requests:
+#     cpu: 100m
+#     memory: 128Mi
+
+service:
+  labels: {}
+  annotations: {}
+  port: 9216
+  type: ClusterIP
+  portName: metrics
+
+serviceAccount:
+  create: true
+
+serviceMonitor:
+  enabled: true
+
+  interval: 90s
+  scrapeTimeout: 30s
+
+  metricRelabelings:
+  - targetLabel: instance
+    replacement: raw-data-table
+    action: replace
+  - regex: pod
+    action: labeldrop
