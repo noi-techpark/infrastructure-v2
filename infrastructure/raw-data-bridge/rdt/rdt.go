@@ -8,11 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/noi-techpark/go-opendatahub-ingest/urn"
+	"github.com/noi-techpark/opendatahub-go-sdk/ingest/urn"
+	"github.com/noi-techpark/opendatahub-go-sdk/tel"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
@@ -67,8 +72,26 @@ func GetDocument(ctx context.Context, urn *urn.URN) (*Document, error) {
 	if err != nil {
 		return nil, ErrBadURN
 	}
+
+	// Start a new client span for the MongoDB FindOne operation.
+	tracer := otel.Tracer(tel.GetServiceName())
+	ctx, span := tracer.Start(ctx, "find-raw", trace.WithSpanKind(trace.SpanKindClient))
+	defer span.End()
+
+	// Set attributes for the MongoDB operation.
+	span.SetAttributes(
+		attribute.String("db.name", "mongo-raw-data-table"),
+		attribute.String("db.operation", "InsertOne"),
+		attribute.String("db.mongodb.db", db),
+		attribute.String("db.mongodb.collection", coll),
+		attribute.String("peer.host", "mongo-raw-data-table"),
+	)
+
 	r := &Document{}
 	if err := mongoClient.Database(db).Collection(coll).FindOne(ctx, bson.M{"_id": id}).Decode(r); err != nil {
+		// Record the error on the span.
+		span.RecordError(err)
+		span.SetStatus(codes.Error, fmt.Sprintf("findOne error: %s", err.Error()))
 		if err == mongo.ErrNoDocuments {
 			return nil, ErrDocumentNotFound
 		}

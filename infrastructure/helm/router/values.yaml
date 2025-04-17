@@ -9,16 +9,22 @@ env:
       secretKeyRef: 
         name: rabbitmq-svcbind
         key: uri
-  - name: APP_MQ_READY_EXCHANGE
-    value: ready
   - name: APP_MQ_READY_QUEUE
     value: ready
   - name: APP_MQ_ROUTED_EXCHANGE
     value: routed
+  - name: APP_MQ_UNROUTABLE_EXCHANGE
+    value: routed-dl
   - name: APP_MQ_ROUTED_QUEUE
     value: routed
-  - name: APP_LOGLEVEL
+  - name: APP_MQ_CLIENT_NAME
+    value: router
+  - name: APP_LOG_LEVEL
     value: INFO
+  - name: SERVICE_NAME
+    value: router
+  - name: TELEMETRY_TRACE_GRPC_ENDPOINT
+    value: tempo-distributor-discovery.monitoring.svc.cluster.local:4317
 
 # resources:
 #   limits:
