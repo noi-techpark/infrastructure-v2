@@ -81,7 +81,7 @@ func GetDocument(ctx context.Context, urn *urn.URN) (*Document, error) {
 	// Set attributes for the MongoDB operation.
 	span.SetAttributes(
 		attribute.String("db.name", "mongo-raw-data-table"),
-		attribute.String("db.operation", "InsertOne"),
+		attribute.String("db.operation", "FindOne"),
 		attribute.String("db.mongodb.db", db),
 		attribute.String("db.mongodb.collection", coll),
 		attribute.String("peer.host", "mongo-raw-data-table"),
