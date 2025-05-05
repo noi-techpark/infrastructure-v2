@@ -18,6 +18,13 @@ metricsGenerator:
     storage:
       remote_write:
         - url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
+    processor:
+      span_metrics:
+        histogram_buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.02, 2.05, 4.10, 8.2, 16.4, 32.8]
+      service_graphs:
+        histogram_buckets: [0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8, 25.6, 51.2]
+        wait: 30s
+    metrics_ingestion_time_range_slack: 1m
 
 # Persistent storage configuration for ingester using gp3
 ingester:
@@ -33,13 +40,19 @@ ingester:
     whenScaled: Retain
     # -- Volume retention behavior that applies when the StatefulSet is deleted
     whenDeleted: Retain
-    
+  
+  config:
+    trace_idle_period: 20s           # When a trace stops receiving spans, it's flushed to WAL
+    max_block_duration: 30m          # Max duration before WAL block is closed
+    complete_block_timeout: 15m      # How long to wait before flushing WAL to object storage
+    flush_all_on_shutdown: true
+
 # Configuration for the compactor
 compactor:
   config:
     compaction:
-      # -- Duration to keep blocks
-      block_retention: "720h"  # 30 days retention (30 days * 24 hours = 720h)
+      block_retention: "720h"        # Keep raw blocks for 30 days
+      compacted_block_retention: "168h"  # Keep compacted blocks for 1 week
 
 # Configuration for the gateway
 gateway:
