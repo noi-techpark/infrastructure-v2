@@ -23,6 +23,8 @@ create the namespaces the helm charts are deployed to:
 kubectl create namespace core
 # data collectors and transformers
 kubectl create namespace collector
+# observability stack
+kubectl create namespace monitoring
 ```
 ## Packages
 
