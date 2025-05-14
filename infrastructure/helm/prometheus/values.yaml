@@ -69,16 +69,17 @@ prometheus:
   #   httpNodePort: 30902
 
 alertmanager:
-  alertmanagerSpec:
-    replicas: 1
-    storage:
-      volumeClaimTemplate:
-        spec:
-          storageClassName: "gp3"
-          accessModes: ["ReadWriteOnce"]
-          resources:
-            requests:
-              storage: 15Gi
+  enabled: false
+  # alertmanagerSpec:
+  #   replicas: 1
+  #   storage:
+  #     volumeClaimTemplate:
+  #       spec:
+  #         storageClassName: "gp3"
+  #         accessModes: ["ReadWriteOnce"]
+  #         resources:
+  #           requests:
+  #             storage: 15Gi
 
 kubeProxy:
   enabled: true
