@@ -1,7 +1,7 @@
 # Start Local Cluster
 
 1. Install [Kind](https://kind.sigs.k8s.io/) (Kubernetes in Docker)
-2. Start cluster 
+2. Start cluster
 ```
 kind create cluster --name open-data-hub --config local-cluster.yaml
 ```
@@ -12,6 +12,12 @@ By default the cluster will restart every time you reboot the PC. If you want to
 for container in $(docker ps --filter "name=open-data-hub-" --format "{{.Names}}"); do
   docker update --restart=no "$container"
 done
+```
+
+## Restart the cluster after a reboot
+
+```
+docker ps --all | grep open-data-hub- | awk '{print $1}' | xargs docker restart
 ```
 
 # Deploy Prometheus
@@ -35,10 +41,8 @@ helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
   -n monitoring --create-namespace
 ```
 
-**TODO Need to secure prometheus public endpoint with some sort of authentication using NGINX or whatever reverse proxy we are using.**
-
 ## Thanos
-Thanos is an extra layer between metrics consumer (like grafana) and prometheus.  
+Thanos is an extra layer between metrics consumer (like grafana) and prometheus.
 Thanos is useful to handle multiple instances of prometheus for High Availability and for long time storage. It requires sidecar and the whole Thanos stack to be deployed.
 
 Installation reference [here](https://medium.com/@dast04/full-installation-monitoring-with-prometheus-thanos-part-2-2-fe98fcdbe448).
@@ -80,7 +84,7 @@ Service and pod monitor resources tells prometheus what to scrape how to scrape
 ### Rabbimq
 ** NOT NEEDED ANYMORE, SERVICEMONITOR ALREADY IN RABBIT'S VALUES.YAML **
 
-Deploy RabbitMQ ServiceMonitor 
+Deploy RabbitMQ ServiceMonitor
 
 ```
 kubectl apply --filename infrastructure/helm/rabbitmq/service-monitor.yaml -n monitoring
@@ -112,14 +116,14 @@ MongoDB exporter has a field in the values to control the instance name
 
 # Deploy Tempo
 
-We will use `tempo-distributed`.  
+We will use `tempo-distributed`.
 
-1. 
+1.
 ```
 helm repo add grafana https://grafana.github.io/helm-charts
 ```
 
-2. 
+2.
 ```
 helm upgrade --install tempo grafana/tempo-distributed -f infrastructure/helm/tempo/values.yaml -n monitoring
 ```

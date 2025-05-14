@@ -20,10 +20,14 @@ metricsGenerator:
         - url: http://prometheus-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
     processor:
       span_metrics:
-        histogram_buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.02, 2.05, 4.10, 8.2, 16.4, 32.8]
+        histogram_buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 
+          1.02, 2.05, 4.10, 8.2, 16.4, 32.8, 60, 120, 300, 600, 1200, 1800, 3600]
       service_graphs:
-        histogram_buckets: [0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8, 25.6, 51.2]
-        wait: 30s
+        histogram_buckets: [0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8, 25.6, 51.2, 
+          120, 300, 600, 1200, 1800, 3600]
+        # Wait up to N seconds for potential downstream spans before finalizing the service graph edge.
+        wait: 1m
+    # how long after the fact a span for a trace might arrive late and still be included in metrics. (late arrival causes like network)
     metrics_ingestion_time_range_slack: 1m
 
 # Persistent storage configuration for ingester using gp3
