@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"github.com/noi-techpark/go-opendatahub-ingest/urn"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,6 +27,7 @@ type M struct {
 	Id         string `json:"id"`
 	Db         string `json:"db"`
 	Collection string `json:"collection"`
+	Urn        string `json:"urn"`
 }
 
 type D struct {
@@ -80,12 +83,21 @@ func main() {
 		failOnError(err, "Cursor fail")
 
 		for cur.Next(context.TODO()) {
+			u, ok := urn.RawUrnFromProviderURI(fmt.Sprintf("%s/%s", col.Database().Name(), col.Name()))
+			if !ok {
+				log.Print("failed to construct raw urn")
+				log.Panic("failed to construct raw urn")
+			}
+
 			var res D
 			failOnError(cur.Decode(&res), "Decode fail")
+			u.AddNSS(res.Id.Hex())
+
 			msgs <- M{
 				Id:         res.Id.Hex(),
 				Db:         col.Database().Name(),
 				Collection: col.Name(),
+				Urn:        u.String(),
 			}
 		}
 		close(msgs)
