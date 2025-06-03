@@ -30,3 +30,23 @@ data "aws_iam_policy_document" "eks_update_kubeconfig" {
     ]
   }
 }
+
+####### S3 full access user
+resource "aws_iam_user" "s3_full_access_user" {
+  name = "github-s3-full-access"
+}
+
+resource "aws_iam_user_policy" "s3_full_access_policy" {
+  name   = "s3-full-access-policy"
+  user   = aws_iam_user.s3_full_access_user.name
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action   = "s3:*",
+        Effect   = "Allow",
+        Resource = "*"
+      }
+    ]
+  })
+}

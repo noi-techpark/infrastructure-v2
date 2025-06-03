@@ -20,3 +20,8 @@ output "eks-ingress-private-name" {
   value = [aws_eip.eks-ingress-private.allocation_id]
   description = "Static EIB IP address for eks ingress (private services)."
 }
+
+output "opendatahub_web_docs_test_s3" {
+  value = module.opendatahub_web_docs_test_s3.website_endpoint
+  description = "Static S3 Public IP address for test-docs s3."
+}
