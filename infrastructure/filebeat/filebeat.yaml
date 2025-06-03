@@ -126,6 +126,13 @@ data:
             target: "json"
             overwrite_keys: true
 
+        # Drop all labels
+        - drop_fields:
+            fields:
+              - kubernetes.node.labels
+              - kubernetes.namespace.labels
+              - kubernetes.pod.labels
+
     # To enable hints based autodiscover, remove `filebeat.inputs` configuration and uncomment this:
     #filebeat.autodiscover:
     #  providers:
@@ -137,9 +144,10 @@ data:
     #        paths:
     #          - /var/log/containers/*${data.kubernetes.container.id}.log
 
-    processors:
-      - add_cloud_metadata:
-      - add_host_metadata:
+    ## We only have 1 cluster therefore we do not need cloud or host metadata
+    # processors:
+    #   - add_cloud_metadata:
+    #   - add_host_metadata:
 
     cloud.id: ${ELASTIC_CLOUD_ID}
     cloud.auth: ${ELASTIC_CLOUD_AUTH}
