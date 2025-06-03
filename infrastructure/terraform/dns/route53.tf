@@ -25,7 +25,8 @@ locals {
     "google.spreadsheets.io",
     "prometheus",
     "tempo",
-    "raw"
+    "raw",
+    "docs",
   ]
   service_domains_prod = [
     "push.api",
