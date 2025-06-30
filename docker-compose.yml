@@ -2,9 +2,6 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 # 
-include:
-  - docker-compose.yml
-
 services:
   rabbitmq:
     image: rabbitmq:management-alpine
@@ -57,10 +54,15 @@ services:
     image: ghcr.io/noi-techpark/infrastructure-v2/raw-writer:latest
     pull_policy: always
     environment:
-      APP_MQ_URI: amqp://guest:guest@rabbitmq:5672
-      APP_MQ_EXCHANGE: ingress
-      APP_MQ_QUEUE: ingress
-      APP_MQ_READY_EXCHANGE: ready
+      
+      APP_MQ_URI:  amqp://guest:guest@rabbitmq:5672            
+      APP_MQ_INGRESS_EXCHANGE: ingress
+      APP_MQ_INGRESS_QUEUE: ingress
+      APP_MQ_INGRESS_DL_QUEUE: ingress-dl 
+      APP_MQ_READY_EXCHANGE: ready   
+      APP_MQ_READY_QUEUE: ready      
+      APP_MQ_READY_DL_QUEUE: ready-dl   
+      APP_MQ_CLIENT_NAME: writer      
       APP_MONGO_URI: mongodb://mongodb/?replicaSet=rs0&directConnection=true
       APP_LOGLEVEL: INFO
     depends_on:
