@@ -21,6 +21,11 @@ output "eks-ingress-private-name" {
   description = "Static EIB IP address for eks ingress (private services)."
 }
 
+output "eks-ingress-cert-manager-role" {
+  value = [aws_iam_role.cert_manager.arn]
+  description = "Role to assign to cert-manager for DNS challenges."
+}
+
 output "opendatahub_web_docs_test_s3" {
   value = module.opendatahub_web_docs_test_s3.website_endpoint
   description = "Static S3 Public IP address for test-docs s3."

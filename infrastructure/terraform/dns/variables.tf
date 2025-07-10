@@ -23,3 +23,8 @@ variable "ENVIRONMENT" {
   type    = string
   default = "dev"
 }
+
+variable "cluster_name" {
+  type    = string
+  default = "aws-main-eu-01"
+}
