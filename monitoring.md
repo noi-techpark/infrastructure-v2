@@ -32,6 +32,16 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm upgrade --install prometheus prometheus-community/kube-prometheus-stack -f infrastructure/helm/prometheus/values.yaml -n monitoring --create-namespace
 ```
 
+2.1 PROD
+
+```
+helm upgrade --install \
+prometheus prometheus-community/kube-prometheus-stack \
+-f infrastructure/helm/prometheus/values.yaml \
+-f infrastructure/helm/prometheus/values.prod.yaml \
+-n monitoring --create-namespace
+```
+
 2. When deploying in **KIND**
 ```
 helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
@@ -126,6 +136,14 @@ helm repo add grafana https://grafana.github.io/helm-charts
 2.
 ```
 helm upgrade --install tempo grafana/tempo-distributed -f infrastructure/helm/tempo/values.yaml -n monitoring
+```
+
+2.1 PROD
+```
+helm upgrade --install tempo grafana/tempo-distributed \
+-f infrastructure/helm/tempo/values.yaml \
+-f infrastructure/helm/tempo/values.prod.yaml \
+-n monitoring
 ```
 
 2. When deploying in **KIND**

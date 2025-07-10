@@ -78,7 +78,7 @@ gateway:
       nginx.ingress.kubernetes.io/cors-allow-origin: "*"  # Allow requests from Grafana's domain
       nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS"  # Allow the necessary HTTP methods
       nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization"  # Allow necessary headers
-    ingressClassName: nginx-private
+    ingressClassName: nginx
     tls:
       - hosts:
           - tempo.dev.testingmachine.eu

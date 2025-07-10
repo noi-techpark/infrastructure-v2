@@ -33,7 +33,7 @@ ingress:
  annotations:
    cert-manager.io/issuer: "letsencrypt-prod"
 
- ingressClassName: nginx-private
+ ingressClassName: nginx
  hostname: rabbitmq.dev.testingmachine.eu
  tls:
    - hosts:

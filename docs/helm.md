@@ -353,6 +353,15 @@ helm upgrade --install raw-writer ./infrastructure/helm/raw-writer/raw-writer \
 ```sh
 helm upgrade --install raw-data-bridge ./infrastructure/helm/raw-data-bridge/raw-data-bridge \
   --values infrastructure/helm/raw-data-bridge/values.yaml \
+  --values infrastructure/helm/raw-data-bridge/values.dev.yaml \
+  --namespace core
+```
+
+**PROD**
+```sh
+helm upgrade --install raw-data-bridge ./infrastructure/helm/raw-data-bridge/raw-data-bridge \
+  --values infrastructure/helm/raw-data-bridge/values.yaml \
+  --values infrastructure/helm/raw-data-bridge/values.prod.yaml \
   --namespace core
 ```
 

@@ -1,0 +1,22 @@
+ingress:
+  enabled: true
+
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+    ingress.pomerium.io/pass_identity_headers: 'true'
+    ingress.pomerium.io/policy: |
+      allow:
+        or:
+          - claim/odh-cluster-roles: "CLUSTER:ADMIN"
+          - claim/odh-cluster-roles: "CLUSTER:RAW:READ"
+
+  className: pomerium
+  tls:
+    - hosts:
+      - raw.internal.opendatahub.com
+      secretName: tls-raw-data-bridge
+  hosts:
+    - host: raw.internal.opendatahub.com
+      paths:
+        - path: "/"
+          pathType: Prefix

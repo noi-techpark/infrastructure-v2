@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+# Set up the ALB ingress for the RabbitMQ Management Console (UI).
+ingress:
+ enabled: false

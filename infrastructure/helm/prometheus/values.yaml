@@ -36,7 +36,7 @@ prometheus:
       nginx.ingress.kubernetes.io/auth-secret: prometheus-basic-auth  # Name of the secret containing .htpasswd
       nginx.ingress.kubernetes.io/auth-realm: "Protected Area"  # Custom realm for basic auth
 
-    ingressClassName: nginx-private
+    ingressClassName: nginx
     tls:
       - hosts:
           - prometheus.dev.testingmachine.eu
