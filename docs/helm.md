@@ -373,12 +373,15 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx  --namespace in
 
 ```sh
 helm repo add jetstack https://charts.jetstack.io
-helm install \
-  cert-manager jetstack/cert-manager \
+helm upgrade --install cert-manager jetstack/cert-manager \
   --namespace cert-manager \
   --create-namespace \
   --version v1.12.4 \
-  --set installCRDs=true
+  --set installCRDs=true \
+  --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=<ROLE CREATED WITH TERRAFORM>
+
+kubectl rollout restart deployment cert-manager -n cert-manager
+
   
 # Create the letsencrypt issuers. 
 # TODO: create a route53 issuer so we can use dns instead of http challenges
@@ -387,6 +390,10 @@ do
   kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-staging-clusterissuer.yaml
   kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml
 done
+
+# cluster dns issuers
+kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-dns-prod-clusterissuer.yaml
+kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-dns-staging-clusterissuer.yaml
 ```
 
 ### Secret reflector
