@@ -396,6 +396,69 @@ kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-dns-prod-clust
 kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-dns-staging-clusterissuer.yaml
 ```
 
+### Pomerium Ingress (protected endpoints)
+
+```
+helm repo add pomerium https://helm.pomerium.io
+helm repo update
+```
+
+Start pomerium proxy and wait for lb creation & certificate issue
+
+```
+export EIP_ALLOCATION=<PRIVATE IP ALLOCATED USING TERRAFORM HERE>
+export ISSUER=letsencrypt-dns-prod
+export AUTHENTICATE_URL=authenticate.internal.opendatahub.com
+export IDP_URL=https://auth.opendatahub.com/auth/realms/noi
+
+envsubst < infrastructure/helm/pomerium/service-patch.template.yaml > infrastructure/helm/pomerium/service-patch.yaml
+envsubst < infrastructure/helm/pomerium/certificate.template.yaml > infrastructure/helm/pomerium/certificate.yaml
+envsubst < infrastructure/helm/pomerium/pomerium.template.yaml > infrastructure/helm/pomerium/pomerium.yaml
+
+
+kubectl apply -k infrastructure/helm/pomerium
+kubectl apply -f infrastructure/helm/pomerium/pomerium.yaml
+
+kubectl -n pomerium patch secret idp-secret --type='merge' -p '{"stringData":{"client_id":"<CLIENT HERE>","client_secret":"<SECRET HERE>"}}'
+```
+
+TO DELETE
+```
+kubectl delete -k infrastructure/helm/pomerium
+```
+
+keycloak side we need to setup a claim mapper of type "user role mapper" which maps the roles to a "top level claim", like "roles".
+This because the default behaviour (putting roles in [client-id].roles) nested object is not supported by pomerium.
+
+
+roles:
+
+raw-data-bridge:read
+rabbitmq:read
+
+Configuration syntax
+```
+    annotations:
+      cert-manager.io/issuer: "letsencrypt-private-prod"
+      ingress.pomerium.io/pass_identity_headers: 'true'
+      # ingress.pomerium.io/allow_any_authenticated_user: 'true'
+      ingress.pomerium.io/policy: |
+        allow:
+          and:
+            # - claim/protected-area_roles: "[test, admin]"
+            - claim/roles_array: admin
+
+    ingressClassName: pomerium
+    tls:
+      - hosts:
+          - prometheus.dev.testingmachine.eu
+        secretName: tls-prometheus
+    hosts:
+      - prometheus.dev.testingmachine.eu
+    paths: 
+      - "/"
+```
+
 ### Secret reflector
 To make secrets visible across namespaces we use kubernetes-reflector
 

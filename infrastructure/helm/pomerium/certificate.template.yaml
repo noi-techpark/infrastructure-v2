@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pomerium-authenticate
+  namespace: pomerium
+spec:
+  secretName: pomerium-authenticate-cert
+  issuerRef:
+    name: "${ISSUER}"
+    kind: ClusterIssuer
+  dnsNames:
+    - "${AUTHENTICATE_URL}"
+  privateKey:
+    algorithm: RSA
+    size: 2048

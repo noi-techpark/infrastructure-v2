@@ -1,0 +1,10 @@
+resources:
+  - github.com/pomerium/ingress-controller/config/default?ref=v0.29.0
+  - certificate.yaml
+  - idp-secret.yaml
+
+patches:
+  - path: service-patch.yaml
+    target:
+      kind: Service
+      name: pomerium-proxy
