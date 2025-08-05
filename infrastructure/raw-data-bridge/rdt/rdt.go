@@ -2,11 +2,11 @@ package rdt
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	"github.com/noi-techpark/opendatahub-go-sdk/ingest/urn"
 	"github.com/noi-techpark/opendatahub-go-sdk/tel"
@@ -27,10 +27,15 @@ var (
 
 var mongoClient *mongo.Client
 
-type Document struct {
-	Provider  string        `json:"provider"`
-	Timestamp time.Time     `json:"timestamp"`
-	Rawdata   bson.RawValue `bson:"rawdata" json:"rawdata"`
+// NOTE: using a map does not preserve field order.
+type Document map[string]any
+
+func (r Document) MarshalJSON() ([]byte, error) {
+	type tmp Document
+	// remove fields added for raw data storage
+	delete(r, "_id")
+	delete(r, "bsontimestamp")
+	return json.Marshal(tmp(r))
 }
 
 func InitRawDataConnection(uri string) {
