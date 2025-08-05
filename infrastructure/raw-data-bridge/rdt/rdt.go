@@ -28,9 +28,9 @@ var (
 var mongoClient *mongo.Client
 
 type Document struct {
-	Provider  string    `json:"provider"`
-	Timestamp time.Time `json:"timestamp"`
-	Rawdata   string    `bson:"rawdata" json:"rawdata"`
+	Provider  string        `json:"provider"`
+	Timestamp time.Time     `json:"timestamp"`
+	Rawdata   bson.RawValue `bson:"rawdata" json:"rawdata"`
 }
 
 func InitRawDataConnection(uri string) {
@@ -57,7 +57,7 @@ func mongoConnect(uri string) (*mongo.Client, error) {
 	}
 	// Send a ping to confirm a successful connection
 	var result bson.M
-	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
+	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
 		return nil, err
 	}
 	return client, nil
