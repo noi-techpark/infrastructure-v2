@@ -1,3 +1,8 @@
+<!-- 
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+ -->
 # Start Local Cluster
 
 1. Install [Kind](https://kind.sigs.k8s.io/) (Kubernetes in Docker)

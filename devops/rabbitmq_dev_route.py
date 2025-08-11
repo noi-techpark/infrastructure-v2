@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 #!/usr/bin/env python3
 import argparse
 import sys

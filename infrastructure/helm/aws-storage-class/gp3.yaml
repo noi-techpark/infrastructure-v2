@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:

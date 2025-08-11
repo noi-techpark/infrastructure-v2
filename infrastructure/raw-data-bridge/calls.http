@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 @host=http://localhost:2000
 ###
 GET {{host}}/urns/urn:raw:lorawan:data:67a9db400696ac3cf49b07c0

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Velero
 
 Velero is an open-source backup and restore solution for Kubernetes clusters. It simplifies the process of protecting your applications and persistent volumes by capturing and managing cluster-wide snapshots. Velero enables you to perform regular backups and efficiently restore your applications to a previous state.

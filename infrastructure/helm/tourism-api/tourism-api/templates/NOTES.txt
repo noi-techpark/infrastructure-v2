@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+
 1. Get the application URL by running these commands:
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
