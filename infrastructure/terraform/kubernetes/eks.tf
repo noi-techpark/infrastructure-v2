@@ -51,6 +51,10 @@ module "eks" {
 
       # IAM roles.
       iam_role_use_name_prefix = false
+      
+      update_config = {
+        max_unavailable = 1
+      }
     }
   }
 
