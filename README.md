@@ -4,6 +4,8 @@ SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
 SPDX-License-Identifier: CC0-1.0
 -->
 
+[![REUSE Compliance](https://github.com/noi-techpark/infrastructure-v2/actions/workflows/reuse.yml/badge.svg)](https://github.com/noi-techpark/opendatahub-docs/wiki/REUSE#badges)
+
 # Open Data Hub Infrastructure
 
 > This repository contains the new infrastructure architecture as described in the document prepared by Animeshon and approved by the owners of the project.
