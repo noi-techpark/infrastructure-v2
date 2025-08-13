@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Using kubefwd to forward kubernetes service for local development
 
 [Kubefwd](https://github.com/txn2/kubefwd) is a tool to forwards kubernetes services and mirror the DNS records via host file.

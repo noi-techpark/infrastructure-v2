@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Replaying already elaborated raw data
 
 **__IMPORTANT:__** First, once again make sure you have your kubectl context pointing to the right environment (dev vs prod):

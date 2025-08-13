@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
-#
-# SPDX-License-Identifier: CC0-1.0
-
 #!/bin/bash
 IMAGE=ghcr.io/noi-techpark/infrastructure-v2/router
 TAGS='latest v1 v1.0'

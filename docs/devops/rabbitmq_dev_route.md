@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Remote RabbitMQ Queue Manager
 
 This documentation covers the `rabbitmq_dev_route.py` script located in the `devops` directory of the Open Data Hub project. The script is designed to manage RabbitMQ configurations, specifically adding or 

@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 ## Cluster Ingress, DNS and SSL
 Ingress is managed via a single central Network Load Balancer.
 All route53 DNS records are pointed at that NLB.

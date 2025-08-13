@@ -1,7 +1,3 @@
-// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
-//
-// SPDX-License-Identifier: CC0-1.0
-
 module opendatahub.com/infrav2/writerroute
 
 go 1.23.7
