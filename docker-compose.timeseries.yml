@@ -1,6 +1,6 @@
 services:
   bdp:
-    image: "ghcr.io/noi-techpark/bdp-core/bdp-core-app:latest"
+    image: "ghcr.io/noi-techpark/opendatahub-timeseries-writer/opendatahub-timeseries-writer-app:latest"
     restart: unless-stopped
     depends_on:
       - db
@@ -48,7 +48,7 @@ services:
     tty: true
         
   ninja:
-    image: "ghcr.io/noi-techpark/it.bz.opendatahub.api.mobility-ninja/it.bz.opendatahub.api.mobility-ninja-app:latest"
+    image: "ghcr.io/noi-techpark/opendatahub-timeseries-api/opendatahub-timeseries-api-app:latest"
     restart: unless-stopped
     depends_on: 
       - bdp
@@ -80,7 +80,7 @@ services:
     build: 
       context: .
       dockerfile_inline: |
-        FROM ghcr.io/noi-techpark/it.bz.opendatahub.analytics/it.bz.opendatahub.analytics:d21bcb682eb934e4d108548ae2d3ffa1de56d6ef
+        FROM ghcr.io/noi-techpark/opendatahub-timeseries-analytics/opendatahub-timeseries-analytics:cf04facd63c4a55a00f1d38ddc5cae248f397533
         RUN cat <<EOF > /usr/share/nginx/html/dotenv.js
         window.env = {
           SERVER_PORT: "8999",
