@@ -5,10 +5,11 @@ Simple tool to generate raw data notifier messages from a db query
 Needs `golang` installed on your system
 
 ## Configure
-Set your kubectl context to whatever environment you want to target  
-`kubectl port-forward` mongodb and rabbitmq, an example of which you can copy from `run.sh`  
-
-Modify `run.sh` to set the actual configuration.
+```bash
+# init .env file from example
+cp .env.example .env
+<editor of choice> .env
+```
 
 ## Run
-launch `./run.sh`
+launch `./run.sh <kubectl context>`
