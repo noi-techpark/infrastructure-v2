@@ -69,6 +69,7 @@ func main() {
 	msgs := make(chan M, batchSize*2)
 
 	go func() {
+		defer close(msgs)
 		cl, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(Config.Mongo))
 		failOnError(err, "Mongo fail")
 
@@ -104,7 +105,8 @@ func main() {
 				Urn:        u.String(),
 			}
 		}
-		close(msgs)
+
+		failOnError(cur.Err(), "db cursor closed unexpectedly. Some records might not have been pushed")
 	}()
 
 	con, err := amqp.Dial(Config.Rabbit)
