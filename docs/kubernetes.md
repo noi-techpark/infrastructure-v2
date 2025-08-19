@@ -16,12 +16,6 @@ In order to be able to managed Kubernetes orchestration, it is necessary to sati
 - Authenticate to AWS EKS via `aws eks --region eu-west-1 update-kubeconfig --name aws-main-eu-01`
 
 
-## Dashboard
-
-On top of the dashboard provided by AWS EKS, a standard [Kuberenetes Dashboard](http://k8s-default-kubernet-62841e8dd0-731115856.eu-west-1.elb.amazonaws.com/) has been deployed with read-only access to resources within the cluster.
-
-**Warning: This dashboard is exposed through AWS ALB without authentication.**
-
 ## AWS Console
 
 The Kubernetes cluster can be accessed from withing the [AWS Console](https://eu-west-1.console.aws.amazon.com/eks/home?region=eu-west-1#/clusters/aws-main-eu-01).
@@ -30,7 +24,7 @@ The Kubernetes cluster can be accessed from withing the [AWS Console](https://eu
 
 Users in EKS are not automatically managed by AWS IAM, it is therefore necessary to manually grant or revoke access to users and service accounts.
 
-In the [eks.tf](../infrastructure/terraform/compute/eks.tf) users and service accounts can be managed through the `aws_auth_users` map. Once changes have been made they can be applied through `terraform apply`.
+In the [env.tf](../infrastructure/terraform/compute/env.tf) users and service accounts can be managed through the `eks_admins` map. Once changes have been made they can be applied through `terraform apply`.
 
 ## Tips
 
@@ -51,47 +45,6 @@ kubectl port-forward mosquitto-storage-c79967d5d-kcjcb 1884:1883
 
 By doing so our `localhost:1884` forwards to the `pod's 1883 remote` port. 
 
-## Authenticating with AWS SSO (Consip)
-### Setup role based authentication in EKS
-To allow SSO users access to EKS, the corresponding role has to first be registered in `infrastructure/terraform/kubernetes/kubernets.tf`  under `locals.aws_auth_roles`
-
-[Follow this guide](https://repost.aws/knowledge-center/eks-configure-sso-user)
-to get the role ARN and add it to the terraform script
-
-### How to login
-
-Log in via consip AWS SSO, when you are presented with the "AWS Account" selection screen, select "Command line of programmatic access"
-
-following the instructions provided there to set up SSO:
-```sh
-aws configure sso
-```
-Rename the newly created AWS profile "aqcloud-98172389712" to "consip" in my aws config file
-```sh
-$EDITOR ~/.aws/config
-```
-
-make sure you're logged into aws
-```sh
-aws sso login --profile consip
-```
-
-Now create the kubectl credentials following the infrastructure-v2 documentation, but using the newly created AWS CLI profile:
-```sh
-aws eks --region eu-west-1 update-kubeconfig --name aws-main-eu-01 --profile consip
-```
-
-Now you should be able to issue any kubectl command
-```sh
-kubectl get pods -A
-```
-
-
-Once installed, every time kubectl complains about you not being logged in, just renew your login using
-```sh
-aws sso login --profile consip
-```
-
 ## Use kubectx to manage multiple clusters (optional)
 Kubectl lets you define contexts that you can switch between, but the UX is somewhat cumbersome.
 
@@ -111,4 +64,22 @@ Install [kubectx](https://github.com/ahmetb/kubectx)
 > kubectx consip
 
 # All kubectl commands you issue are always using the context you set with kubectx
+```
+
+## Upgrading the cluster
+Upgrading to a new kubernetes version is a frequent operation.
+In the [terraform/kubernetes](../infrastructure/terraform/kubernetes/) folder:
+- Update version number in [eks.tf](../infrastructure/terraform/kubernetes/eks.tf)
+- `terraform apply`
+- `terraform apply` again to see if any addons need further updating. repeat this until no changes are proposed
+- (optional) upgrade the cluster autoscaler to the matching k8s version. Usually this is not necessary
+
+### autoscaler
+```sh
+# Make sure to correctly set your cluster ARN / account ID and the image.tag version.
+# Refer to https://github.com/kubernetes/autoscaler/releases/ for the latest releases
+helm upgrade --install aws-cluster-autoscaler autoscaler/cluster-autoscaler \
+  --values infrastructure/helm/aws-cluster-autoscaler/values.yaml \
+  --set rbac.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::828408288281:role/aws-main-eu-01-cluster-autoscaler" \
+  --namespace kube-system --set image.tag="v1.33.0"
 ```
