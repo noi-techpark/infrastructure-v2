@@ -76,6 +76,9 @@ In the [terraform/kubernetes](../infrastructure/terraform/kubernetes/) folder:
 
 ### autoscaler
 ```sh
+# update helm chart index
+helm repo update
+
 # Make sure to correctly set your cluster ARN / account ID and the image.tag version.
 # Refer to https://github.com/kubernetes/autoscaler/releases/ for the latest releases
 helm upgrade --install aws-cluster-autoscaler autoscaler/cluster-autoscaler \
