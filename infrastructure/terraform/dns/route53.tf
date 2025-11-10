@@ -24,6 +24,7 @@ locals {
     "rabbitmq",
     "neogy.ocpi.io",
     "driwe.ocpi.io",
+    "sftp.io",
     "google.spreadsheets.io",
     "prometheus",
     "tempo",
@@ -36,6 +37,7 @@ locals {
     "push.api",
     "google.spreadsheets.io",
     "neogy.ocpi.io",
+    "sftp.io",
   ]
   static_domains_prod = [
     "docs",
