@@ -366,7 +366,8 @@ helm upgrade --install raw-data-bridge ./infrastructure/helm/raw-data-bridge/raw
 ```
 
 ### Nginx ingress
-TODO: values.yaml contains hardcoded subnet of dev environment.
+
+WARNING: make sure to substitute the correct eipalloc ID, and tcp.(env).yaml file for your environment
 
 ```sh
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -375,7 +376,8 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 ```sh
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx  --namespace ingress-nginx --create-namespace \
 --values infrastructure/helm/nginx-ingress/values.yaml \
---set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations=eipalloc-0b84603c6d3f425bf"
+--set "controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-eip-allocations=eipalloc-0b84603c6d3f425bf" \
+--values infrastructure/helm/nginx-ingress/tcp.test.yaml 
 ```
 
 ### Certmanager (https certificates)

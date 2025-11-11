@@ -1,0 +1,6 @@
+
+# We also proxy tcp/udp services using this ingress controller (to avoid creating dedicated loadbalancers)
+# https://kubernetes.github.io/ingress-nginx/user-guide/exposing-tcp-udp-services/
+# https://stackoverflow.com/questions/61430311/exposing-multiple-tcp-udp-services-using-a-single-loadbalancer-on-k8s
+tcp:
+  2000: collector/dc-sftp-server-skyalps:22
