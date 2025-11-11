@@ -37,6 +37,7 @@ locals {
     "push.api",
     "google.spreadsheets.io",
     "neogy.ocpi.io",
+    "driwe.ocpi.io",
     "sftp.io",
   ]
   static_domains_prod = [
