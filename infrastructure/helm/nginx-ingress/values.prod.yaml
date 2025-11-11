@@ -1,0 +1,17 @@
+controller:
+  service:
+    create: true
+    httpPort.enable: false
+    annotations:
+      # Exchange ID with output of terraform dns eks-ingress-name
+      service.beta.kubernetes.io/aws-load-balancer-type: external
+      service.beta.kubernetes.io/aws-load-balancer-target-type: ip
+      service.beta.kubernetes.io/aws-load-balancer-eip-allocations: "eipalloc-05dd1de8f486601ec"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-subnets: internal-vpc-public-eu-west-1b
+
+# We also proxy tcp/udp services using this ingress controller (to avoid creating dedicated loadbalancers)
+# https://kubernetes.github.io/ingress-nginx/user-guide/exposing-tcp-udp-services/
+# https://stackoverflow.com/questions/61430311/exposing-multiple-tcp-udp-services-using-a-single-loadbalancer-on-k8s
+tcp:
+  2000: collector/dc-sftp-server-skyalps:22
