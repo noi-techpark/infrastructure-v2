@@ -19,6 +19,6 @@ resource "aws_eks_access_policy_association" "github-actions" {
 
   access_scope {
     type       = "namespace"
-    namespaces = ["collector", "core"]
+    namespaces = ["collector", "core", "partition"]
   }
 }
