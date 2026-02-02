@@ -112,3 +112,9 @@ To make certain secrets available across namespaces, we use kubernetes-reflector
     reflector.v1.k8s.emberstack.com/reflection-auto-enabled='true' \
     reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces='collector'
 ```
+If you use custom additional namespaces you can add them by extending the `reflection-allowed-namespaces` annotation
+```sh
+kubectl --namespace core annotate secret \
+    rabbitmq-svcbind \
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces='collector,YOUR_NAMESPACE' \--overwrite
+```
