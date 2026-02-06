@@ -1,3 +1,11 @@
+# use legacy image due to bitnami deprecation
+image:
+  repository: bitnamilegacy/mongodb
+  tag: 7.0.5-debian-11-r3
+global:
+  security:
+    allowInsecureImages: true
+
 # https://artifacthub.io/packages/helm/bitnami/mongodb
 fullnameOverride: mongodb
 
