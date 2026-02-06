@@ -523,3 +523,15 @@ Tourism importer
 ```sh
 helm upgrade --install tourism-importer infrastructure/helm/tourism-importer/tourism-importer --namespace core --values infrastructure/helm/tourism-importer/values.yaml
 ```
+
+## Preserve important volumes:
+Default storageclasses set `reclaimPolicy: Delete`, which means that deleting the PVC can accidentally delete your volume underneath.
+
+For important persistence like mongodb, setting the policy to `Retain` makes sure the volume is not deleted.
+
+You can set this globally on a storageclass on creation, but if the volume already exists, you can patch the individual `PersistentVolume`:
+```sh
+kubectl patch pv `kubectl get pvc datadir-mongodb-0 -n core  -o jsonpath='{.spec.volumeName}'` -n core -p '{"spec":{"persistentVolumeReclaimPolicy": "Retain"}}';
+kubectl patch pv `kubectl get pvc datadir-mongodb-1 -n core  -o jsonpath='{.spec.volumeName}'` -n core -p '{"spec":{"persistentVolumeReclaimPolicy": "Retain"}}';
+kubectl patch pv `kubectl get pvc datadir-mongodb-2 -n core  -o jsonpath='{.spec.volumeName}'` -n core -p '{"spec":{"persistentVolumeReclaimPolicy": "Retain"}}';
+```
