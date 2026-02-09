@@ -10,7 +10,7 @@ kubectl apply -f postgres-client.yml -n core
 kubectl exec --stdin --tty -n core postgres-client -- /bin/bash
 
 # Use screen to have a persistent terminal session on the pod even when disconnecting
-screen
+screen bash
 # To detach from the session use Ctrl+A D
 # To re-attach to running session:
 screen -x
