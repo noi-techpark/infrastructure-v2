@@ -5,7 +5,7 @@ Creates a persistent postgresql client for long running queries or migrations
 create with
 ```sh
 # Create pod
-kubectl apply -f postgresclient.yml -n core
+kubectl apply -f postgres-client.yml -n core
 # get a shell
 kubectl exec --stdin --tty -n core postgres-client -- /bin/bash
 
