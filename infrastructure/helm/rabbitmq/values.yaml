@@ -1,6 +1,15 @@
 # https://artifacthub.io/packages/helm/bitnami/rabbitmq
 fullnameOverride: rabbitmq
 
+
+# Use bitnami legacy images
+image:
+  repository: bitnamilegacy/rabbitmq
+  
+global:
+  security:
+    allowInsecureImages: true
+
 # Allocate at least one replica for each AZ.
 replicaCount: 3
 
