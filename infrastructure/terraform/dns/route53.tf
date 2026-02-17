@@ -28,9 +28,6 @@ locals {
     "google.spreadsheets.io",
     "prometheus",
     "tempo",
-    # temporary testing for partitioning. remove if done
-    "ninja.partition",
-    "bdp.partition"
   ]
   static_domains_dev = [
     "docs",
