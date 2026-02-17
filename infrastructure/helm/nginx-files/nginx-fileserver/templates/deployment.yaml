@@ -17,6 +17,8 @@ spec:
         # Roll pods when configmap changes
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
+      securityContext:
+        fsGroup: 101        # nginx group — ensures PVC is writable by nginx
       containers:
         - name: nginx
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

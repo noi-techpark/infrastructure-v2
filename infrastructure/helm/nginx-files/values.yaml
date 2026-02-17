@@ -3,12 +3,18 @@ nameOverride: nginx
 ingress:
   enabled: true
   className: nginx
-  host: files.dev.testingmachine.eu
-  tls:
-    enabled: false
-    secretName: files-tls-secret
   annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/proxy-body-size: "300m"
+  tls:
+    - hosts:
+      - files.dev.testingmachine.eu
+      secretName: tls-files
+  hosts:
+    - host: files.dev.testingmachine.eu
+      paths: 
+        - path: "/"
+          pathType: Prefix
     
 persistence:
   enabled: true
