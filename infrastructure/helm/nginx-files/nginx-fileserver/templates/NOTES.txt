@@ -1,0 +1,17 @@
+nginx-fileserver has been deployed.
+
+INTERNAL ACCESS (full methods):
+  http://{{ include "nginx-fileserver.fullname" . }}-internal.{{ .Release.Namespace }}.svc.cluster.local/
+
+EXTERNAL ACCESS (GET only):
+  {{- if .Values.ingress.tls.enabled }}
+  https://{{ .Values.ingress.host }}/
+  {{- else }}
+  http://{{ .Values.ingress.host }}/
+  {{- end }}
+
+STORAGE:
+  PVC: {{ include "nginx-fileserver.fullname" . }}-data ({{ .Values.persistence.size }})
+
+To upload a file from inside the cluster:
+  curl -T myfile.txt http://{{ include "nginx-fileserver.fullname" . }}-internal/myfile.txt

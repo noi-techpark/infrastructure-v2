@@ -1,0 +1,33 @@
+---
+# Internal service — all methods, cluster-only
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx-fileserver.fullname" . }}-internal
+  labels:
+    {{- include "nginx-fileserver.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "nginx-fileserver.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: internal
+      port: 80
+      targetPort: internal
+
+---
+# External service — GET only, exposed via Ingress
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nginx-fileserver.fullname" . }}-external
+  labels:
+    {{- include "nginx-fileserver.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "nginx-fileserver.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: external
+      port: 80
+      targetPort: external

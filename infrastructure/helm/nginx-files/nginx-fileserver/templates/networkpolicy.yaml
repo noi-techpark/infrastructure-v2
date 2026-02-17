@@ -1,0 +1,27 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "nginx-fileserver.fullname" . }}
+  labels:
+    {{- include "nginx-fileserver.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "nginx-fileserver.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    # Internal port: allow from any pod in the same namespace
+    - ports:
+        - port: {{ .Values.ports.internal }}
+      from:
+        - podSelector: {}
+    # External port: allow from the ingress controller namespace only
+    - ports:
+        - port: {{ .Values.ports.external }}
+      from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.ingressControllerNamespace }}
+{{- end }}

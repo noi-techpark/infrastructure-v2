@@ -523,6 +523,11 @@ Tourism importer
 ```sh
 helm upgrade --install tourism-importer infrastructure/helm/tourism-importer/tourism-importer --namespace core --values infrastructure/helm/tourism-importer/values.yaml
 ```
+### Nginx fileserver
+Nginx with internal write, external readonly for file publication
+```sh
+helm upgrade --install files infrastructure/helm/nginx-files/nginx-fileserver --namespace core --values infrastructure/helm/nginx-files/values.yaml
+```
 
 ## Preserve important volumes:
 Default storageclasses set `reclaimPolicy: Delete`, which means that deleting the PVC can accidentally delete your volume underneath.

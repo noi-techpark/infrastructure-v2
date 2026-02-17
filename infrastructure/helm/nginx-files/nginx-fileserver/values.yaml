@@ -1,0 +1,54 @@
+# ── Replica count ─────────────────────────────────────────────────────────────
+# Keep at 1 when using ReadWriteOnce storage
+replicaCount: 1
+
+# ── Image ──────────────────────────────────────────────────────────────────────
+image:
+  repository: nginx
+  tag: "alpine"
+  pullPolicy: IfNotPresent
+
+# ── Ports ─────────────────────────────────────────────────────────────────────
+ports:
+  internal: 8080   # all methods (GET/PUT/POST)
+  external: 8081   # GET/HEAD only
+
+# ── Persistent Volume ─────────────────────────────────────────────────────────
+persistence:
+  enabled: true
+  storageClass: "standard"   # change to your StorageClass
+  accessMode: ReadWriteOnce
+  size: 5Gi
+  mountPath: /data
+
+# ── Ingress ───────────────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: nginx
+  host: files.example.com    # change to your domain
+  tls:
+    enabled: false
+    secretName: files-tls-secret
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+# ── NetworkPolicy ─────────────────────────────────────────────────────────────
+networkPolicy:
+  enabled: true
+  # Namespace where the ingress controller runs
+  ingressControllerNamespace: ingress-nginx
+
+# ── Resources ─────────────────────────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# ── nginx config tweaks ───────────────────────────────────────────────────────
+nginx:
+  autoindex: true
+  keepaliveTimeout: 65
+  workerProcesses: auto
