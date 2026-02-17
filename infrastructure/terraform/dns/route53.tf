@@ -28,6 +28,7 @@ locals {
     "google.spreadsheets.io",
     "prometheus",
     "tempo",
+    "files"
   ]
   static_domains_dev = [
     "docs",
