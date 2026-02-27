@@ -1,6 +1,7 @@
 services:
   rabbitmq:
     image: rabbitmq:management-alpine
+    pull_policy: always
     ports:
       - "5671:5671"
       - "5672:5672"
@@ -14,7 +15,7 @@ services:
     attach: false
 
   mongodb:
-    image: mongo
+    image: mongo:7
     ports:
       - 27017:27017
     command: --replSet rs0 --bind_ip localhost,mongodb,127.0.0.1 --port 27017
@@ -24,7 +25,7 @@ services:
       
   # Initializes replicaset once after it has been started
   mongodb-init:
-    image: mongo
+    image: mongo:7
     depends_on:
       mongodb:
         condition: service_healthy
@@ -48,6 +49,10 @@ services:
   # Writer service listens on ingress queue and writes raw data to mongodb
   writer:
     image: ghcr.io/noi-techpark/infrastructure-v2/raw-writer:latest
+    build:
+      context: ./infrastructure/raw-writer
+      dockerfile: Dockerfile
+      target: release
     pull_policy: always
     environment:
       
