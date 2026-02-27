@@ -1,0 +1,104 @@
+# SPDX-FileCopyrightText: 2024 NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: dev
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+      - pkg:/go/pkg/mod
+    working_dir: /code
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      mongodb:
+        condition: service_started
+      minio:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    command: --bind_ip localhost,mongodb,127.0.0.1
+    volumes:
+      - mongo:/data/db
+    attach: false
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"  # web console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    attach: false
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"  # management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    attach: false
+
+  example-fetcher:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: example
+    environment:
+      WRITER_URL: http://app:8080
+      FETCH_INTERVAL: 60s
+      LARGE_FETCH_INTERVAL: 5m
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 minioadmin minioadmin &&
+        mc mb --ignore-existing local/raw-data
+      "
+    attach: false
+
+volumes:
+  pkg:
+  mongo:
+  minio:
