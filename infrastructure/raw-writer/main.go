@@ -104,23 +104,23 @@ func handleMqMsg(msg *message.Message) *mqErr {
 	// parse timestamp field, put into bsontimestamp
 	timestamp, err := parseTimestamp(&body)
 	if err != nil {
-		return NewMqErr(err.Error(), "json", body)
+		return NewMqErr("error parsing timestamp", "json", body)
 	}
 	body["bsontimestamp"] = timestamp
 
 	// parse provier string to retrieve mongo db and collection names
 	provider, err := getProvider(body)
 	if err != nil {
-		return NewMqErr(err.Error(), "json", body)
+		return NewMqErr("cannot get provider from body", "json", body, "err", err)
 	}
 	db, coll, err := constructTableTarget(provider)
 	if err != nil {
-		return NewMqErr(err.Error(), "json", body)
+		return NewMqErr("cannot determine target table", "provider", provider, "err", err)
 	}
 
 	u, ok := urn.RawUrnFromProviderURI(provider)
 	if !ok {
-		return NewMqErr("provider generated invalid urn", "json", body)
+		return NewMqErr("provider generated invalid urn", "provider", provider)
 	}
 
 	inserted_id := primitive.ObjectID{}
@@ -153,7 +153,7 @@ func handleMqMsg(msg *message.Message) *mqErr {
 
 	err = atom.Run()
 	if err != nil {
-		return NewMqErr(err.Error(), "json", body)
+		return NewMqErr("error handling msg", "err", err)
 	}
 
 	return nil
@@ -235,7 +235,7 @@ func mongoWrite(ctx context.Context, db string, coll string, obj map[string]any,
 	collection := client.Database(cfg.DB_PREFIX + db).Collection(coll)
 	result, err := collection.InsertOne(context.TODO(), obj)
 	if err != nil {
-		return primitive.ObjectID{}, NewMqErr("error inserting msg to mongo", "err", err)
+		return primitive.ObjectID{}, fmt.Errorf("error inserting msg to mongo: %w", err)
 	}
 	return result.InsertedID.(primitive.ObjectID), nil
 }
@@ -244,7 +244,7 @@ func mongoDelete(db string, coll string, id primitive.ObjectID, client *mongo.Cl
 	collection := client.Database(cfg.DB_PREFIX + db).Collection(coll)
 	_, err := collection.DeleteOne(context.TODO(), bson.M{"_id": id})
 	if err != nil {
-		return NewMqErr("error deleting msg from mongo", "err", err)
+		return fmt.Errorf("error deleting msg from mongo: %w", err)
 	}
 	return nil
 }
