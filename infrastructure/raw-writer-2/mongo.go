@@ -48,8 +48,8 @@ type writeResult struct {
 	Coll string
 }
 
-// mongoWriteSmall inserts the raw payload into db=<prefix+part1>, collection=<part2>.
-func mongoWriteSmall(ctx context.Context, m meta, raw []byte, contentType string) (writeResult, error) {
+// mongoWriteRaw inserts the raw payload into db=<prefix+part1>, collection=<part2>.
+func mongoWriteRaw(ctx context.Context, m meta, raw []byte, contentType string) (writeResult, error) {
 	ctx, span := tel.TraceStart(ctx, "mongo.write.small", trace.WithSpanKind(trace.SpanKindClient))
 	defer span.End()
 
@@ -95,9 +95,8 @@ func mongoWriteSmall(ctx context.Context, m meta, raw []byte, contentType string
 	return writeResult{ID: res.InsertedID.(primitive.ObjectID).Hex(), DB: db, Coll: coll}, nil
 }
 
-// mongoWriteLarge inserts a reference document into db=<prefix+part1>, collection=<part2>.
 // The actual payload is on S3 at s3URN.
-func mongoWriteLarge(ctx context.Context, m meta, s3URN, contentType string) (writeResult, error) {
+func mongoWriteS3Ref(ctx context.Context, m meta, s3URN, contentType string) (writeResult, error) {
 	ctx, span := tel.TraceStart(ctx, "mongo.write.large", trace.WithSpanKind(trace.SpanKindClient))
 	defer span.End()
 

@@ -197,7 +197,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		s3URN := fmt.Sprintf("urn:s3:%s:%s", cfg.S3_BUCKET, s3Key)
 		span.SetAttributes(attribute.String("s3.urn", s3URN))
 
-		wr, err := mongoWriteLarge(ctx, m, s3URN, mediaType)
+		wr, err := mongoWriteS3Ref(ctx, m, s3URN, mediaType)
 		if err != nil {
 			log.Error("mongo write failed after s3 upload", "err", err, "s3_key", s3Key)
 			span.RecordError(err)
@@ -218,7 +218,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, `{"id":%q,"s3_ref":%q}`, wr.ID, s3URN)
 	} else {
-		wr, err := mongoWriteSmall(ctx, m, raw, mediaType)
+		wr, err := mongoWriteRaw(ctx, m, raw, mediaType)
 		if err != nil {
 			log.Error("mongo write failed", "err", err)
 			span.RecordError(err)
