@@ -24,26 +24,20 @@ import (
 const largeSizeThreshold = 5 * 1024 * 1024 // 5 MB
 
 type meta struct {
-	// Provider holds the combined "part1/part2" string.
-	// part1 comes from the User-Agent header, part2 from the {source} path segment.
 	Provider   string
 	Timestamp  time.Time
 	Provenance string
 }
 
-// parseMeta extracts metadata from the request:
-//   - provider  : User-Agent header + "/" + {source} path segment → "part1/part2"
-//   - timestamp : {timestamp} path segment (RFC3339)
-//   - provenance: ?provenance= query param
 func parseMeta(r *http.Request) (meta, error) {
-	providerPart := r.Header.Get("User-Agent")
-	if providerPart == "" {
-		return meta{}, fmt.Errorf("missing User-Agent header (used as provider)")
+	provider1 := r.PathValue("provider1")
+	if provider1 == "" {
+		return meta{}, fmt.Errorf("missing path segment: provider1")
 	}
 
-	sourcePart := r.PathValue("source")
-	if sourcePart == "" {
-		return meta{}, fmt.Errorf("missing path segment: source")
+	provider2 := r.PathValue("provider2")
+	if provider2 == "" {
+		return meta{}, fmt.Errorf("missing path segment: provider2")
 	}
 
 	tsStr := r.PathValue("timestamp")
@@ -55,13 +49,13 @@ func parseMeta(r *http.Request) (meta, error) {
 		return meta{}, fmt.Errorf("invalid timestamp (RFC3339 required): %w", err)
 	}
 
-	provenance := r.URL.Query().Get("provenance")
+	provenance := r.Header.Get("User-Agent")
 	if provenance == "" {
-		return meta{}, fmt.Errorf("missing query param: provenance")
+		return meta{}, fmt.Errorf("missing header User-Agent")
 	}
 
 	return meta{
-		Provider:   providerPart + "/" + sourcePart,
+		Provider:   provider1 + "/" + provider2,
 		Timestamp:  ts,
 		Provenance: provenance,
 	}, nil
@@ -134,17 +128,13 @@ func compressZstd(data []byte) ([]byte, error) {
 	return enc.EncodeAll(data, make([]byte, 0, len(data)/2)), nil
 }
 
-// POST /{source}/{timestamp} — single ingest endpoint.
-// Routing between MongoDB-direct (small) and S3-backed (large) is determined
-// by the original payload size against a 5 MB threshold.
-// provider from User-Agent header, provenance from ?provenance= query param.
-// Text-based payloads (json, xml, csv, …) are zstd-compressed before storage.
 func handleIngest(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	ctx, span := tel.TraceStart(ctx, "handle-ingest", trace.WithSpanKind(trace.SpanKindServer))
 	defer span.End()
 	log := logger.Get(ctx)
 
+	// validate necessary metadata like provider, timestamp
 	m, err := parseMeta(r)
 	if err != nil {
 		span.RecordError(err)
@@ -153,6 +143,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Based on payload size put message into mongo or S3
 	r.Body = http.MaxBytesReader(w, r.Body, cfg.MAX_SIZE)
 	raw, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -163,7 +154,6 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mediaType := detectMediaType(r, raw)
-	hash := sha256.Sum256(raw) // always hash the original
 
 	span.SetAttributes(
 		attribute.String("provider", m.Provider),
@@ -172,10 +162,9 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if len(raw) >= largeSizeThreshold {
-		// For large files, compress text-based payloads before uploading to S3.
+		// For large files, compress payloads before uploading to S3.
 		data := raw
 		s3KeySuffix := ""
-		nid := "s3"
 		if isCompressible(mediaType) {
 			compressed, cerr := compressZstd(raw)
 			if cerr != nil {
@@ -183,10 +172,13 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 			} else {
 				data = compressed
 				s3KeySuffix = ".zst"
-				nid = "s3+zstd"
 			}
 		}
 
+		hash := sha256.Sum256(raw)
+
+		// S3 path is : {provider1}/{provider2}/{timestamp}_{hash}
+		// If the file is compressed, indicate in the filename suffix
 		s3Key := fmt.Sprintf("%s/%s_%x%s",
 			m.Provider,
 			m.Timestamp.UTC().Format("20060102T150405Z"),
@@ -202,8 +194,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Compression algorithm encoded in URN NID: urn:s3+zstd:… or urn:s3:…
-		s3URN := fmt.Sprintf("urn:%s:%s:%s", nid, cfg.S3_BUCKET, s3Key)
+		s3URN := fmt.Sprintf("urn:s3:%s:%s", cfg.S3_BUCKET, s3Key)
 		span.SetAttributes(attribute.String("s3.urn", s3URN))
 
 		wr, err := mongoWriteLarge(ctx, m, s3URN, mediaType)
@@ -211,13 +202,16 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 			log.Error("mongo write failed after s3 upload", "err", err, "s3_key", s3Key)
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
-			// S3 object is already written — caller must retry or reconcile.
 			http.Error(w, "storage error", http.StatusInternalServerError)
 			return
 		}
 
 		if err := publishReady(ctx, m, wr); err != nil {
 			log.Error("mq publish failed", "err", err)
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			http.Error(w, "failed publishing to MQ", http.StatusInternalServerError)
+			return
 		}
 
 		log.Info("stored large message", "id", wr.ID, "s3_ref", s3URN)
@@ -235,6 +229,10 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 
 		if err := publishReady(ctx, m, wr); err != nil {
 			log.Error("mq publish failed", "err", err)
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			http.Error(w, "failed publishing to MQ", http.StatusInternalServerError)
+			return
 		}
 
 		log.Info("stored small message", "id", wr.ID, "provider", m.Provider)

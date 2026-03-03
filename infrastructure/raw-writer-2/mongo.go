@@ -30,11 +30,10 @@ type largeDoc struct {
 	BsonTimestamp time.Time `bson:"bsontimestamp"`
 	Provenance    string    `bson:"provenance"`
 	ContentType   string    `bson:"content_type"`
-	RawRef        string    `bson:"raw_ref"` // URN: urn:s3[+<encoding>]:<bucket>:<key>
+	RawRef        string    `bson:"raw_ref"`
 }
 
-// providerParts splits m.Provider ("part1/part2") into the MongoDB database name
-// (cfg.DB_PREFIX + part1) and collection name (part2).
+// mongo db / collection = provider1 / provider2
 func providerParts(m meta) (db, coll string, err error) {
 	parts := strings.SplitN(m.Provider, "/", 2)
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
@@ -68,8 +67,8 @@ func mongoWriteSmall(ctx context.Context, m meta, raw []byte, contentType string
 	var rawData any
 	switch {
 	case contentType == "application/bson":
-		var doc bson.Raw
-		if err := bson.Unmarshal(raw, &doc); err != nil {
+		var doc bson.M
+		if err := bson.UnmarshalExtJSON(raw, true, &doc); err != nil {
 			rawData = raw // malformed BSON: fall back to binary
 		} else {
 			rawData = doc
