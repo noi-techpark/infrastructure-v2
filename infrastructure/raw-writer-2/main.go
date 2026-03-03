@@ -33,16 +33,16 @@ var cfg struct {
 	S3_REGION   string `default:"eu-west-1"`
 	MAX_SIZE    int64  `default:"104857600"` // 100 MB
 
-	MQ_URI          string
-	MQ_CLIENT_NAME  string
-	MQ_READY_EXCHANGE   string
-	MQ_READY_QUEUE      string
-	MQ_READY_DL_QUEUE   string
+	MQ_URI            string
+	MQ_CLIENT_NAME    string
+	MQ_READY_EXCHANGE string
+	MQ_READY_QUEUE    string
+	MQ_READY_DL_QUEUE string
 }
 
 var (
-	mongoClient   *mongo.Client
-	s3Client      *S3Client
+	mongoClient    *mongo.Client
+	s3Client       *S3Client
 	readyPublisher *qmill.QMill
 )
 
@@ -81,7 +81,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /live", handleLive)
 	mux.HandleFunc("GET /ready", handleReady)
-	mux.Handle("POST /{source}/{timestamp}", otelhttp.NewHandler(http.HandlerFunc(handleIngest), "handle-ingest"))
+	mux.Handle("POST /{provider1}/{provider2}/{timestamp}", otelhttp.NewHandler(http.HandlerFunc(handleIngest), "handle-ingest"))
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.HTTP_PORT,
