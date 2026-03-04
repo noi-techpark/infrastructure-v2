@@ -94,7 +94,7 @@ func fetchSmall(client *http.Client, writerURL string) {
 		slog.Error("open-meteo fetch failed", "err", err)
 		return
 	}
-	postToWriter(client, writerURL, "bolzano-weather", "application/json", body)
+	postToWriter(client, writerURL, "open-meteo", "bolzano-weather", "application/json", body)
 }
 
 // fetchLarge generates a synthetic sensor-history dataset (>5 MB) and posts it
@@ -106,7 +106,7 @@ func fetchLarge(client *http.Client, writerURL string) {
 		return
 	}
 	slog.Info("posting large payload", "bytes", len(body))
-	postToWriter(client, writerURL, "bolzano-sensor-history", "application/json", body)
+	postToWriter(client, writerURL, "synthetic", "bolzano-sensor-history", "application/json", body)
 }
 
 // generateSensorHistory returns a JSON array of n synthetic minute-resolution
@@ -147,13 +147,13 @@ func generateSensorHistory(n int) ([]byte, error) {
 	return json.Marshal(records)
 }
 
-func postToWriter(client *http.Client, writerURL, source, contentType string, body []byte) {
+func postToWriter(client *http.Client, writerURL, provider1, provider2, contentType string, body []byte) {
 	ts := time.Now().UTC().Format(time.RFC3339)
-	url := fmt.Sprintf("%s/%s/%s?provenance=example-fetcher%%401", writerURL, source, ts)
+	url := fmt.Sprintf("%s/%s/%s/%s", writerURL, provider1, provider2, ts)
 
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
-		slog.Error("build request failed", "source", source, "err", err)
+		slog.Error("build request failed", "provider", provider1+"/"+provider2, "err", err)
 		return
 	}
 	req.Header.Set("Content-Type", contentType)
@@ -161,17 +161,17 @@ func postToWriter(client *http.Client, writerURL, source, contentType string, bo
 
 	resp, err := client.Do(req)
 	if err != nil {
-		slog.Error("post failed", "source", source, "err", err)
+		slog.Error("post failed", "provider", provider1+"/"+provider2, "err", err)
 		return
 	}
 	defer resp.Body.Close()
 	respBody, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode >= 300 {
-		slog.Error("writer error", "source", source, "status", resp.StatusCode, "body", string(respBody))
+		slog.Error("writer error", "provider", provider1+"/"+provider2, "status", resp.StatusCode, "body", string(respBody))
 		return
 	}
-	slog.Info("ingested", "source", source, "bytes", len(body), "status", resp.StatusCode, "response", string(respBody))
+	slog.Info("ingested", "provider", provider1+"/"+provider2, "bytes", len(body), "status", resp.StatusCode, "response", string(respBody))
 }
 
 func httpGet(client *http.Client, url string) ([]byte, error) {
