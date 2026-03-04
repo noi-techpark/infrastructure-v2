@@ -133,6 +133,7 @@ helm upgrade mongodb bitnami/mongodb \
   --values infrastructure/helm/mongodb/values.yaml \
   --set auth.rootPassword=$MONGODB_ROOT_PASSWORD \
   --set auth.replicaSetKey=$MONGODB_REPLICA_SET_KEY \
+  --version 14.6.1 \
   --namespace core
 ```
 
