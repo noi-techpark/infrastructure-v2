@@ -16,10 +16,10 @@ env:
   - name: TELEMETRY_TRACE_GRPC_ENDPOINT
     value: tempo-distributor-discovery.monitoring.svc.cluster.local:4317
 
-# resources:
-#   limits:
-#     cpu: 250m   # 250m is equivalent to 0.25 CPU core
-#     memory: 500Mi
-#   requests:
-#     cpu: 100m   # 100m is equivalent to 0.1 CPU core
-#     memory: 100Mi
+resources:
+  limits:
+    cpu: 250m
+    memory: 300Mi
+  requests:
+    cpu: 5m
+    memory: 50Mi
