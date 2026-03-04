@@ -3,6 +3,7 @@ cleanPrometheusOperatorObjectNames: true
 
 prometheus:
   prometheusSpec:
+    paused: false
     podAntiAffinity: "hard"
     # We could not deploy 2 replicas without a Thanos we combining prometheus with grafana-metrics-generator.
     # This because metrics-generator pushes to prometheus using remote_writer, but it selects one replica randomly,
@@ -26,6 +27,14 @@ prometheus:
     serviceMonitorSelector: {}
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
+
+    resources:
+      # limits:
+        # cpu: 250m
+        # memory: 200Mi
+      requests:
+        cpu: 150m
+        memory: 1500Mi
 
   ingress:
     enabled: true
