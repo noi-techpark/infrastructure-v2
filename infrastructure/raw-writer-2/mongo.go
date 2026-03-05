@@ -17,7 +17,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type smallDoc struct {
+type rawDoc struct {
 	Provider      string    `bson:"provider"`
 	BsonTimestamp time.Time `bson:"bsontimestamp"`
 	Provenance    string    `bson:"provenance"`
@@ -25,7 +25,7 @@ type smallDoc struct {
 	RawData       any       `bson:"rawdata"` // string for text types, []byte for binary
 }
 
-type largeDoc struct {
+type s3RefDoc struct {
 	Provider      string    `bson:"provider"`
 	BsonTimestamp time.Time `bson:"bsontimestamp"`
 	Provenance    string    `bson:"provenance"`
@@ -78,7 +78,7 @@ func mongoWriteRaw(ctx context.Context, m meta, raw []byte, contentType string) 
 	default:
 		rawData = string(raw)
 	}
-	doc := smallDoc{
+	doc := rawDoc{
 		Provider:      m.Provider,
 		BsonTimestamp: m.Timestamp,
 		Provenance:    m.Provenance,
@@ -111,7 +111,7 @@ func mongoWriteS3Ref(ctx context.Context, m meta, s3URN, contentType string) (wr
 		attribute.String("db.mongodb.collection", coll),
 	)
 
-	doc := largeDoc{
+	doc := s3RefDoc{
 		Provider:      m.Provider,
 		BsonTimestamp: m.Timestamp,
 		Provenance:    m.Provenance,
