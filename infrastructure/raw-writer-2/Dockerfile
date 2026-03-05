@@ -10,11 +10,11 @@ COPY go.mod .
 COPY go.sum .
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o writer2
+RUN CGO_ENABLED=0 GOOS=linux go build -o writer
 
 FROM scratch AS release
-COPY --from=build /app/writer2 /writer2
-CMD ["/writer2"]
+COPY --from=build /app/writer /writer
+CMD ["/writer"]
 
 FROM base AS dev
 WORKDIR /code
