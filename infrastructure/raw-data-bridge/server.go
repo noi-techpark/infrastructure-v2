@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 
@@ -108,5 +109,26 @@ func (s *Server) GetDocument(c *gin.Context) {
 		})
 		return
 	}
+
+	// If the document references external raw data, fetch and inline it.
+	if rawRef, ok := (*doc)["raw_ref"].(string); ok && rawRef != "" {
+		retriever, ok := GetRetriever(rawRef)
+		if ok {
+			data, rerr := retriever.Retrieve(ctx, rawRef)
+			if rerr != nil {
+				log.Warn("failed to retrieve raw_ref data", "raw_ref", rawRef, "err", rerr)
+			} else {
+				var parsed any
+				if json.Unmarshal(data, &parsed) == nil {
+					(*doc)["rawdata"] = parsed
+				} else {
+					(*doc)["rawdata"] = string(data)
+				}
+			}
+		} else {
+			log.Warn("no retriever for raw_ref scheme", "raw_ref", rawRef)
+		}
+	}
+
 	c.JSON(http.StatusOK, doc)
 }
