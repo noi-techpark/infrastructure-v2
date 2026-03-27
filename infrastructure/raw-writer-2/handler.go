@@ -10,6 +10,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"net/textproto"
 	"strings"
 	"time"
 
@@ -24,9 +25,10 @@ import (
 const largeSizeThreshold = 5 * 1024 * 1024 // 5 MB
 
 type meta struct {
-	Provider   string
-	Timestamp  time.Time
-	Provenance string
+	Provider     string
+	Timestamp    time.Time
+	Provenance   string
+	ExtraHeaders map[string]string // headers matching HEADER_PREFIX, keyed by lowercased name-without-prefix
 }
 
 func parseMeta(r *http.Request) (meta, error) {
@@ -54,10 +56,20 @@ func parseMeta(r *http.Request) (meta, error) {
 		return meta{}, fmt.Errorf("missing header User-Agent")
 	}
 
+	extra := map[string]string{}
+	canonPrefix := textproto.CanonicalMIMEHeaderKey(cfg.HEADER_PREFIX)
+	for key, vals := range r.Header {
+		if strings.HasPrefix(key, canonPrefix) {
+			field := strings.ToLower(key[len(canonPrefix):])
+			extra[field] = vals[0]
+		}
+	}
+
 	return meta{
-		Provider:   provider1 + "/" + provider2,
-		Timestamp:  ts,
-		Provenance: provenance,
+		Provider:     provider1 + "/" + provider2,
+		Timestamp:    ts,
+		Provenance:   provenance,
+		ExtraHeaders: extra,
 	}, nil
 }
 

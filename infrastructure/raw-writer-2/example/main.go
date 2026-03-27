@@ -94,7 +94,10 @@ func fetchSmall(client *http.Client, writerURL string) {
 		slog.Error("open-meteo fetch failed", "err", err)
 		return
 	}
-	postToWriter(client, writerURL, "open-meteo", "bolzano-weather", "application/json", body)
+	postToWriter(client, writerURL, "open-meteo", "bolzano-weather", "application/json", body,
+		"X-OpenDataHub-Source", "open-meteo-api",
+		"X-OpenDataHub-License", "CC-BY-4.0",
+	)
 }
 
 // fetchLarge generates a synthetic sensor-history dataset (>5 MB) and posts it
@@ -106,7 +109,10 @@ func fetchLarge(client *http.Client, writerURL string) {
 		return
 	}
 	slog.Info("posting large payload", "bytes", len(body))
-	postToWriter(client, writerURL, "synthetic", "bolzano-sensor-history", "application/json", body)
+	postToWriter(client, writerURL, "synthetic", "bolzano-sensor-history", "application/json", body,
+		"X-OpenDataHub-Source", "synthetic-generator",
+		"X-OpenDataHub-Station", "Bolzano-Center",
+	)
 }
 
 // generateSensorHistory returns a JSON array of n synthetic minute-resolution
@@ -147,7 +153,9 @@ func generateSensorHistory(n int) ([]byte, error) {
 	return json.Marshal(records)
 }
 
-func postToWriter(client *http.Client, writerURL, provider1, provider2, contentType string, body []byte) {
+// postToWriter posts body to raw-writer-2. extraHeaders is an optional flat list
+// of key, value pairs (e.g. "X-OpenDataHub-Source", "my-fetcher").
+func postToWriter(client *http.Client, writerURL, provider1, provider2, contentType string, body []byte, extraHeaders ...string) {
 	ts := time.Now().UTC().Format(time.RFC3339)
 	url := fmt.Sprintf("%s/%s/%s/%s", writerURL, provider1, provider2, ts)
 
@@ -158,6 +166,9 @@ func postToWriter(client *http.Client, writerURL, provider1, provider2, contentT
 	}
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("User-Agent", "example-fetcher")
+	for i := 0; i+1 < len(extraHeaders); i += 2 {
+		req.Header.Set(extraHeaders[i], extraHeaders[i+1])
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {

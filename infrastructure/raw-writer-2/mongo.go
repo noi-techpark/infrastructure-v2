@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/noi-techpark/opendatahub-go-sdk/tel"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,21 +16,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type rawDoc struct {
-	Provider      string    `bson:"provider"`
-	BsonTimestamp time.Time `bson:"bsontimestamp"`
-	Provenance    string    `bson:"provenance"`
-	ContentType   string    `bson:"content_type"`
-	RawData       any       `bson:"rawdata"` // string for text types, []byte for binary
-}
-
-type s3RefDoc struct {
-	Provider      string    `bson:"provider"`
-	BsonTimestamp time.Time `bson:"bsontimestamp"`
-	Provenance    string    `bson:"provenance"`
-	ContentType   string    `bson:"content_type"`
-	RawRef        string    `bson:"raw_ref"`
-}
 
 // mongo db / collection = provider1 / provider2
 func providerParts(m meta) (db, coll string, err error) {
@@ -78,17 +62,15 @@ func mongoWriteRaw(ctx context.Context, m meta, raw []byte, contentType string) 
 	default:
 		rawData = string(raw)
 	}
-	doc := rawDoc{
-		Provider:      m.Provider,
-		BsonTimestamp: m.Timestamp,
-		Provenance:    m.Provenance,
-		ContentType:   contentType,
-		RawData:       rawData,
+	doc := bson.M{
+		"provider":      m.Provider,
+		"bsontimestamp": m.Timestamp,
+		"provenance":    m.Provenance,
+		"content_type":  contentType,
+		"rawdata":       rawData,
 	}
-	res, err := mongoClient.
-		Database(db).
-		Collection(coll).
-		InsertOne(ctx, doc)
+	doc["meta"] = m.ExtraHeaders
+	res, err := mongoClient.Database(db).Collection(coll).InsertOne(ctx, doc)
 	if err != nil {
 		return writeResult{}, fmt.Errorf("mongo insert failed: %w", err)
 	}
@@ -111,17 +93,15 @@ func mongoWriteS3Ref(ctx context.Context, m meta, s3URN, contentType string) (wr
 		attribute.String("db.mongodb.collection", coll),
 	)
 
-	doc := s3RefDoc{
-		Provider:      m.Provider,
-		BsonTimestamp: m.Timestamp,
-		Provenance:    m.Provenance,
-		ContentType:   contentType,
-		RawRef:        s3URN,
+	doc := bson.M{
+		"provider":      m.Provider,
+		"bsontimestamp": m.Timestamp,
+		"provenance":    m.Provenance,
+		"content_type":  contentType,
+		"raw_ref":       s3URN,
 	}
-	res, err := mongoClient.
-		Database(db).
-		Collection(coll).
-		InsertOne(ctx, doc)
+	doc["meta"] = m.ExtraHeaders
+	res, err := mongoClient.Database(db).Collection(coll).InsertOne(ctx, doc)
 	if err != nil {
 		return writeResult{}, fmt.Errorf("mongo insert failed: %w", err)
 	}
