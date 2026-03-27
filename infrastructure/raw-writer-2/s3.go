@@ -9,34 +9,42 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
+	"strings"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awscfg "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/noi-techpark/opendatahub-go-sdk/tel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 )
 
 type S3Client struct {
-	svc    *s3.Client
+	svc    *minio.Client
 	bucket string
 }
 
-func newS3Client(ctx context.Context) *S3Client {
-	awsConfig, err := awscfg.LoadDefaultConfig(ctx,
-		awscfg.WithRegion(cfg.S3_REGION),
-	)
-	if err != nil {
-		log.Panic("s3 config load failed: ", err)
+func newS3Client() *S3Client {
+	endpoint := "s3.amazonaws.com"
+	secure := true
+
+	if cfg.S3_ENDPOINT != "" {
+		u, err := url.Parse(cfg.S3_ENDPOINT)
+		if err != nil {
+			log.Panic("s3 endpoint parse failed: ", err)
+		}
+		endpoint = u.Host
+		secure = strings.EqualFold(u.Scheme, "https")
 	}
 
-	svc := s3.NewFromConfig(awsConfig, func(o *s3.Options) {
-		if cfg.S3_ENDPOINT != "" {
-			o.BaseEndpoint = aws.String(cfg.S3_ENDPOINT)
-			o.UsePathStyle = true // required for MinIO and other path-style S3 endpoints
-		}
+	svc, err := minio.New(endpoint, &minio.Options{
+		Creds:  credentials.NewEnvAWS(),
+		Secure: secure,
+		Region: cfg.S3_REGION,
 	})
+	if err != nil {
+		log.Panic("s3 client init failed: ", err)
+	}
 
 	return &S3Client{svc: svc, bucket: cfg.S3_BUCKET}
 }
@@ -52,11 +60,7 @@ func (c *S3Client) Upload(ctx context.Context, key string, data []byte) error {
 		attribute.Int("s3.bytes", len(data)),
 	)
 
-	_, err := c.svc.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: aws.String(c.bucket),
-		Key:    aws.String(key),
-		Body:   bytes.NewReader(data),
-	})
+	_, err := c.svc.PutObject(ctx, c.bucket, key, bytes.NewReader(data), int64(len(data)), minio.PutObjectOptions{})
 	if err != nil {
 		return fmt.Errorf("s3 PutObject failed: %w", err)
 	}

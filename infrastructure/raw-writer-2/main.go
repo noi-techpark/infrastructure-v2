@@ -63,7 +63,7 @@ func main() {
 	mongoClient = initMongo(ctx)
 	defer mongoClient.Disconnect(context.Background())
 
-	s3Client = newS3Client(ctx)
+	s3Client = newS3Client()
 
 	var err error
 	readyPublisher, err = qmill.NewPublisherQmill(ctx, cfg.MQ_URI, cfg.MQ_CLIENT_NAME,
