@@ -1,0 +1,44 @@
+image:
+  repository: ghcr.io/noi-techpark/infrastructure-v2/raw-writer-2
+  pullPolicy: Always
+  tag: "v2.0"
+
+env:
+  - name: MONGO_URI
+    valueFrom:
+      secretKeyRef:
+        name: mongodb-writer-svcbind
+        key: uri
+  - name: DB_PREFIX
+    value: rawdata
+  - name: S3_BUCKET
+    value: raw-data
+  - name: S3_ENDPOINT
+    value: ""
+  - name: S3_REGION
+    value: eu-west-1
+  - name: MQ_URI
+    valueFrom:
+      secretKeyRef:
+        name: rabbitmq-svcbind
+        key: uri
+  - name: MQ_CLIENT_NAME
+    value: raw-writer-2
+  - name: MQ_READY_EXCHANGE
+    value: ready
+  - name: MQ_READY_QUEUE
+    value: ready
+  - name: MQ_READY_DL_QUEUE
+    value: ready-dl
+  - name: SERVICE_NAME
+    value: raw-writer-2
+  - name: TELEMETRY_TRACE_GRPC_ENDPOINT
+    value: tempo-distributor-discovery.monitoring.svc.cluster.local:4317
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 500Mi
+  requests:
+    cpu: 5m
+    memory: 50Mi
