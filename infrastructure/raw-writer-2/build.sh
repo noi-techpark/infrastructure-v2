@@ -1,6 +1,6 @@
 #!/bin/bash
 IMAGE=ghcr.io/noi-techpark/infrastructure-v2/raw-writer-2
-TAGS='latest v0.1'
+TAGS='latest v2.0'
 REPO=https://github.com/noi-techpark/infrastructure-v2
 docker buildx build --target release -f Dockerfile . -t $IMAGE \
 --label "org.opencontainers.image.source=$REPO" \
