@@ -93,6 +93,16 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
 kubectl apply -f infrastructure/helm/aws-storage-class/gp3.yaml
 ```
 
+### Amazon EFS Storage class
+
+AZ-independent storage. Requires the EFS CSI driver addon (provisioned via Terraform).
+
+```sh
+# NOTE: The EFS file system ID can be obtained from the terraform output `efs_file_system_id`
+export EFS_FILE_SYSTEM_ID=fs-xxxxxxxxxxxxxxxxx
+envsubst < infrastructure/helm/aws-storage-class/efs.yaml | kubectl apply -f -
+```
+
 ### Velero
 
 https://aws.amazon.com/blogs/containers/backup-and-restore-your-amazon-eks-cluster-resources-using-velero/
@@ -418,6 +428,8 @@ helm repo update
 
 Start pomerium proxy and wait for lb creation & certificate issue
 
+**THIS STEP HAS TO BE CARRIED OUT EVEN FOR VERSION UPGRDE!**
+
 ```
 export EIP_ALLOCATION=<PRIVATE IP ALLOCATED USING TERRAFORM HERE>
 export ISSUER=letsencrypt-dns-prod
@@ -427,8 +439,8 @@ export IDP_URL=https://auth.opendatahub.com/auth/realms/noi
 envsubst < infrastructure/helm/pomerium/service-patch.template.yaml > infrastructure/helm/pomerium/service-patch.yaml
 envsubst < infrastructure/helm/pomerium/certificate.template.yaml > infrastructure/helm/pomerium/certificate.yaml
 envsubst < infrastructure/helm/pomerium/pomerium.template.yaml > infrastructure/helm/pomerium/pomerium.yaml
-
-
+```
+```
 kubectl apply -k infrastructure/helm/pomerium
 kubectl apply -f infrastructure/helm/pomerium/pomerium.yaml
 

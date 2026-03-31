@@ -37,7 +37,7 @@ module "eks" {
       name = "main-pool"
 
       # Node group autoscaling.
-      min_size     = 1 # NOTE: the minimum size must be at least equal to the amount of subnets (zones).
+      min_size     = 3 # NOTE: the minimum size must be at least equal to the amount of subnets (zones).
       max_size     = 5
       desired_size = 3
 

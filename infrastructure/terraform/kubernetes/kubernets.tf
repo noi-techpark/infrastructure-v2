@@ -43,5 +43,9 @@ provider "kubernetes" {
        most_recent              = true
        service_account_role_arn = "arn:aws:iam::${local.account_id}:role/${data.aws_eks_cluster.default.id}-ebs-csi-controller"
      }
+     aws-efs-csi-driver = {
+       most_recent              = true
+       service_account_role_arn = "arn:aws:iam::${local.account_id}:role/${data.aws_eks_cluster.default.id}-efs-csi-controller"
+     }
    }
  }
