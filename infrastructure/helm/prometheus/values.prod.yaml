@@ -17,7 +17,7 @@ prometheus:
       - prometheus.obs.opendatahub.com
     paths: 
       - "/"
-    prometheusSpec:
-      resources:
-        requests:
-          memory: 3Gi #gives the scheduler a bigger guaranteed reservation
+  prometheusSpec:
+    resources:
+      requests:
+        memory: 3Gi #gives the scheduler a bigger guaranteed reservation
