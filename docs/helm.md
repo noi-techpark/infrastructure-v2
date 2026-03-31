@@ -541,6 +541,134 @@ Nginx with internal write, external readonly for file publication
 ```sh
 helm upgrade --install files infrastructure/helm/nginx-files/nginx-fileserver --namespace core --values infrastructure/helm/nginx-files/values.yaml
 ```
+PROD:
+```sh
+helm upgrade --install files infrastructure/helm/nginx-files/nginx-fileserver --namespace core \
+  --values infrastructure/helm/nginx-files/values.yaml \
+  --values infrastructure/helm/nginx-files/values.prod.yaml 
+```
+
+### MinIO
+
+https://artifacthub.io/packages/helm/minio/minio
+
+Single-node object storage with public GET access and pomerium-protected console.
+
+> [!IMPORTANT]
+> Requires the EFS StorageClass. Apply it before deploying MinIO:
+> ```sh
+> kubectl apply -f infrastructure/helm/aws-storage-class/efs.yaml
+> ```
+
+```sh
+helm repo add minio https://charts.min.io
+```
+
+#### Create the credentials secret
+```sh
+ROOT_USER=minioadmin
+ROOT_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24)
+
+kubectl create secret generic minio-credentials \
+  --namespace core \
+  --from-literal=rootUser="$ROOT_USER" \
+  --from-literal=rootPassword="$ROOT_PASSWORD"
+```
+
+#### Deploy
+```sh
+helm upgrade --install minio minio/minio \
+  --namespace core \
+  --values infrastructure/helm/minio/values.yaml
+```
+
+#### Bucket management via mc
+
+> [!NOTE]
+> The MinIO console (web UI) is an object browser only. Bucket administration is done via `mc` CLI.
+
+```sh
+# Start a temporary mc pod
+export ROOT_PASSWORD=$(kubectl get secret minio-credentials -n core -o jsonpath='{.data.rootPassword}' | base64 -d)
+
+kubectl run mc-admin --rm -it --restart=Never --namespace core \
+  --image=quay.io/minio/mc:latest --env="ROOT_PW=$ROOT_PASSWORD" -- sh -c '
+  mc alias set myminio http://minio:9000 minioadmin $ROOT_PW && sh'
+```
+
+Common operations inside the mc pod:
+```sh
+# Create a bucket
+mc mb myminio/my-bucket
+
+# Set anonymous download (public GET)
+mc anonymous set download myminio/my-bucket
+
+# Check bucket policy
+mc anonymous get myminio/my-bucket
+
+# Enable versioning
+mc version enable myminio/my-bucket
+
+# List buckets
+mc ls myminio/
+
+# List bucket contents
+mc ls myminio/my-bucket/
+```
+
+#### Accessing files
+
+**Public GET (anonymous, no auth needed):**
+```sh
+# Via external ingress
+curl https://bucket.dev.testingmachine.eu/public/path/file.txt
+
+# Via internal service
+curl http://minio.core.svc:9000/public/path/file.txt
+```
+
+**S3-compatible upload (authenticated, from within the cluster):**
+
+Using `mc`:
+```sh
+mc cp myfile.txt myminio/public/path/myfile.txt
+
+echo "data" | mc pipe myminio/public/path/myfile.txt
+```
+
+Using Python (boto3):
+```python
+import boto3
+
+s3 = boto3.client(
+    "s3",
+    endpoint_url="http://minio.core.svc:9000",
+    aws_access_key_id="minioadmin",
+    aws_secret_access_key="<from secret>",
+)
+
+# Upload
+s3.put_object(Bucket="public", Key="path/file.txt", Body=b"hello")
+
+# Download
+obj = s3.get_object(Bucket="public", Key="path/file.txt")
+print(obj["Body"].read().decode())
+```
+
+Using curl with HTTP (authenticated via query params with presigned URL):
+```sh
+# Generate a presigned PUT URL (valid 1h)
+mc share upload --expire 1h myminio/public/path/file.txt
+# outputs a curl command with signed URL, e.g.:
+# curl https://minio:9000/public/path/file.txt?X-Amz-Algorithm=... -F file=@/path/to/file
+
+# Generate a presigned GET URL
+mc share download --expire 1h myminio/public/path/file.txt
+```
+
+> [!NOTE]
+> Anonymous PUT is blocked by bucket policy. Internal services must authenticate using S3 credentials from the `minio-credentials` secret, or use presigned URLs.
 
 ## Preserve important volumes:
 Default storageclasses set `reclaimPolicy: Delete`, which means that deleting the PVC can accidentally delete your volume underneath.
