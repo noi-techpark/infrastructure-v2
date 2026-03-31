@@ -20,4 +20,5 @@ prometheus:
   prometheusSpec:
     resources:
       requests:
-        memory: 3Gi #gives the scheduler a bigger guaranteed reservation
+        memory: 3Gi
+
