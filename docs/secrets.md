@@ -102,6 +102,29 @@ Used by data collectors to authenticate themselves (mostly for pushing to writer
     --from-literal=clientSecret='*************'
 ```
 
+## Raw data S3 bucket
+Used by the raw writer and bridge to store and retrieve raw data.
+
+```sh
+  # terraform init so you have access to the state
+  (cd infrastructure/terraform/storage; terraform init)
+
+  # Extract credentials and bucket name from terraform:
+  EXTRACTED_JSON=`terraform -chdir=infrastructure/terraform/storage output -json | jq -r '.buckets.value["opendatahub-raw"]'`
+
+  S3_BUCKET=`jq '.bucket_name' -r <<< "$EXTRACTED_JSON"`
+  S3_ACCESS_KEY_ID=`jq '.access_key_id' -r <<< "$EXTRACTED_JSON"`
+  S3_SECRET_ACCESS_KEY=`jq '.secret_access_key' -r <<< "$EXTRACTED_JSON"`
+
+  kubectl create secret generic raw-s3 \
+    --namespace core \
+    --from-literal=bucketName="$S3_BUCKET" \
+    --from-literal=accessKeyId="$S3_ACCESS_KEY_ID" \
+    --from-literal=secretAccessKey="$S3_SECRET_ACCESS_KEY" \
+    --from-literal=region="eu-west-1"
+```
+
+
 # Expose secrets to other namespaces
 Secrets are namespace-bound in Kubernetes.  
 To make certain secrets available across namespaces, we use kubernetes-reflector.
