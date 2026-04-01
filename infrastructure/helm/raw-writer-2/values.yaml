@@ -3,12 +3,6 @@ image:
   pullPolicy: Always
   tag: "v2.0"
 
-# IRSA: role ARN from terraform output s3_raw_role_arn
-serviceAccount:
-  create: true
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/RawWriter2Role
-
 env:
   - name: MONGO_URI
     valueFrom:
@@ -18,9 +12,25 @@ env:
   - name: DB_PREFIX
     value: rawdata
   - name: S3_BUCKET
-    value: opendatahub-raw-XXXXX  # fill from terraform output s3_raw_bucket_name
+    valueFrom:
+      secretKeyRef:
+        name: raw-s3
+        key: bucketName
   - name: S3_REGION
-    value: eu-west-1
+    valueFrom:
+      secretKeyRef:
+        name: raw-s3
+        key: region
+  - name: AWS_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: raw-s3
+        key: accessKeyId
+  - name: AWS_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: raw-s3
+        key: secretAccessKey
   - name: MQ_URI
     valueFrom:
       secretKeyRef:
