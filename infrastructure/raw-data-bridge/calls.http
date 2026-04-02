@@ -7,8 +7,3 @@ GET {{host}}/urns/urn:raw:a22:environment:6891e54b9237c6dd3479712f
 GET {{host}}/urns/urn:raw:s3-poller:meteorology-bz-forecast:67a4ce70d3a62887e54455e2
 ### Has an array as rawdata
 GET {{host}}/urns/urn:raw:parking-offstreet-famas:bolzano:683ff7249237c6dd345cbf29
-
-### raw writer 2 tests
-GET {{host}}/urns/urn:raw:raw-writer-test:small-text:69ce2e4e701bb2228007f7b2
-### raw writer 2 s3 ref
-GET {{host}}/urns/urn:raw:raw-writer-test:large-json:69ce2e6e701bb2228007f7b8

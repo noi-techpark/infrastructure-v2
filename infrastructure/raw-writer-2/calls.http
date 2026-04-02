@@ -127,3 +127,10 @@ Content-Type: application/json
 User-Agent: calls-http/test
 
 {"x": 1}
+
+
+@rawbridge=http://localhost:2000
+### raw writer 2 tests
+GET {{rawbridge}}/urns/urn:raw:raw-writer-test:small-text:69ce65d1958a435b2af0910f
+### raw writer 2 s3 ref
+GET {{rawbridge}}/urns/urn:raw:raw-writer-test:large-json:69ce65d8958a435b2af09114
