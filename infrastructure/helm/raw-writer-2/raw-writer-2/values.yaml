@@ -10,9 +10,6 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-serviceAccount:
-  create: false
-  annotations: {}
 
 env:
   - name: MONGO_URI
