@@ -30,10 +30,7 @@ func isText(mediaType string) bool {
 	switch mediaType {
 	case "application/json",
 		"application/xml",
-		"application/javascript",
-		"application/x-ndjson",
 		"application/yaml",
-		"application/x-yaml",
 		"application/csv",
 		"application/x-www-form-urlencoded":
 		return true

@@ -22,7 +22,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-
 type meta struct {
 	Provider     string
 	Timestamp    time.Time
@@ -95,10 +94,7 @@ func isText(mediaType string) bool {
 	switch mediaType {
 	case "application/json",
 		"application/xml",
-		"application/javascript",
-		"application/x-ndjson",
 		"application/yaml",
-		"application/x-yaml",
 		"application/csv",
 		"application/x-www-form-urlencoded":
 		return true
