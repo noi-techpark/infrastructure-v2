@@ -1,7 +1,7 @@
 image:
   repository: ghcr.io/noi-techpark/infrastructure-v2/raw-data-bridge
   pullPolicy: Always
-  tag: "v1.1"
+  tag: "v2.0"
 
 env:
   - name: APP_MONGO_URI
