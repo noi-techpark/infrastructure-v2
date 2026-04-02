@@ -56,3 +56,26 @@ jobs:
           aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
           aws-eks-cluster-name: aws-main-eu-01
           aws-region: eu-west-1
+
+  deploy-test:
+    if: github.ref == 'refs/wip/raw-writer-2'
+    needs: 
+      - build
+    runs-on: ubuntu-24.04
+    concurrency: odh-v2-core-bridge-build-deploy-test
+    environment: test
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Deploy on cluster
+        uses: noi-techpark/github-actions/helm-deploy@v2
+        with:
+          k8s-name: raw-data-bridge-2
+          k8s-namespace: ${{ env.KUBERNETES_NAMESPACE }}
+          chart-path: ${{ env.KUBERNETES_CHART_PATH }}
+          values-file: ${{ env.KUBERNETES_VALUE_PATH }}
+          aws-access-key-id: ${{ secrets[vars.AWS_KEY_ID] }}
+          aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
+          aws-eks-cluster-name: aws-main-eu-01
+          aws-region: eu-west-1
