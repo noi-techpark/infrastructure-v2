@@ -86,34 +86,9 @@ func detectMediaType(r *http.Request, body []byte) string {
 	return mediaType
 }
 
-// isBinary returns true for formats whose bytes are not meaningful as UTF-8 text.
-// Everything else (including unknown types) is treated as text/string in storage.
-func isBinary(mediaType string) bool {
-	if strings.HasPrefix(mediaType, "image/") ||
-		strings.HasPrefix(mediaType, "audio/") ||
-		strings.HasPrefix(mediaType, "video/") {
-		return true
-	}
-	switch mediaType {
-	case "application/octet-stream",
-		"application/bson",
-		"application/zip",
-		"application/gzip", "application/x-gzip",
-		"application/zstd",
-		"application/x-tar",
-		"application/pdf",
-		"application/parquet",
-		"application/protobuf", "application/x-protobuf",
-		"application/msgpack", "application/x-msgpack",
-		"application/cbor":
-		return true
-	}
-	return false
-}
-
-// isCompressible returns true for text-based formats that benefit from compression.
-// Binary and already-compressed formats are excluded.
-func isCompressible(mediaType string) bool {
+// isText returns true for formats that are meaningful as UTF-8 text.
+// Everything else (including unknown types) is stored as binary.
+func isText(mediaType string) bool {
 	if strings.HasPrefix(mediaType, "text/") {
 		return true
 	}
@@ -175,7 +150,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		// For large files, compress payloads before uploading to S3.
 		data := raw
 		s3KeySuffix := ""
-		if isCompressible(mediaType) {
+		if isText(mediaType) {
 			compressed, cerr := compressZstd(raw)
 			if cerr != nil {
 				log.Warn("zstd compression failed, storing uncompressed", "err", cerr)
@@ -207,7 +182,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		s3URN := fmt.Sprintf("urn:s3:%s:%s", cfg.S3_BUCKET, s3Key)
 		span.SetAttributes(attribute.String("s3.urn", s3URN))
 
-		wr, err := mongoWriteS3Ref(ctx, m, s3URN, mediaType)
+		wr, err := mongoWrite(ctx, m, mediaType, nil, s3URN)
 		if err != nil {
 			log.Error("mongo write failed after s3 upload", "err", err, "s3_key", s3Key)
 			span.RecordError(err)
@@ -228,7 +203,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprintf(w, `{"id":%q,"s3_ref":%q}`, wr.ID, s3URN)
 	} else {
-		wr, err := mongoWriteRaw(ctx, m, raw, mediaType)
+		wr, err := mongoWrite(ctx, m, mediaType, raw, "")
 		if err != nil {
 			log.Error("mongo write failed", "err", err)
 			span.RecordError(err)

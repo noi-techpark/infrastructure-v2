@@ -9,27 +9,19 @@ import (
 	"log"
 	"log/slog"
 
-	"github.com/kelseyhightower/envconfig"
 	"github.com/noi-techpark/opendatahub-go-sdk/ingest/ms"
 	"github.com/noi-techpark/opendatahub-go-sdk/tel"
 	"golang.org/x/sync/errgroup"
-	s3client "opendatahub.com/infrav2/raw-data-bridge/s3"
 	"opendatahub.com/infrav2/raw-data-bridge/rdt"
+	s3client "opendatahub.com/infrav2/raw-data-bridge/s3"
 )
 
 var cfg struct {
-	MONGO_URI           string
-	DB_PREFIX           string
-	S3_ENDPOINT         string
-	S3_ACCESS_KEY_ID    string
+	MONGO_URI            string
+	DB_PREFIX            string
+	S3_ENDPOINT          string
+	S3_ACCESS_KEY_ID     string
 	S3_SECRET_ACCESS_KEY string
-}
-
-func initConfig() {
-	err := envconfig.Process("APP", &cfg)
-	if err != nil {
-		log.Panic("Unable to initialize config", err)
-	}
 }
 
 func main() {
