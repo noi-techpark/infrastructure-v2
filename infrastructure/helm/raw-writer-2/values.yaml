@@ -9,8 +9,6 @@ env:
       secretKeyRef:
         name: mongodb-writer-svcbind
         key: uri
-  - name: DB_PREFIX
-    value: rawdata
   - name: S3_BUCKET
     valueFrom:
       secretKeyRef:

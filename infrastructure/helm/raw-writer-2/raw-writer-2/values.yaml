@@ -15,7 +15,7 @@ env:
   - name: MONGO_URI
     value: mongodb://user:password@mongodb
   - name: DB_PREFIX
-    value: rawdata
+    value: ""
   - name: S3_BUCKET
     value: raw-data
   - name: S3_ENDPOINT

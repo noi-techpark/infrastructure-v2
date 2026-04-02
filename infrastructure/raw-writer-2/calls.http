@@ -27,7 +27,7 @@ GET {{host}}/ready
 # ─── Small payloads → stored directly in MongoDB (<5 MB) ──────────────────────
 
 ### Small JSON — compressible text type, inline body (→ Mongo, raw string)
-POST {{host}}/open-meteo/bolzano-weather/{{ts}}
+POST {{host}}/test/small-json/{{ts}}
 Content-Type: application/json
 User-Agent: calls-http/test
 X-OpenDataHub-Source: open-meteo-api
@@ -38,7 +38,7 @@ X-OpenDataHub-License: CC-BY-4.0
 ###
 
 ### Small plain text — text/* is compressible but small (→ Mongo, raw string)
-POST {{host}}/test/plain-text/{{ts2}}
+POST {{host}}/test/small-text/{{ts2}}
 Content-Type: text/plain
 User-Agent: calls-http/test
 
@@ -48,7 +48,7 @@ Hello, this is a small plain-text payload.
 
 ### Small binary — application/octet-stream is non-compressible, isBinary=true (→ Mongo, binary field)
 # Body is 4 raw bytes (a tiny binary blob).
-POST {{host}}/test/binary-small/{{ts3}}
+POST {{host}}/test/small-binary/{{ts3}}
 Content-Type: application/octet-stream
 User-Agent: calls-http/test
 
@@ -58,7 +58,7 @@ User-Agent: calls-http/test
 
 ### Small BSON (valid) — JSON body with application/bson content-type; isBinary=true (→ Mongo, binary field)
 # The API stores the raw bytes; the consumer interprets the JSON as BSON.
-POST {{host}}/test/bson-valid/{{ts4}}
+POST {{host}}/test/small-bson-valid/{{ts4}}
 Content-Type: application/bson
 User-Agent: calls-http/test
 
@@ -68,7 +68,7 @@ User-Agent: calls-http/test
 
 ### Small BSON (invalid) — malformed JSON with application/bson content-type (→ Mongo, binary field; bytes stored as-is)
 # The service stores whatever bytes it receives; BSON/JSON validation is the consumer's job.
-POST {{host}}/test/bson-invalid/{{ts5}}
+POST {{host}}/test/small-bson-invalid/{{ts5}}
 Content-Type: application/bson
 User-Agent: calls-http/test
 
@@ -76,15 +76,12 @@ User-Agent: calls-http/test
 
 
 # ─── Large payloads → uploaded to S3 (≥5 MB) ──────────────────────────────────
-#
-# Generate test files once:
-#   python3 -c "import json,sys; sys.stdout.write(json.dumps([{'id':i,'v':i*1.0} for i in range(200000)]))" > testdata/large.json
-#   dd if=/dev/urandom bs=1M count=6 of=testdata/large.bin
+# Run ./testdata/generate.sh first to create the required files.
 
 ###
 
 ### Large JSON — compressible (→ S3 with .zst suffix, key: provider/timestamp_hash.zst)
-POST {{host}}/synthetic/sensor-history/{{ts6}}
+POST {{host}}/test/large-json/{{ts6}}
 Content-Type: application/json
 User-Agent: calls-http/test
 X-OpenDataHub-Source: synthetic-generator
@@ -95,7 +92,7 @@ X-OpenDataHub-Station: Bolzano-Center
 ###
 
 ### Large binary (octet-stream) — non-compressible (→ S3 without .zst suffix, stored raw)
-POST {{host}}/synthetic/binary-large/{{ts7}}
+POST {{host}}/test/large-binary/{{ts7}}
 Content-Type: application/octet-stream
 User-Agent: calls-http/test
 
