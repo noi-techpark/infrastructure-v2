@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -52,10 +53,12 @@ func mongoWriteRaw(ctx context.Context, m meta, raw []byte, contentType string) 
 	switch {
 	case contentType == "application/bson":
 		var doc bson.M
-		if err := bson.UnmarshalExtJSON(raw, true, &doc); err != nil {
-			rawData = raw // malformed BSON: fall back to binary
-		} else {
+		if err := json.Unmarshal(raw, &doc); err == nil {
 			rawData = doc
+		} else if err := bson.Unmarshal(raw, &doc); err == nil {
+			rawData = doc
+		} else {
+			rawData = raw
 		}
 	case isBinary(contentType):
 		rawData = raw
@@ -69,7 +72,9 @@ func mongoWriteRaw(ctx context.Context, m meta, raw []byte, contentType string) 
 		"content_type":  contentType,
 		"rawdata":       rawData,
 	}
-	doc["meta"] = m.ExtraHeaders
+	if len(m.ExtraHeaders) > 0 {
+		doc["meta"] = m.ExtraHeaders
+	}
 	res, err := mongoClient.Database(db).Collection(coll).InsertOne(ctx, doc)
 	if err != nil {
 		return writeResult{}, fmt.Errorf("mongo insert failed: %w", err)
@@ -100,7 +105,9 @@ func mongoWriteS3Ref(ctx context.Context, m meta, s3URN, contentType string) (wr
 		"content_type":  contentType,
 		"raw_ref":       s3URN,
 	}
-	doc["meta"] = m.ExtraHeaders
+	if len(m.ExtraHeaders) > 0 {
+		doc["meta"] = m.ExtraHeaders
+	}
 	res, err := mongoClient.Database(db).Collection(coll).InsertOne(ctx, doc)
 	if err != nil {
 		return writeResult{}, fmt.Errorf("mongo insert failed: %w", err)
