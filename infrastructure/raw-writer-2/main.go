@@ -31,8 +31,8 @@ var cfg struct {
 	S3_BUCKET   string
 	S3_ENDPOINT string // optional, for MinIO or custom S3-compatible storage
 	S3_REGION   string `default:"eu-west-1"`
-	MAX_SIZE      int64  `default:"104857600"` // 100 MB
-	HEADER_PREFIX string `default:"X-OpenDataHub-"`
+	LARGE_SIZE_THRESHOLD int64  `default:"5242880"` // 5 MB — payloads at or above this go to S3
+	HEADER_PREFIX        string `default:"X-OpenDataHub-"`
 
 	MQ_URI            string
 	MQ_CLIENT_NAME    string

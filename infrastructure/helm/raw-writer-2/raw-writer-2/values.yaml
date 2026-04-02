@@ -35,6 +35,8 @@ env:
     value: ready
   - name: MQ_READY_DL_QUEUE
     value: ready-dl
+  - name: LARGE_SIZE_THRESHOLD
+    value: "5242880"
 
 podAnnotations: {}
 podLabels: {}

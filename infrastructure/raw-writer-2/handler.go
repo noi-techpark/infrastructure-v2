@@ -22,7 +22,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const largeSizeThreshold = 5 * 1024 * 1024 // 5 MB
 
 type meta struct {
 	Provider     string
@@ -156,7 +155,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Based on payload size put message into mongo or S3
-	r.Body = http.MaxBytesReader(w, r.Body, cfg.MAX_SIZE)
+	r.Body = http.MaxBytesReader(w, r.Body, cfg.LARGE_SIZE_THRESHOLD)
 	raw, err := io.ReadAll(r.Body)
 	if err != nil {
 		span.RecordError(err)
@@ -173,7 +172,7 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 		attribute.String("content_type", mediaType),
 	)
 
-	if len(raw) >= largeSizeThreshold {
+	if int64(len(raw)) >= cfg.LARGE_SIZE_THRESHOLD {
 		// For large files, compress payloads before uploading to S3.
 		data := raw
 		s3KeySuffix := ""
