@@ -155,12 +155,11 @@ func handleIngest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Based on payload size put message into mongo or S3
-	r.Body = http.MaxBytesReader(w, r.Body, cfg.LARGE_SIZE_THRESHOLD)
 	raw, err := io.ReadAll(r.Body)
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		http.Error(w, "failed reading body", http.StatusRequestEntityTooLarge)
+		http.Error(w, "failed reading body", http.StatusInternalServerError)
 		return
 	}
 
