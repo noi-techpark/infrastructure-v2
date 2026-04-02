@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o writer
 
-FROM scratch AS release
+FROM alpine AS release
 COPY --from=build /app/writer /writer
 CMD ["/writer"]
 
