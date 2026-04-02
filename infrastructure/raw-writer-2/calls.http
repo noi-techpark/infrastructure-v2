@@ -1,0 +1,122 @@
+### raw-writer-2 API test calls
+# Configurable host:
+@host = http://localhost:8080
+
+# Timestamps must be RFC3339. Update these as needed.
+@ts = 2026-04-02T10:00:00Z
+@ts2 = 2026-04-02T10:01:00Z
+@ts3 = 2026-04-02T10:02:00Z
+@ts4 = 2026-04-02T10:03:00Z
+@ts5 = 2026-04-02T10:04:00Z
+@ts6 = 2026-04-02T10:05:00Z
+@ts7 = 2026-04-02T10:06:00Z
+@ts8 = 2026-04-02T10:07:00Z
+
+
+# ─── Health checks ────────────────────────────────────────────────────────────
+
+### Liveness probe (always 200 if process is up)
+GET {{host}}/live
+
+###
+
+### Readiness probe (200 once dependencies are ready)
+GET {{host}}/ready
+
+
+# ─── Small payloads → stored directly in MongoDB (<5 MB) ──────────────────────
+
+### Small JSON — compressible text type, inline body (→ Mongo, raw string)
+POST {{host}}/open-meteo/bolzano-weather/{{ts}}
+Content-Type: application/json
+User-Agent: calls-http/test
+X-OpenDataHub-Source: open-meteo-api
+X-OpenDataHub-License: CC-BY-4.0
+
+{"temperature_2m": 12.5, "precipitation": 0.0, "wind_speed_10m": 3.2}
+
+###
+
+### Small plain text — text/* is compressible but small (→ Mongo, raw string)
+POST {{host}}/test/plain-text/{{ts2}}
+Content-Type: text/plain
+User-Agent: calls-http/test
+
+Hello, this is a small plain-text payload.
+
+###
+
+### Small binary — application/octet-stream is non-compressible, isBinary=true (→ Mongo, binary field)
+# Body is 4 raw bytes (a tiny binary blob).
+POST {{host}}/test/binary-small/{{ts3}}
+Content-Type: application/octet-stream
+User-Agent: calls-http/test
+
+< ./testdata/small.bin
+
+###
+
+### Small BSON (valid) — JSON body with application/bson content-type; isBinary=true (→ Mongo, binary field)
+# The API stores the raw bytes; the consumer interprets the JSON as BSON.
+POST {{host}}/test/bson-valid/{{ts4}}
+Content-Type: application/bson
+User-Agent: calls-http/test
+
+{"hello": "world", "value": 42}
+
+###
+
+### Small BSON (invalid) — malformed JSON with application/bson content-type (→ Mongo, binary field; bytes stored as-is)
+# The service stores whatever bytes it receives; BSON/JSON validation is the consumer's job.
+POST {{host}}/test/bson-invalid/{{ts5}}
+Content-Type: application/bson
+User-Agent: calls-http/test
+
+{hello: world, this is not valid json or bson}
+
+
+# ─── Large payloads → uploaded to S3 (≥5 MB) ──────────────────────────────────
+#
+# Generate test files once:
+#   python3 -c "import json,sys; sys.stdout.write(json.dumps([{'id':i,'v':i*1.0} for i in range(200000)]))" > testdata/large.json
+#   dd if=/dev/urandom bs=1M count=6 of=testdata/large.bin
+
+###
+
+### Large JSON — compressible (→ S3 with .zst suffix, key: provider/timestamp_hash.zst)
+POST {{host}}/synthetic/sensor-history/{{ts6}}
+Content-Type: application/json
+User-Agent: calls-http/test
+X-OpenDataHub-Source: synthetic-generator
+X-OpenDataHub-Station: Bolzano-Center
+
+< ./testdata/large.json
+
+###
+
+### Large binary (octet-stream) — non-compressible (→ S3 without .zst suffix, stored raw)
+POST {{host}}/synthetic/binary-large/{{ts7}}
+Content-Type: application/octet-stream
+User-Agent: calls-http/test
+
+< ./testdata/large.bin
+
+
+# ─── Validation errors → 400 ──────────────────────────────────────────────────
+
+###
+
+### Missing User-Agent → 400 "missing header User-Agent"
+POST {{host}}/test/missing-ua/{{ts8}}
+Content-Type: application/json
+
+{"x": 1}
+
+###
+
+### Invalid timestamp (not RFC3339) → 400 "invalid timestamp (RFC3339 required)"
+POST {{host}}/test/bad-ts/20260402-100000
+Content-Type: application/json
+User-Agent: calls-http/test
+
+{"x": 1}
