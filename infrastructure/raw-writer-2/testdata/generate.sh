@@ -13,6 +13,25 @@ cd "$(dirname "$0")"
 printf '\xDE\xAD\xBE\xEF' > small.bin
 echo "created small.bin (4 bytes)"
 
+# small.bson — binary BSON encoding of {"hello":"world","value":42} (exercises the binary BSON path)
+python3 -c "
+import struct, sys
+
+def bson_string(key, val):
+    k = key.encode() + b'\x00'
+    v = val.encode() + b'\x00'
+    return b'\x02' + k + struct.pack('<i', len(v)) + v
+
+def bson_int32(key, val):
+    k = key.encode() + b'\x00'
+    return b'\x10' + k + struct.pack('<i', val)
+
+body = bson_string('hello', 'world') + bson_int32('value', 42)
+doc = struct.pack('<i', 4 + 1 + len(body)) + body + b'\x00'
+sys.stdout.buffer.write(doc)
+" > small.bson
+echo "created small.bson ($(wc -c < small.bson) bytes)"
+
 # large.json — ~6 MB JSON array (exercises the large compressible path → S3 + zstd)
 python3 -c "
 import json, sys
