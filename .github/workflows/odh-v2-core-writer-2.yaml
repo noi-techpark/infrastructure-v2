@@ -32,6 +32,8 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Manually build and push image
+      env:
+        IMAGE_TAG: ${{ github.sha }}
       run: cd ${{ env.WORKING_DIRECTORY }} && ./build.sh
 
   deploy:
@@ -44,6 +46,11 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+
+      - name: Patch image tag in values file
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: yq e -i '.image.tag = strenv(IMAGE_TAG)' ${{ env.KUBERNETES_VALUE_PATH }}
 
       - name: Deploy on cluster
         uses: noi-techpark/github-actions/helm-deploy@v2
