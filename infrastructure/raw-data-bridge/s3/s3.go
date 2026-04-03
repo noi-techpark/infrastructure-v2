@@ -40,8 +40,9 @@ func NewClient(cfg Config) (*S3Client, error) {
 	}
 
 	mc, err := minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
-		Secure: useSSL,
+		Creds:        credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
+		Secure:       useSSL,
+		BucketLookup: minio.BucketLookupPath,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("minio client init: %w", err)
