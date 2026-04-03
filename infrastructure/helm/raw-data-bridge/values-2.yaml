@@ -1,0 +1,11 @@
+env:
+  - name: APP_S3_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: raw-s3
+        key: accessKeyId
+  - name: APP_S3_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: raw-s3
+        key: secretAccessKey
