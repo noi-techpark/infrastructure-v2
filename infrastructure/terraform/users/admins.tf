@@ -50,3 +50,12 @@ resource "aws_iam_group_membership" "admin_members" {
   users = values(aws_iam_user.admins)[*].name
   group = aws_iam_group.admins.name
 }
+
+# Attach IAMUserChangePassword directly to each user so they can change their
+# own password when prompted at sign-in. Group policies are not evaluated in
+# the restricted session state that AWS enforces during a forced password reset.
+resource "aws_iam_user_policy_attachment" "admin_change_password" {
+  for_each   = toset(local.admins)
+  user       = aws_iam_user.admins[each.value].name
+  policy_arn = "arn:aws:iam::aws:policy/IAMUserChangePassword"
+}
