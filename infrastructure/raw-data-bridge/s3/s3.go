@@ -20,6 +20,7 @@ type Config struct {
 	Endpoint        string
 	AccessKeyID     string
 	SecretAccessKey string
+	Region          string
 }
 
 type S3Client struct {
@@ -42,6 +43,7 @@ func NewClient(cfg Config) (*S3Client, error) {
 	mc, err := minio.New(endpoint, &minio.Options{
 		Creds:        credentials.NewStaticV4(cfg.AccessKeyID, cfg.SecretAccessKey, ""),
 		Secure:       useSSL,
+		Region:       cfg.Region,
 		BucketLookup: minio.BucketLookupPath,
 	})
 	if err != nil {

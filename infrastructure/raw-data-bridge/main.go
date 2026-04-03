@@ -22,6 +22,7 @@ var cfg struct {
 	S3_ENDPOINT          string
 	S3_ACCESS_KEY_ID     string
 	S3_SECRET_ACCESS_KEY string
+	S3_REGION            string
 }
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 		Endpoint:        cfg.S3_ENDPOINT,
 		AccessKeyID:     cfg.S3_ACCESS_KEY_ID,
 		SecretAccessKey: cfg.S3_SECRET_ACCESS_KEY,
+		Region:          cfg.S3_REGION,
 	}); err != nil {
 		log.Panic("Unable to initialize retrievers", err)
 	}
