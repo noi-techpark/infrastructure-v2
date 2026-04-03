@@ -138,19 +138,21 @@ func (s *Server) GetDocument(c *gin.Context) {
 	if rawRef, ok := (*doc)["raw_ref"].(string); ok && rawRef != "" {
 		contentType, _ := (*doc)["content_type"].(string)
 		retriever, ok := GetRetriever(rawRef)
-		if ok {
-			data, rerr := retriever.Retrieve(ctx, rawRef)
-			if rerr != nil {
-				log.Warn("failed to retrieve raw_ref data", "raw_ref", rawRef, "err", rerr)
-			} else {
-				if isText(contentType) {
-					(*doc)["rawdata"] = string(data)
-				} else {
-					(*doc)["rawdata"] = data
-				}
-			}
+		if !ok {
+			log.Error("no retriever for raw_ref scheme", "raw_ref", rawRef)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "no retriever for raw data reference"})
+			return
+		}
+		data, rerr := retriever.Retrieve(ctx, rawRef)
+		if rerr != nil {
+			log.Error("failed to retrieve raw_ref data", "raw_ref", rawRef, "err", rerr)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve raw data"})
+			return
+		}
+		if isText(contentType) {
+			(*doc)["rawdata"] = string(data)
 		} else {
-			log.Warn("no retriever for raw_ref scheme", "raw_ref", rawRef)
+			(*doc)["rawdata"] = data
 		}
 	}
 
