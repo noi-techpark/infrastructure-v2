@@ -17,3 +17,8 @@ prometheus:
       - prometheus.obs.opendatahub.com
     paths: 
       - "/"
+  prometheusSpec:
+    resources:
+      requests:
+        memory: 3Gi
+
