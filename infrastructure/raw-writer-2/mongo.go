@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/noi-techpark/opendatahub-go-sdk/tel"
 	"go.mongodb.org/mongo-driver/bson"
@@ -36,6 +37,7 @@ func buildDoc(m meta, contentType string, raw []byte, s3URN string) bson.M {
 		"provider":      m.Provider,
 		"bsontimestamp": m.Timestamp,
 		"provenance":    m.Provenance,
+		"timestamp":     m.Timestamp.UTC().Format(time.RFC3339),
 		"content_type":  contentType,
 	}
 	if s3URN != "" {
