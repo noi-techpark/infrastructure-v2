@@ -1,0 +1,6 @@
+apiVersion: v2
+name: raw-writer-2
+description: Raw data writer service v2 (S3 + MongoDB + RabbitMQ)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

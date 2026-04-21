@@ -1,25 +1,25 @@
-name: CI/CD odh-v2-core-bridge
+name: CI/CD odh-v2-core-writer-2
 
 on: 
   push:
     paths:
-      - "infrastructure/raw-data-bridge/**"      
-      - "infrastructure/helm/raw-data-bridge/**"
-      - ".github/workflows/odh-v2-core-bridge.yaml"
+      - "infrastructure/raw-writer-2/**"      
+      - "infrastructure/helm/raw-writer-2/**"
+      - ".github/workflows/odh-v2-core-writer-2.yaml"
   workflow_dispatch:
 
 env:
-  WORKING_DIRECTORY: infrastructure/raw-data-bridge
+  WORKING_DIRECTORY: infrastructure/raw-writer-2
   KUBERNETES_NAMESPACE: core
-  KUBERNETES_VALUE_PATH: infrastructure/helm/raw-data-bridge/values.yaml
-  KUBERNETES_CHART_PATH: infrastructure/helm/raw-data-bridge/raw-data-bridge
-  PROJECT_NAME: raw-data-bridge
+  KUBERNETES_VALUE_PATH: infrastructure/helm/raw-writer-2/values.yaml
+  KUBERNETES_CHART_PATH: infrastructure/helm/raw-writer-2/raw-writer-2
+  PROJECT_NAME: raw-writer-2
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod'
-    runs-on: ubuntu-22.04
-    concurrency: odh-v2-core-bridge-build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    concurrency: odh-v2-core-writer-2-build
     steps:
     - name: Checkout source code
       uses: actions/checkout@v4
@@ -32,18 +32,25 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Manually build and push image
+      env:
+        IMAGE_TAG: ${{ github.sha }}
       run: cd ${{ env.WORKING_DIRECTORY }} && ./build.sh
 
   deploy:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod'
+    if: github.ref == 'refs/heads/main'
     needs: 
       - build
-    runs-on: ubuntu-22.04
-    concurrency: odh-v2-core-bridge-build-deploy
-    environment: ${{ github.ref == 'refs/heads/main' && 'test' || github.ref == 'refs/heads/prod' && 'prod' || 'unknown' }}
+    runs-on: ubuntu-24.04
+    concurrency: odh-v2-core-writer-2-build-deploy
+    environment: ${{ github.ref == 'refs/heads/main' && 'test' || 'unknown' }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+
+      - name: Patch image tag in values file
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: yq e -i '.image.tag = strenv(IMAGE_TAG)' ${{ env.KUBERNETES_VALUE_PATH }}
 
       - name: Deploy on cluster
         uses: noi-techpark/github-actions/helm-deploy@v2

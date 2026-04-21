@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-FROM golang:1.23.7-bookworm AS base
+FROM golang:1.25-bookworm AS base
 
 FROM base AS build
 WORKDIR /app
@@ -11,7 +11,7 @@ COPY go.sum .
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o raw-data-bridge
 
-FROM scratch AS release
+FROM alpine AS release
 COPY --from=build /app/raw-data-bridge /raw-data-bridge
 CMD ["/raw-data-bridge"]
 
