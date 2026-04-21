@@ -42,7 +42,7 @@ jobs:
       - build
     runs-on: ubuntu-24.04
     concurrency: odh-v2-core-writer-2-build-deploy
-    environment: ${{ github.ref == 'refs/heads/wip/raw-writer-2' && 'test' || 'unknown' }}
+    environment: ${{ github.ref == 'refs/heads/main' && 'test' || 'unknown' }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
