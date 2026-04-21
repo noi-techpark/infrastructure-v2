@@ -1,0 +1,10 @@
+# Local state
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# Credentials
+.env
+*.tfvars
+*.tfvars.json
