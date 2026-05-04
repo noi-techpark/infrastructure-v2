@@ -8,8 +8,8 @@ resource "aws_backup_plan" "rds" {
     completion_window = 1440
 
     lifecycle {
-      delete_after = 365
-      cold_storage_after = 10 
+      delete_after = var.DB_WEEKLY_BKP_RETENTION_DAYS
+      cold_storage_after = var.DB_WEEKLY_BKP_RETENTION_DAYS > 100 ? 10 : null
     }
   }
 }

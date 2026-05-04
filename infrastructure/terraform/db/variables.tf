@@ -24,6 +24,11 @@ variable "DB_INSTANCE_TYPE" {
   default = "db.t4g.medium"
 }
 
+variable "DB_WEEKLY_BKP_RETENTION_DAYS" {
+  type = number
+  default = 365
+}
+
 variable "DB_INSTANCE_STORAGE_GB" {
   type    = number
   default = 20
