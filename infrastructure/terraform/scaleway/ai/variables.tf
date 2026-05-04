@@ -39,7 +39,12 @@ variable "INFERENCE_NODE_TYPE" {
   default = "L4"
 }
 
-variable "INFERENCE_MODEL_NAME" {
+variable "INFERENCE_MODEL_ID" {
+  type = string
+  # UUID from Scaleway console: Managed Inference → Models
+}
+
+variable "CHATBOT_API_KEY_EXPIRES_AT" {
   type    = string
-  default = "mistral/mistral-nemo-instruct-2407"
+  default = "2027-01-01T00:00:00Z"
 }

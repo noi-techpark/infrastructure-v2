@@ -8,7 +8,7 @@ resource "scaleway_inference_deployment" "chatbot" {
   count      = var.INFERENCE_DEPLOYMENT_COUNT
   name       = var.INFERENCE_DEPLOYMENT_COUNT == 1 ? "chatbot" : "chatbot-${count.index}"
   node_type  = var.INFERENCE_NODE_TYPE
-  model_name = var.INFERENCE_MODEL_NAME
+  model_id   = var.INFERENCE_MODEL_ID
   accept_eula = true
 
   public_endpoint {
@@ -36,4 +36,5 @@ resource "scaleway_iam_policy" "chatbot_inference" {
 resource "scaleway_iam_api_key" "chatbot" {
   application_id = scaleway_iam_application.chatbot.id
   description    = "API key for chatbot inference access"
+  expires_at     = var.CHATBOT_API_KEY_EXPIRES_AT
 }
