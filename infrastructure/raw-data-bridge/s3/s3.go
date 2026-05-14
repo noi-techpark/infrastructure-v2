@@ -9,7 +9,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/klauspost/compress/zstd"
 	"github.com/minio/minio-go/v7"
@@ -55,27 +57,50 @@ func NewClient(cfg Config) (*S3Client, error) {
 // Retrieve fetches the object at the given S3 URN and returns its contents.
 // URN format: urn:s3:{bucket}:{key}
 // If the key ends in .zst the object is zstd-decompressed before returning.
+// The download (GetObject + ReadAll) is retried up to 3 times with backoff to
+// handle transient network errors (e.g. unexpected EOF mid-stream).
 func (c *S3Client) Retrieve(ctx context.Context, urn string) ([]byte, error) {
 	bucket, key, err := ParseURN(urn)
 	if err != nil {
 		return nil, err
 	}
 
-	obj, err := c.mc.GetObject(ctx, bucket, key, minio.GetObjectOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("s3 get object: %w", err)
-	}
-	defer obj.Close()
+	const maxAttempts = 3
+	var lastErr error
+	for attempt := range maxAttempts {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(time.Duration(attempt) * 500 * time.Millisecond):
+			}
+		}
 
-	data, err := io.ReadAll(obj)
-	if err != nil {
-		return nil, fmt.Errorf("s3 read object: %w", err)
-	}
+		obj, err := c.mc.GetObject(ctx, bucket, key, minio.GetObjectOptions{})
+		if err != nil {
+			lastErr = fmt.Errorf("s3 get object: %w", err)
+			slog.WarnContext(ctx, "s3 get object failed, retrying", "attempt", attempt+1, "key", key, "err", err)
+			continue
+		}
 
-	if strings.HasSuffix(key, ".zst") {
-		return DecompressZstd(data)
+		data, err := io.ReadAll(obj)
+		obj.Close()
+		if err != nil {
+			lastErr = fmt.Errorf("s3 read object: %w", err)
+			slog.WarnContext(ctx, "s3 read object failed, retrying", "attempt", attempt+1, "key", key, "err", err)
+			continue
+		}
+
+		if attempt > 0 {
+			slog.WarnContext(ctx, "s3 retrieve succeeded after retry", "attempt", attempt+1, "key", key)
+		}
+
+		if strings.HasSuffix(key, ".zst") {
+			return DecompressZstd(data)
+		}
+		return data, nil
 	}
-	return data, nil
+	return nil, lastErr
 }
 
 // ParseURN splits a urn:s3:{bucket}:{key} URN into its bucket and key parts.
