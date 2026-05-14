@@ -68,6 +68,10 @@ resource "scaleway_instance_server" "building" {
   additional_volume_ids = [scaleway_block_volume.building_data.id]
 
   tags = ["building"]
+
+  lifecycle {
+    ignore_changes = [image]
+  }
 }
 
 resource "scaleway_block_volume" "building_data" {
