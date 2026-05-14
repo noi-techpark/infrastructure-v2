@@ -1,5 +1,3 @@
-replicaCount: 2
-
 image:
   repository: ghcr.io/noi-techpark/infrastructure-v2/raw-data-bridge
   pullPolicy: Always
