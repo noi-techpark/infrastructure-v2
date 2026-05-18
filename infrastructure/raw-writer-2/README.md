@@ -32,7 +32,7 @@ Compressed files are stored in zstd format.
 Only files in object storage are compressed and the raw data bridge will decompress before delivering the raw data
 
 ### Bson
-If the content type is set to `application/bson` and the file is below size threshold, the writer attempts to interpret it as a mongodb compabile object.  
+If the content type is set to `application/bson` and the file is below size threshold, the writer attempts to interpret it as a mongodb compatible object.  
 I.e. the structure will be stored as a bson object inside the `rawdata` field
 
 
