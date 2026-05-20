@@ -368,7 +368,7 @@ kubectl get secrets -n core raw-s3
 # for production pin the image tag
 helm upgrade --install raw-writer-2 ./infrastructure/helm/raw-writer-2/raw-writer-2 \
   --values infrastructure/helm/raw-writer-2/values.yaml \
-  --set image.tag=597a2ffe8d7f3b1f23d3775a6a551c03563aad45\
+  --set image.tag=597a2ffe8d7f3b1f23d3775a6a551c03563aad45 \
   --namespace core
 ```
 
