@@ -354,6 +354,22 @@ helm upgrade --install raw-writer ./infrastructure/helm/raw-writer/raw-writer \
   --namespace core
 ```
 
+### Raw writer 2 
+
+```sh
+# must be logged in on ghcr.io for docker push
+(cd infrastructure/raw-writer; ./build.sh)
+```
+
+```sh
+# make sure that raw s3 secret exists
+kubectl get secrets -n core raw-s3
+
+helm upgrade --install raw-writer-2 ./infrastructure/helm/raw-writer-2/raw-writer-2 \
+  --values infrastructure/helm/raw-writer-2/values.yaml \
+  --namespace core
+```
+
 ### Raw Data Bridge
 
 ```sh
