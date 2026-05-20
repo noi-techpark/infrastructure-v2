@@ -72,6 +72,11 @@ nginx:
         root /data;
         autoindex on;
 
+        location /health {
+          return 200 "ok\n";
+          add_header Content-Type text/plain;
+        }
+
         location / {
             limit_except GET HEAD OPTIONS {
                 deny all;
