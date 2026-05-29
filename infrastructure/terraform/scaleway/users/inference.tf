@@ -12,19 +12,19 @@
 locals {
   # Add a new entry here if an application needs access to a different project.
   inference_projects = {
-    opendatahub_apps = "Open Data Hub - Apps"
+    default = "Default"
   }
 
   # Add a new entry here to create a new IAM application with its API key.
   inference_applications = {
     "stuart-chatbot" = {
       description = "Service account for stuart-chatbot API access to generative AI"
-      project     = "opendatahub_apps"
+      project     = "default"
       expires_at  = "2027-05-05T00:00:00Z"
     }
     "discovery-tool" = {
       description = "Service account for discovery-tool API access to generative AI"
-      project     = "opendatahub_apps"
+      project     = "default"
       expires_at  = "2027-05-05T00:00:00Z"
     }
   }
@@ -49,7 +49,7 @@ resource "scaleway_iam_policy" "inference" {
 
   rule {
     project_ids          = [data.scaleway_account_project.inference[each.value.project].id]
-    permission_set_names = ["GenerativeApisModelAccess"]
+    permission_set_names = ["GenerativeApisModelAccess","GenerativeApisFullAccess"]
   }
 }
 
