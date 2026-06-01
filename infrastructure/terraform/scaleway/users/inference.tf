@@ -22,6 +22,11 @@ locals {
       project     = "default"
       expires_at  = "2027-05-05T00:00:00Z"
     }
+    "stuart-reachy" = {
+      description = "Service account for stuart-reachy API access to generative AI"
+      project     = "default"
+      expires_at  = "2027-05-05T00:00:00Z"
+    }
     "discovery-tool" = {
       description = "Service account for discovery-tool API access to generative AI"
       project     = "default"
