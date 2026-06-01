@@ -1,0 +1,45 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/entur/anshar
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Supply the full contents of your config files here.
+# Both files are stored in a Secret since they may contain credentials.
+config:
+  applicationProperties: |
+    # Paste your application.properties content here
+  subscriptionsYml: |
+    # Paste your subscriptions.yml content here
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: anshar.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: anshar-tls
+  #    hosts:
+  #      - anshar.example.com
+
+podAnnotations: {}
+podLabels: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
