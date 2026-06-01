@@ -539,6 +539,17 @@ https://github.com/noi-techpark/bdp-core/raw/refs/heads/main/infrastructure/helm
 --set-string env.LOG_APPLICATION_VERSION=helm-setup \
 --set-string oauth.clientSecret=************
 ```
+### Anshar
+SIRI data aggregator — collects real-time public transport data (vehicle positions, estimated timetables, alerts) from multiple sources and exposes them via a unified SIRI API.
+
+Configuration is supplied via `values.yaml` as `config.applicationProperties` and `config.subscriptionsYml`. Both are stored in a Kubernetes Secret since they can contain credentials.
+
+```sh
+helm upgrade --install anshar infrastructure/helm/anshar/anshar \
+  --values infrastructure/helm/anshar/values.yaml \
+  --namespace pt
+```
+
 ### Analytics
 Frontend application that uses Ninja-API to visualize mobility data on maps and charts
 ```sh
