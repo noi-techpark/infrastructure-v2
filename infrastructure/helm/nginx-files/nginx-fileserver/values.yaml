@@ -92,6 +92,11 @@ nginx:
         root {{ .Values.persistence.mountPath }};
         autoindex {{ if .Values.nginx.autoindex }}on{{ else }}off{{ end }};
 
+        location /health {
+          return 200 "ok\n";
+          add_header Content-Type text/plain;
+        }
+
         location / {
           limit_except GET HEAD OPTIONS {
             deny all;

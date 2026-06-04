@@ -51,12 +51,14 @@ spec:
               port: external
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 2
           readinessProbe:
             httpGet:
               path: /health
               port: external
             initialDelaySeconds: 3
             periodSeconds: 5
+            timeoutSeconds: 2
       volumes:
         - name: data
           {{- if .Values.persistence.enabled }}
