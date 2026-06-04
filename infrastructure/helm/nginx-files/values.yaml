@@ -43,7 +43,9 @@ nginx:
     http {
       include       /etc/nginx/mime.types;
       default_type  application/octet-stream;
-      sendfile      on;
+      sendfile      off;
+      aio           threads;
+      client_body_temp_path /tmp/nginx-upload-tmp;
       keepalive_timeout 65;
 
       # ── Internal server: all methods ────────────────────────
@@ -54,10 +56,16 @@ nginx:
         root /data;
         autoindex on;
 
+        location /health {
+          return 200 "ok\n";
+          add_header Content-Type text/plain;
+        }
+
         location / {
           dav_methods PUT DELETE;
           dav_access  user:rw group:r all:r;
           create_full_put_path on;
+          client_body_in_file_only on;
 
           limit_except GET HEAD PUT DELETE POST OPTIONS {
             deny all;
@@ -71,11 +79,6 @@ nginx:
 
         root /data;
         autoindex on;
-
-        location /health {
-          return 200 "ok\n";
-          add_header Content-Type text/plain;
-        }
 
         location / {
             limit_except GET HEAD OPTIONS {

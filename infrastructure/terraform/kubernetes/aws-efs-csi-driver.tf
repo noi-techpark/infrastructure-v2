@@ -36,6 +36,7 @@ resource "aws_iam_policy" "efs_csi_controller" {
 resource "aws_efs_file_system" "this" {
   creation_token = "${data.aws_eks_cluster.default.id}-efs"
   encrypted      = true
+  throughput_mode = "elastic"
 
   tags = {
     Name      = "${data.aws_eks_cluster.default.id}-efs"

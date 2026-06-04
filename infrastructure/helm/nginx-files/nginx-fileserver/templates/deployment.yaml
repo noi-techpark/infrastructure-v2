@@ -43,19 +43,22 @@ spec:
             - name: config
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
+            - name: upload-tmp
+              mountPath: /tmp/nginx-upload-tmp
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           livenessProbe:
             httpGet:
               path: /health
-              port: external
+              port: internal
             initialDelaySeconds: 5
             periodSeconds: 10
-            timeoutSeconds: 2
+            timeoutSeconds: 5
+            failureThreshold: 6
           readinessProbe:
             httpGet:
               path: /health
-              port: external
+              port: internal
             initialDelaySeconds: 3
             periodSeconds: 5
             timeoutSeconds: 2
@@ -70,3 +73,5 @@ spec:
         - name: config
           configMap:
             name: {{ include "nginx-fileserver.fullname" . }}-config
+        - name: upload-tmp
+          emptyDir: {}
