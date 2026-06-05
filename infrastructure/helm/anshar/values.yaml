@@ -64,7 +64,7 @@ config:
 
     anshar.default.max.elements.per.delivery=1000
 
-    anshar.inbound.url = http://localhost
+    anshar.inbound.url = https://{{ (index .Values.ingress.hosts 0).host }}
     anshar.healthcheck.interval.seconds = 30
 
     anshar.healthcheck.hubot.url=http://hubot/hubot/say
