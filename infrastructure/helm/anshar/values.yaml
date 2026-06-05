@@ -159,9 +159,9 @@ config:
       subscriptions:
         -
           internalId: 100
-          vendor: SAD
-          name: SAD - trains
-          datasetId: SADtrains
+          vendor: STA
+          name: STA - trains
+          datasetId: STA-trains
           serviceType: REST
           subscriptionType: VEHICLE_MONITORING
           subscriptionMode: REQUEST_RESPONSE
