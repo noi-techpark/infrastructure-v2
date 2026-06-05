@@ -31,6 +31,27 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ANSHAR_LOGIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "anshar.fullname" . }}-credentials
+                  key: anshar-username
+            - name: ANSHAR_LOGIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "anshar.fullname" . }}-credentials
+                  key: anshar-password
+            - name: SPRING_SECURITY_USER_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "anshar.fullname" . }}-credentials
+                  key: spring-username
+            - name: SPRING_SECURITY_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "anshar.fullname" . }}-credentials
+                  key: spring-password
           ports:
             - containerPort: 8012
               protocol: TCP

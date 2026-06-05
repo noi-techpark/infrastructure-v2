@@ -132,9 +132,6 @@ config:
     anshar.tracking.header.required.get=false
     anshar.tracking.header.name=ET-Client-Name
 
-    spring.security.user.name=usr
-    spring.security.user.password=pwd
-
     anshar.kafka.enabled=false
     anshar.kafka.clientId=anshar
     anshar.kafka.brokers=
@@ -144,9 +141,6 @@ config:
     anshar.kafka.sasl.password=
 
     anshar.kafka.siri.enrich.et.enabled=false
-
-    anshar.login.username=user
-    anshar.login.password=pass
 
     anshar.reduced.logging.override.names=no.rutebanken.anshar.routes.siri.handlers.SiriHandler
 
