@@ -1,6 +1,6 @@
 #!/bin/bash
 IMAGE=ghcr.io/noi-techpark/infrastructure-v2/raw-data-bridge
-TAGS='latest v2 v2.0'
+TAGS='latest v2 v2.1'
 REPO=https://github.com/noi-techpark/infrastructure-v2
 docker buildx build --target release -f Dockerfile . -t $IMAGE \
 --label "org.opencontainers.image.source=$REPO" \

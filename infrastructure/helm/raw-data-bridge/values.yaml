@@ -3,7 +3,7 @@ replicaCount: 2
 image:
   repository: ghcr.io/noi-techpark/infrastructure-v2/raw-data-bridge
   pullPolicy: Always
-  tag: "v2.0"
+  tag: "v2.1"
 
 env:
   - name: APP_MONGO_URI
@@ -35,8 +35,8 @@ env:
 
 resources:
   limits:
-    cpu: 250m
-    memory: 300Mi
+    cpu: 500m
+    memory: 600Mi
   requests:
-    cpu: 5m
-    memory: 50Mi
+    cpu: 10m
+    memory: 300Mi

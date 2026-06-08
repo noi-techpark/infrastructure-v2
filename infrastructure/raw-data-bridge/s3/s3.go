@@ -51,20 +51,19 @@ func NewClient(cfg Config) (*S3Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("minio client init: %w", err)
 	}
+
 	return &S3Client{mc: mc}, nil
 }
 
 // Retrieve fetches the object at the given S3 URN and returns its contents.
 // URN format: urn:s3:{bucket}:{key}
-// If the key ends in .zst the object is zstd-decompressed before returning.
-// The download (GetObject + ReadAll) is retried up to 3 times with backoff to
-// handle transient network errors (e.g. unexpected EOF mid-stream).
 func (c *S3Client) Retrieve(ctx context.Context, urn string) ([]byte, error) {
 	bucket, key, err := ParseURN(urn)
 	if err != nil {
 		return nil, err
 	}
 
+	isZst := strings.HasSuffix(key, ".zst")
 	const maxAttempts = 3
 	var lastErr error
 	for attempt := range maxAttempts {
@@ -83,8 +82,20 @@ func (c *S3Client) Retrieve(ctx context.Context, urn string) ([]byte, error) {
 			continue
 		}
 
-		data, err := io.ReadAll(obj)
+		var data []byte
+		if isZst {
+			dec, decErr := zstd.NewReader(obj, zstd.WithDecoderConcurrency(1))
+			if decErr != nil {
+				err = fmt.Errorf("zstd reader init: %w", decErr)
+			} else {
+				data, err = io.ReadAll(dec)
+				dec.Close()
+			}
+		} else {
+			data, err = io.ReadAll(obj)
+		}
 		obj.Close()
+
 		if err != nil {
 			lastErr = fmt.Errorf("s3 read object: %w", err)
 			slog.WarnContext(ctx, "s3 read object failed, retrying", "attempt", attempt+1, "key", key, "err", err)
@@ -93,10 +104,6 @@ func (c *S3Client) Retrieve(ctx context.Context, urn string) ([]byte, error) {
 
 		if attempt > 0 {
 			slog.WarnContext(ctx, "s3 retrieve succeeded after retry", "attempt", attempt+1, "key", key)
-		}
-
-		if strings.HasSuffix(key, ".zst") {
-			return DecompressZstd(data)
 		}
 		return data, nil
 	}
