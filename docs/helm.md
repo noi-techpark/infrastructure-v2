@@ -555,16 +555,6 @@ Frontend application that uses Ninja-API to visualize mobility data on maps and 
 ```sh
 helm upgrade --install analytics infrastructure/helm/analytics/analytics --namespace core --values infrastructure/helm/analytics/values.yaml
 ```
-### Tourism API
-Tourism API
-```sh
-helm upgrade --install tourism-api infrastructure/helm/tourism-api/tourism-api --namespace core --values infrastructure/helm/tourism-api/values.yaml
-```
-### Tourism importer
-Tourism importer
-```sh
-helm upgrade --install tourism-importer infrastructure/helm/tourism-importer/tourism-importer --namespace core --values infrastructure/helm/tourism-importer/values.yaml
-```
 ### Nginx fileserver
 Nginx with internal write, external readonly for file publication
 ```sh
