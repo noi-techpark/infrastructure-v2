@@ -10,15 +10,17 @@ ingress:
     nginx.ingress.kubernetes.io/cors-allow-origin: "*"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS"
     nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /anshar/$2
   hosts:
     - host: siri.api.dev.testingmachine.eu
       paths:
-        - path: /
-          pathType: Prefix
+        - path: /v1(/|$)(.*)
+          pathType: ImplementationSpecific
     - host: siri.api.opendatahub.testingmachine.eu
       paths:
-        - path: /
-          pathType: Prefix
+        - path: /v1(/|$)(.*)
+          pathType: ImplementationSpecific
   tls:
     - secretName: anshar-tls
       hosts:
@@ -64,7 +66,7 @@ config:
 
     anshar.default.max.elements.per.delivery=1000
 
-    anshar.inbound.url = https://{{ (index .Values.ingress.hosts 0).host }}
+    anshar.inbound.url = https://{{ (index .Values.ingress.hosts 0).host }}/v1
     anshar.healthcheck.interval.seconds = 30
 
     anshar.healthcheck.hubot.url=http://hubot/hubot/say

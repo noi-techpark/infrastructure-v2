@@ -544,9 +544,17 @@ SIRI data aggregator — collects real-time public transport data (vehicle posit
 
 Configuration is supplied via `values.yaml` as `config.applicationProperties` and `config.subscriptionsYml`. Both are stored in a Kubernetes Secret since they can contain credentials.
 
+Login credentials for anshar are auto-generated as secrets on first install
+
 ```sh
+# testing
 helm upgrade --install anshar infrastructure/helm/anshar/anshar \
-  --values infrastructure/helm/anshar/values.yaml \
+  --values infrastructure/helm/anshar/test.yaml \
+  --namespace pt
+
+# production
+helm upgrade --install anshar infrastructure/helm/anshar/anshar \
+  --values infrastructure/helm/anshar/prod.yaml \
   --namespace pt
 ```
 
