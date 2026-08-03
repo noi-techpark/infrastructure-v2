@@ -37,5 +37,5 @@ kubectl port-forward pod/db-proxy -n core 5432:5432
 # Now you can use your postgresql client to connect to localhost 5432
 
 # remove after use
-kubectl delete pod db-proxy
+kubectl delete pod db-proxy -n core
 ```
