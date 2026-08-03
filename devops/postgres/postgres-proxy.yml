@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: db-proxy
+  namespace: core
+spec:
+  restartPolicy: Never
+  containers:
+  - name: db-proxy
+    image: alpine/socat
+    command: ["sh", "-c", "socat tcp-listen:5432,fork,reuseaddr tcp-connect:$(DB_HOST):$(DB_PORT)"]
+    env:
+    - name: DB_HOST
+      valueFrom:
+        secretKeyRef:
+          name: postgres-readwrite-svcbind
+          key: host
+    - name: DB_PORT
+      valueFrom:
+        secretKeyRef:
+          name: postgres-readwrite-svcbind
+          key: port
