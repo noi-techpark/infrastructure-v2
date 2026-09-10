@@ -111,6 +111,14 @@ metadata:
     k8s-app: filebeat
 data:
   filebeat.yml: |-
+    setup.template.append_fields:
+      - name: json.id
+        type: keyword
+      - name: json.station
+        type: keyword
+      - name: json.error
+        type: keyword
+
     filebeat.inputs:
     - type: container
       paths:
@@ -125,7 +133,20 @@ data:
             fields: ["message"]
             target: "json"
             overwrite_keys: true
-
+        # Normalize mixed JSON fields (string or object) to string
+        - script:
+            lang: javascript
+            id: normalize_mixed_json_fields
+            source: >
+              function process(event) {
+                var fieldsToCheck = ["error", "station", "attr.user"];
+                fieldsToCheck.forEach(function(f) {
+                  var val = event.Get("json." + f);
+                  if (val !== null && typeof val === "object") {
+                    event.Put("json." + f, JSON.stringify(val));
+                  }
+                });
+              }
         # Drop all labels
         - drop_fields:
             fields:
