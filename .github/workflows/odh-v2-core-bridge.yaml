@@ -16,8 +16,45 @@ env:
   PROJECT_NAME: raw-data-bridge
 
 jobs:
+  # Runs on every push, including branches that never deploy. The suite needs a
+  # MongoDB: without one the integration tests skip, which is the same as not
+  # having them.
+  test:
+    runs-on: ubuntu-22.04
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        # Without a health check the job starts as soon as the container does,
+        # not as soon as mongod accepts connections, and the suite races it.
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1}).ok'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: infrastructure/raw-data-bridge/go.mod
+
+    - name: Test
+      run: go test ./... -count=1
+      working-directory: ${{ env.WORKING_DIRECTORY }}
+      env:
+        # 127.0.0.1, not localhost: the service is published on IPv4 only, and
+        # a runner that resolves localhost to ::1 spends the driver's whole
+        # server-selection timeout failing before the tests even start.
+        RDB_TEST_MONGO_URI: mongodb://127.0.0.1:27017
+
   build:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod'
+    needs:
+      - test
     runs-on: ubuntu-22.04
     concurrency: odh-v2-core-bridge-build
     steps:

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 @host=http://localhost:2000
 ###
 GET {{host}}/urns/urn:raw:lorawan:data:67a9db400696ac3cf49b07c0
@@ -7,3 +11,48 @@ GET {{host}}/urns/urn:raw:a22:environment:6891e54b9237c6dd3479712f
 GET {{host}}/urns/urn:raw:s3-poller:meteorology-bz-forecast:67a4ce70d3a62887e54455e2
 ### Has an array as rawdata
 GET {{host}}/urns/urn:raw:parking-offstreet-famas:bolzano:683ff7249237c6dd345cbf29
+
+### ---------------------------------------------------------------- compacted
+### The current value of every key. A consumer walks every page of this at
+### startup, and walks it again to reconcile — that is the whole protocol.
+GET {{host}}/enrichment/parking/compacted/key
+
+### Paging: `next` from the previous response goes back in as `cursor`, exactly
+### as it came out. It is opaque; do not build one.
+GET {{host}}/enrichment/parking/compacted/key?limit=500&cursor=GwAAAAJmAAQAAABrZXkAAnYABAAAAEIwMQAA
+
+### A different meta field to group on
+GET {{host}}/enrichment/parking/compacted/station_code
+
+### ---------------------------------------------------------------- documents
+### The last document written to a collection.
+GET {{host}}/enrichment/parking/documents?limit=1
+
+### The recent tail. Every revision, nothing collapsed, newest *written* first —
+### a backfill leads this list while carrying an old timestamp.
+GET {{host}}/enrichment/parking/documents?limit=20
+
+### Continue: `next` is the previous page's cursor, handed back unchanged.
+GET {{host}}/enrichment/parking/documents?limit=20&cursor=JgAAAAJmAAsAAAAkZG9jdW1lbnRzAAd2AGg_9ySSN8bdNFy_KQA
+
+### ---------------------------------------------------------------- refusals
+### 400 - limit must be between 1 and 10000
+GET {{host}}/enrichment/parking/compacted/key?limit=0
+
+### 400 - nested keys are not supported; the field is one level under meta
+GET {{host}}/enrichment/parking/compacted/meta.key
+
+### 400 - operators are not identifiers
+GET {{host}}/enrichment/parking/compacted/$where
+
+### 400 - a cursor this endpoint did not issue
+GET {{host}}/enrichment/parking/documents?cursor=not-an-object-id
+
+### 400 - a bare object id is not a cursor; hand back `next` verbatim
+GET {{host}}/enrichment/parking/documents?cursor=683ff7249237c6dd345cbf29
+
+### 400 - '.' is legal in a collection name, never in a database name
+GET {{host}}/enrichment.parking/x/documents
+
+### 404 - no such collection (as opposed to an empty one, which is 200)
+GET {{host}}/enrichment/typo_in_the_values_file/compacted/key

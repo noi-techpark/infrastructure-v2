@@ -28,7 +28,9 @@ var cfg struct {
 func main() {
 	ms.InitWithEnv(context.Background(), "APP", &cfg)
 	defer tel.FlushOnPanic()
-	rdt.InitRawDataConnection(cfg.MONGO_URI)
+	if err := rdt.InitRawDataConnection(cfg.MONGO_URI, cfg.DB_PREFIX); err != nil {
+		log.Panic("Unable to connect to the raw data lake: ", err)
+	}
 
 	if err := InitRetrievers(s3client.Config{
 		Endpoint:        cfg.S3_ENDPOINT,
@@ -39,7 +41,7 @@ func main() {
 		log.Panic("Unable to initialize retrievers", err)
 	}
 
-	s := NewServer(context.Background())
+	s := NewServer()
 
 	g, ctx := errgroup.WithContext(context.Background())
 	g.Go(func() error { return s.Run(ctx, ":2000") })
