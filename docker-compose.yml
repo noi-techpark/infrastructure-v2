@@ -106,22 +106,26 @@ services:
   # Writer service that accepts REST and writes to S3 / Mongo depending on file size
   writer-2:
     image: ghcr.io/noi-techpark/infrastructure-v2/raw-writer-2:latest
+    # raw-writer-2 reads its config with an empty envconfig prefix, so these are
+    # spelled without APP_ — the same names the helm values use. With the APP_
+    # prefix every one of them was ignored and the service panicked on an empty
+    # mongo uri. AWS_* are read by the minio client's own env credential chain.
     environment:
-      APP_HTTP_PORT: 8080
-      APP_MQ_URI:  amqp://guest:guest@rabbitmq:5672            
-      APP_MQ_READY_EXCHANGE: ready   
-      APP_MQ_READY_QUEUE: ready      
-      APP_MQ_READY_DL_QUEUE: ready-dl   
-      APP_MQ_CLIENT_NAME: writer-2      
-      APP_MONGO_URI: mongodb://mongodb/?replicaSet=rs0&directConnection=true
-      APP_DB_PREFIX: ""
-      APP_S3_BUCKET: raw-data
-      APP_S3_REGION: eu-west-1
-      APP_S3_ENDPOINT: http://minio:9000
-      APP_AWS_ACCESS_KEY_ID: minioadmin
-      APP_AWS_SECRET_ACCESS_KEY: minioadmin
-      APP_MAX_SIZE: 104857600
-      APP_LOGLEVEL: INFO
+      HTTP_PORT: 8080
+      MQ_URI: amqp://guest:guest@rabbitmq:5672
+      MQ_READY_EXCHANGE: ready
+      MQ_READY_QUEUE: ready
+      MQ_READY_DL_QUEUE: ready-dl
+      MQ_CLIENT_NAME: writer-2
+      MONGO_URI: mongodb://mongodb/?replicaSet=rs0&directConnection=true
+      DB_PREFIX: ""
+      S3_BUCKET: raw-data
+      S3_REGION: eu-west-1
+      S3_ENDPOINT: http://minio:9000
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      LARGE_SIZE_THRESHOLD: 5242880
+      LOG_LEVEL: INFO
     ports:
       - "9021:8080"
     healthcheck:
