@@ -21,3 +21,9 @@
 infrastructure/router/bin
 
 *.db
+
+# Python bytecode
+__pycache__/
+
+# Decrypted secrets, only ever local and temporary
+deploy/secrets/*.plain.yaml

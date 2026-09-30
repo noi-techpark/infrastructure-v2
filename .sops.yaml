@@ -1,0 +1,6 @@
+# One shared age key per environment; the private halves live in the password manager.
+creation_rules:
+  - path_regex: deploy/secrets/test\.yaml$
+    age: age1y8wawudpvktz6ceemnjh7ds2ecp69xhq5awmlenetmwhq4kz0saqvhy67r
+  - path_regex: deploy/secrets/prod\.yaml$
+    age: age1cnpfwnkz3pjyyalxg38a63el9l06dw4g8a3w3jyraykpfzsy2clqevkrh3
