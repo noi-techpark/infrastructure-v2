@@ -1,0 +1,25 @@
+{{- $v := .Values.velero }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: velero-credentials
+  namespace: velero-system
+type: Opaque
+stringData:
+  cloud: |
+    [default]
+    aws_access_key_id={{ required "velero.accessKey" $v.accessKey }}
+    aws_secret_access_key={{ required "velero.secretKey" $v.secretKey }}
+{{- with .Values.scalewayDns }}
+---
+# Read by scaleway-certmanager-webhook as environment, for DNS01 challenges.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: scaleway-dns
+  namespace: cert-manager
+type: Opaque
+stringData:
+  SCW_ACCESS_KEY: {{ required "scalewayDns.accessKey" .accessKey | quote }}
+  SCW_SECRET_KEY: {{ required "scalewayDns.secretKey" .secretKey | quote }}
+{{- end }}

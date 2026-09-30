@@ -1,0 +1,5 @@
+# Scaleway File Storage, available once the cluster carries the scw-filestorage-csi tag.
+# 25 GB is its minimum size, and sizes must be whole GB (1e9 bytes), hence G, not Gi.
+persistence:
+  storageClass: sfs-standard
+  size: 25G

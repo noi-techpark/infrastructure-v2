@@ -1,0 +1,329 @@
+# Brings up the platform layer of a cluster: helmfile -e <test|prod> apply
+# Targets the Scaleway clusters only. Applying it to a cluster set up by hand from
+# docs/helm.md would fight over the secrets that release created (see cluster-secrets).
+
+environments:
+  test:
+    kubeContext: dev-scw
+    values:
+      - environments/test.yaml
+    secrets:
+      - secrets/test.yaml
+  prod:
+    kubeContext: scw-odh-prod
+    values:
+      - environments/prod.yaml
+    secrets:
+      - secrets/prod.yaml
+
+---
+repositories:
+  - name: emberstack
+    url: https://emberstack.github.io/helm-charts
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: jetstack
+    url: https://charts.jetstack.io
+  - name: vmware-tanzu
+    url: https://vmware-tanzu.github.io/helm-charts
+  - name: bitnami
+    url: registry-1.docker.io/bitnamicharts
+    oci: true
+  - name: naps
+    url: https://naps.github.io/helm-charts/
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts
+  - name: scaleway
+    url: https://helm.scw.cloud/
+
+helmDefaults:
+  wait: true
+  timeout: 600
+  createNamespace: true
+
+# Every release reads, in order and each optional: values/<release>/values.yaml (any
+# cloud), scaleway.yaml (this cloud), <env>.yaml, scaleway-<env>.yaml (this cloud and
+# environment, e.g. hostnames). The aws*.yaml files next to them serve only the manual
+# AWS setup in docs/helm.md and go away with it.
+templates:
+  default:
+    missingFileHandler: Debug
+    values:
+      - values/{{`{{ .Release.Name }}`}}/values.yaml
+      - values/{{`{{ .Release.Name }}`}}/scaleway.yaml
+      - values/{{`{{ .Release.Name }}`}}/{{`{{ .Environment.Name }}`}}.yaml
+      - values/{{`{{ .Release.Name }}`}}/scaleway-{{`{{ .Environment.Name }}`}}.yaml
+
+# Tiers, applied in this order on a new cluster with -l tier=<name>:
+# platform, monitoring (its CRDs are used by the data tier), data, apps.
+releases:
+  # Every secret the platform needs, rendered from the sops file. Lives in kube-system
+  # because it also owns the application namespaces and must not be installed into one.
+  - name: cluster-secrets
+    namespace: kube-system
+    labels:
+      tier: platform
+    chart: ../infrastructure/helm/cluster-secrets
+    values:
+      - {{ .Values | toYaml | nindent 8 }}
+
+  - name: reflector
+    namespace: kube-system
+    labels:
+      tier: platform
+    chart: emberstack/reflector
+    version: 7.1.216
+    inherit: [template: default]
+
+  - name: ingress-nginx
+    namespace: ingress-nginx
+    labels:
+      tier: platform
+    chart: ingress-nginx/ingress-nginx
+    version: 4.14.0
+    inherit: [template: default]
+    {{- with .Values.loadBalancers.ingressIpId }}
+    values:
+      - controller:
+          service:
+            annotations:
+              # Reserved flexible IP, so DNS survives the load balancer being recreated.
+              service.beta.kubernetes.io/scw-loadbalancer-ip-ids: {{ . | quote }}
+    {{- end }}
+
+  - name: cert-manager
+    namespace: cert-manager
+    labels:
+      tier: platform
+    chart: jetstack/cert-manager
+    version: v1.12.4
+    needs: [kube-system/cluster-secrets]
+    inherit: [template: default]
+    set:
+      - name: installCRDs
+        value: true
+
+  - name: scaleway-certmanager-webhook
+    namespace: cert-manager
+    labels:
+      tier: platform
+    chart: scaleway/scaleway-certmanager-webhook
+    version: 0.4.3
+    # Only where the environment has a DNS key; without it the webhook cannot start.
+    installed: {{ hasKey .Values "scalewayDns" }}
+    needs: [cert-manager/cert-manager, kube-system/cluster-secrets]
+    # Creates cert-manager Certificates, whose CRDs arrive with cert-manager itself.
+    disableValidationOnInstall: true
+    values:
+      - secret:
+          # Rendered by cluster-secrets from the sops file.
+          externalSecretName: scaleway-dns
+
+  - name: cert-issuers
+    namespace: cert-manager
+    labels:
+      tier: platform
+    chart: ../infrastructure/helm/cert-issuers
+    needs: [cert-manager/cert-manager, cert-manager/scaleway-certmanager-webhook]
+    disableValidationOnInstall: true
+    values:
+      - {{ .Values.certManager | toYaml | nindent 8 }}
+
+  - name: velero
+    namespace: velero-system
+    labels:
+      tier: platform
+    chart: vmware-tanzu/velero
+    version: 5.2.0
+    needs: [kube-system/cluster-secrets]
+    # Its BackupStorageLocation needs the chart's own CRDs, absent before the first install.
+    disableValidationOnInstall: true
+    inherit: [template: default]
+    values:
+      - configuration:
+          backupStorageLocation:
+            - name: default
+              provider: aws
+              bucket: {{ .Values.velero.bucket }}
+              config:
+                region: {{ .Values.objectStorage.region }}
+                s3Url: {{ .Values.objectStorage.endpoint }}
+                s3ForcePathStyle: "true"
+
+  # ── core ──────────────────────────────────────────────────────────────────
+
+  - name: mongodb
+    namespace: core
+    labels:
+      tier: data
+    chart: bitnami/mongodb
+    version: 14.6.1
+    needs: [kube-system/cluster-secrets]
+    inherit: [template: default]
+    values:
+      - auth:
+          existingSecret: mongodb
+
+  - name: mongodb-users
+    namespace: core
+    labels:
+      tier: data
+    chart: ../infrastructure/helm/mongodb-users
+    needs: [core/mongodb]
+    values:
+      - passwordsChecksum: {{ .Values.mongodb.users | toJson | sha256sum }}
+
+  - name: rabbitmq
+    namespace: core
+    labels:
+      tier: data
+    chart: bitnami/rabbitmq
+    version: 16.0.14
+    needs: [kube-system/cluster-secrets, monitoring/prometheus]
+    # Creates ServiceMonitors, whose CRD arrives with the prometheus release.
+    disableValidationOnInstall: true
+    inherit: [template: default]
+    values:
+      - auth:
+          existingPasswordSecret: rabbitmq
+          existingErlangSecret: rabbitmq
+        serviceBindings:
+          enabled: false
+    hooks:
+      # Idempotent; a major rabbitmq upgrade leaves the new stable flags disabled.
+      - events: [postsync]
+        showlogs: true
+        command: kubectl
+        args: [--context, {{ .Environment.KubeContext }}, exec, -n, core, rabbitmq-0, -c, rabbitmq, --, rabbitmqctl, enable_feature_flag, all]
+
+  - name: mosquitto
+    namespace: core
+    labels:
+      tier: data
+    chart: naps/mosquitto
+    version: 1.0.4
+    inherit: [template: default]
+
+  - name: router
+    namespace: core
+    labels:
+      tier: apps
+    chart: ../infrastructure/helm/router
+    needs: [core/rabbitmq]
+    inherit: [template: default]
+
+  - name: raw-writer
+    namespace: core
+    labels:
+      tier: apps
+    chart: ../infrastructure/helm/raw-writer
+    needs: [core/rabbitmq, core/mongodb-users]
+    inherit: [template: default]
+
+  - name: raw-writer-2
+    namespace: core
+    labels:
+      tier: apps
+    chart: ../infrastructure/helm/raw-writer-2
+    needs: [core/rabbitmq, core/mongodb-users]
+    inherit: [template: default]
+    values:
+      - image:
+          tag: {{ .Values.imageTags.rawWriter2 | quote }}
+
+  - name: raw-data-bridge
+    namespace: core
+    labels:
+      tier: apps
+    chart: ../infrastructure/helm/raw-data-bridge
+    needs: [core/mongodb-users]
+    inherit: [template: default]
+
+  - name: files
+    namespace: core
+    labels:
+      tier: data
+    chart: ../infrastructure/helm/nginx-fileserver
+    inherit: [template: default]
+
+  - name: analytics
+    namespace: core
+    labels:
+      tier: apps
+    chart: ../infrastructure/helm/analytics
+    inherit: [template: default]
+
+  # Legacy core applications: chart and values live in their own repositories, pinned
+  # to a commit so a push there does not change what gets deployed here.
+  - name: ninja-api
+    namespace: core
+    labels:
+      tier: apps
+    missingFileHandler: Debug
+    chart: https://github.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/raw/06b9b6f6a18fa3161c8bc631360fc062fb738f16/infrastructure/helm/ninja-api-2.0.0.tgz
+    needs: [kube-system/cluster-secrets]
+    values:
+      - https://raw.githubusercontent.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/06b9b6f6a18fa3161c8bc631360fc062fb738f16/infrastructure/helm/{{ .Environment.Name }}.yaml
+      - values/ninja-api/scaleway-{{ .Environment.Name }}.yaml
+      - oauth:
+          clientSecret: {{ .Values.ninjaApi.oauthClientSecret | quote }}
+
+  - name: bdp-core
+    namespace: core
+    labels:
+      tier: apps
+    missingFileHandler: Debug
+    chart: https://github.com/noi-techpark/bdp-core/raw/7f00322649b0aa4497eb30a9d6f1fba51999b793/infrastructure/helm/bdp-core-2.0.0.tgz
+    needs: [kube-system/cluster-secrets]
+    values:
+      - https://raw.githubusercontent.com/noi-techpark/bdp-core/7f00322649b0aa4497eb30a9d6f1fba51999b793/infrastructure/helm/{{ .Environment.Name }}.yaml
+      - values/bdp-core/scaleway-{{ .Environment.Name }}.yaml
+      - env:
+          LOG_APPLICATION_VERSION: helm-setup
+
+  # ── public transport ──────────────────────────────────────────────────────
+
+  - name: anshar
+    namespace: pt
+    labels:
+      tier: apps
+    chart: ../infrastructure/helm/anshar
+    inherit: [template: default]
+
+  # ── monitoring ────────────────────────────────────────────────────────────
+
+  - name: prometheus
+    namespace: monitoring
+    labels:
+      tier: monitoring
+    chart: prometheus-community/kube-prometheus-stack
+    version: 87.10.1
+    needs: [kube-system/cluster-secrets]
+    # Ships the operator's CRDs and uses them in the same release.
+    disableValidationOnInstall: true
+    inherit: [template: default]
+
+  - name: tempo
+    namespace: monitoring
+    labels:
+      tier: monitoring
+    chart: grafana/tempo-distributed
+    version: 1.42.3
+    needs: [kube-system/cluster-secrets, monitoring/prometheus]
+    # Creates ServiceMonitors, whose CRD arrives with the prometheus release.
+    disableValidationOnInstall: true
+    inherit: [template: default]
+
+  - name: mongodb-prometheus-exporter
+    namespace: monitoring
+    labels:
+      # Monitoring by purpose, but it cannot become ready before MongoDB exists.
+      tier: data
+    chart: prometheus-community/prometheus-mongodb-exporter
+    version: 3.11.1
+    needs: [core/mongodb-users, monitoring/prometheus]
+    # Creates ServiceMonitors, whose CRD arrives with the prometheus release.
+    disableValidationOnInstall: true
+    inherit: [template: default]

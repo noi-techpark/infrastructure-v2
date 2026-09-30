@@ -1,0 +1,3 @@
+global:
+  # The gateway's nginx resolves through this service; Kapsule names it coredns, not kube-dns.
+  dnsService: coredns

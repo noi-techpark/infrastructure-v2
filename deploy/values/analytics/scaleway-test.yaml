@@ -1,0 +1,10 @@
+ingress:
+  tls:
+    - hosts:
+      - analytics.scw.opendatahub.testingmachine.eu
+      secretName: tls-analytics
+  hosts:
+    - host: analytics.scw.opendatahub.testingmachine.eu
+      paths:
+        - path: "/"
+          pathType: Prefix

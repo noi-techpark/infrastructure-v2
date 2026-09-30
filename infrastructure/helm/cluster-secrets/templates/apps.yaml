@@ -1,0 +1,62 @@
+{{- $s3 := .Values.rawS3 }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: raw-s3
+  namespace: core
+type: Opaque
+stringData:
+  bucketName: {{ required "rawS3.bucketName" $s3.bucketName | quote }}
+  accessKeyId: {{ required "rawS3.accessKeyId" $s3.accessKeyId | quote }}
+  secretAccessKey: {{ required "rawS3.secretAccessKey" $s3.secretAccessKey | quote }}
+  region: {{ required "objectStorage.region" .Values.objectStorage.region | quote }}
+  endpoint: {{ required "objectStorage.endpoint" .Values.objectStorage.endpoint | quote }}
+---
+{{- $oauth := .Values.oauthCollector }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oauth-collector
+  namespace: collector
+type: Opaque
+stringData:
+  authorizationUri: {{ $oauth.authorizationUri | quote }}
+  tokenUri: {{ $oauth.tokenUri | quote }}
+  clientId: {{ $oauth.clientId | quote }}
+  clientSecret: {{ required "oauthCollector.clientSecret" $oauth.clientSecret | quote }}
+{{- $pg := .Values.postgres }}
+{{- $pgHost := required "postgres.host" $pg.host }}
+{{- $pgPort := required "postgres.port" $pg.port | toString }}
+{{- range $access, $cfg := dict
+  "readwrite" (dict "user" $pg.readwriteUser "password" $pg.readwritePassword)
+  "read" (dict "user" $pg.readonlyUser "password" $pg.readonlyPassword) }}
+{{- $password := required (printf "postgres password for %s" $cfg.user) $cfg.password }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-{{ $access }}-svcbind
+  namespace: core
+type: servicebinding.io/postgresql
+stringData:
+  type: postgresql
+  provider: rds
+  host: {{ $pgHost | quote }}
+  port: {{ $pgPort | quote }}
+  username: {{ $cfg.user }}
+  password: {{ $password | quote }}
+  db: {{ $pg.db }}
+  schema: {{ $pg.schemas | quote }}
+  uri: {{ printf "postgresql://%s:%s@%s:%s/%s?currentSchema=%s" $cfg.user $password $pgHost $pgPort $pg.db $pg.schemas | quote }}
+{{- end }}
+{{- with .Values.tourism }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tourism
+  namespace: core
+type: Opaque
+stringData:
+  pgconnection: {{ .pgconnection | quote }}
+{{- end }}

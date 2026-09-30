@@ -1,0 +1,29 @@
+# Non-secret per-environment settings. Merged with secrets/prod.yaml into one set
+# of values; secrets never go here.
+
+certManager:
+  email: digital@noi.bz.it
+  namespaces: [core, collector, monitoring, parking, pt]
+  # DNS01 solver for the letsencrypt-dns-* cluster issuers; empty until the Scaleway DNS
+  # zone exists, and those issuers are not created meanwhile.
+  dns01: {}
+
+objectStorage:
+  region: fr-par
+  endpoint: https://s3.fr-par.scw.cloud
+
+velero:
+  bucket: opendatahub-prod-velero
+
+loadBalancers:
+  # ID of the reserved flexible IP for the ingress load balancer. Empty: Scaleway
+  # assigns an ephemeral one.
+  ingressIpId: ""
+
+oauthCollector:
+  authorizationUri: https://auth.opendatahub.com/auth
+  tokenUri: https://auth.opendatahub.com/auth/realms/noi/protocol/openid-connect/token
+  clientId: odh-mobility-datacollector
+
+imageTags:
+  rawWriter2: 597a2ffe8d7f3b1f23d3775a6a551c03563aad45

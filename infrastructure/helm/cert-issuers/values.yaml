@@ -1,0 +1,9 @@
+email: digital@noi.bz.it
+
+# Namespaces that get the letsencrypt-prod / letsencrypt-staging HTTP01 issuers
+# referenced by `cert-manager.io/issuer` annotations.
+namespaces: []
+
+# cert-manager dns01 solver, used as is by the letsencrypt-dns-* cluster issuers.
+# Empty: those issuers are not created.
+dns01: {}

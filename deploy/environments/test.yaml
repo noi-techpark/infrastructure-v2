@@ -1,0 +1,32 @@
+# Non-secret per-environment settings. Merged with secrets/test.yaml into one set
+# of values; secrets never go here.
+
+certManager:
+  email: digital@noi.bz.it
+  namespaces: [core, collector, monitoring, parking, pt]
+  # DNS01 solver for the letsencrypt-dns-* cluster issuers, in the Scaleway zone
+  # scw.opendatahub.testingmachine.eu. Credentials come from the webhook's environment.
+  dns01:
+    webhook:
+      groupName: acme.scaleway.com
+      solverName: scaleway
+
+objectStorage:
+  region: fr-par
+  endpoint: https://s3.fr-par.scw.cloud
+
+velero:
+  bucket: opendatahub-test-velero
+
+loadBalancers:
+  # ID of the reserved flexible IP for the ingress load balancer. Empty: Scaleway
+  # assigns an ephemeral one.
+  ingressIpId: "27104218-72fd-4360-ba3c-1745b64305f3"
+
+oauthCollector:
+  authorizationUri: https://auth.opendatahub.testingmachine.eu/auth
+  tokenUri: https://auth.opendatahub.testingmachine.eu/auth/realms/noi/protocol/openid-connect/token
+  clientId: odh-mobility-datacollector
+
+imageTags:
+  rawWriter2: latest

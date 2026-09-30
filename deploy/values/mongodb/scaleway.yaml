@@ -1,0 +1,3 @@
+# Retain, so deleting a PVC never deletes the database volume underneath.
+persistence:
+  storageClass: sbs-default-retain

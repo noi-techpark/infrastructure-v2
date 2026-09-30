@@ -1,0 +1,36 @@
+{{- $acme := dict "prod" "https://acme-v02.api.letsencrypt.org/directory" "staging" "https://acme-staging-v02.api.letsencrypt.org/directory" }}
+{{- range $stage, $server := $acme }}
+{{- if $.Values.dns01 }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-dns-{{ $stage }}
+spec:
+  acme:
+    server: {{ $server }}
+    email: {{ $.Values.email }}
+    privateKeySecretRef:
+      name: letsencrypt-dns-{{ $stage }}
+    solvers:
+      - dns01: {{- $.Values.dns01 | toYaml | nindent 10 }}
+{{- end }}
+{{- range $.Values.namespaces }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: letsencrypt-{{ $stage }}
+  namespace: {{ . }}
+spec:
+  acme:
+    server: {{ $server }}
+    email: {{ $.Values.email }}
+    privateKeySecretRef:
+      name: letsencrypt-{{ $stage }}
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: nginx
+{{- end }}
+{{- end }}

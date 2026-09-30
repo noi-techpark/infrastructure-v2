@@ -1,0 +1,23 @@
+image: docker.io/bitnamilegacy/mongodb:7.0.5-debian-11-r3
+
+uri: mongodb+srv://mongodb-headless.core.svc.cluster.local/admin?tls=false
+
+rootPassword:
+  secret: mongodb
+  key: mongodb-root-password
+
+# One key per user, holding its password. Rendered by cluster-secrets.
+passwordsSecret: mongodb-users
+passwordsChecksum: ""
+
+users:
+  writer:
+    - { role: readWriteAnyDatabase, db: admin }
+  notifier:
+    - { role: readAnyDatabase, db: admin }
+    - { role: readWrite, db: admin }
+  collector:
+    - { role: readAnyDatabase, db: admin }
+  prometheus:
+    - { role: clusterMonitor, db: admin }
+    - { role: read, db: local }

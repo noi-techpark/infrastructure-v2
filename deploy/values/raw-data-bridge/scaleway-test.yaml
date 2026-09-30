@@ -1,0 +1,10 @@
+ingress:
+  tls:
+    - hosts:
+      - raw.scw.opendatahub.testingmachine.eu
+      secretName: tls-raw-data-bridge
+  hosts:
+    - host: raw.scw.opendatahub.testingmachine.eu
+      paths:
+        - path: "/"
+          pathType: Prefix

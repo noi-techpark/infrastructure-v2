@@ -1,0 +1,29 @@
+{{- define "cluster-secrets.dockerconfig" -}}
+{{- $auth := printf "%s:%s" .registry.username .token | b64enc -}}
+{{- dict "auths" (dict .registry.server (dict "username" .registry.username "password" .token "email" .registry.email "auth" $auth)) | toJson | b64enc -}}
+{{- end }}
+{{- $reg := .Values.registry }}
+{{- $read := include "cluster-secrets.dockerconfig" (dict "registry" $reg "token" (required "registry.readToken" $reg.readToken)) }}
+{{- $readWrite := include "cluster-secrets.dockerconfig" (dict "registry" $reg "token" (required "registry.readWriteToken" $reg.readWriteToken)) }}
+{{- range $reg.readNamespaces }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: container-registry-r
+  namespace: {{ . }}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ $read }}
+{{- end }}
+{{- range $reg.readWriteNamespaces }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: container-registry-rw
+  namespace: {{ . }}
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: {{ $readWrite }}
+{{- end }}

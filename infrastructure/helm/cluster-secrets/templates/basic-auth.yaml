@@ -1,0 +1,20 @@
+{{- $username := .Values.basicAuth.username }}
+{{- /* name in the sops file -> secret name, namespace, key the consumer reads the htpasswd line from */}}
+{{- $targets := list
+  (list "tempo" "tempo-gateway-basic-auth" "monitoring" ".htpasswd")
+  (list "prometheus" "prometheus-basic-auth" "monitoring" "auth")
+  (list "rawDataBridge" "raw-data-bridge-basic-auth" "core" "auth") }}
+{{- range $targets }}
+{{- $entry := required (printf "basicAuth.%s" (index . 0)) (index $.Values.basicAuth (index . 0)) }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ index . 1 }}
+  namespace: {{ index . 2 }}
+type: Opaque
+stringData:
+  {{ index . 3 }}: {{ required (printf "basicAuth.%s.htpasswd" (index . 0)) $entry.htpasswd | quote }}
+  .username: {{ $username }}
+  .password: {{ required (printf "basicAuth.%s.password" (index . 0)) $entry.password | quote }}
+{{- end }}

@@ -1,0 +1,42 @@
+{{- $m := .Values.mongodb }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb
+  namespace: core
+type: Opaque
+stringData:
+  mongodb-root-password: {{ required "mongodb.rootPassword" $m.rootPassword | quote }}
+  mongodb-replica-set-key: {{ required "mongodb.replicaSetKey" $m.replicaSetKey | quote }}
+---
+# Read by the mongodb-users job, which creates or updates each user with this password.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-users
+  namespace: core
+type: Opaque
+stringData:
+  {{- range $user, $_ := $m.userNamespaces }}
+  {{ $user }}: {{ required (printf "mongodb.users.%s" $user) (index $m.users $user) | quote }}
+  {{- end }}
+{{- range $user, $namespaces := $m.userNamespaces }}
+{{- $password := index $m.users $user }}
+{{- range $namespaces }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-{{ $user }}-svcbind
+  namespace: {{ . }}
+type: servicebinding.io/mongodb
+stringData:
+  type: mongodb
+  provider: bitnami
+  host: {{ $m.host }}
+  port: "27017"
+  username: {{ $user }}
+  password: {{ $password | quote }}
+  uri: {{ printf "mongodb+srv://%s:%s@%s/?tls=false&ssl=false" $user $password $m.host | quote }}
+{{- end }}
+{{- end }}

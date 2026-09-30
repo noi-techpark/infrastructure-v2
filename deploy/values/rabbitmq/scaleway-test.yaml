@@ -1,0 +1,10 @@
+ingress:
+  hostname: rabbitmq.scw.opendatahub.testingmachine.eu
+  tls:
+    - hosts:
+      - rabbitmq.scw.opendatahub.testingmachine.eu
+      secretName: tls-rabbitmq
+  hosts:
+    - host: rabbitmq.scw.opendatahub.testingmachine.eu
+      paths:
+        - path: "/"

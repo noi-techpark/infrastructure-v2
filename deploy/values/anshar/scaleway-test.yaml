@@ -1,0 +1,10 @@
+ingress:
+  hosts:
+    - host: siri.api.scw.opendatahub.testingmachine.eu
+      paths:
+        - path: /v1(/|$)(.*)
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: anshar-tls
+      hosts:
+        - siri.api.scw.opendatahub.testingmachine.eu

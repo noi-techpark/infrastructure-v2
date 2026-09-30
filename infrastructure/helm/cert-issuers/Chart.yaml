@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cert-issuers
+description: Let's Encrypt issuers - DNS01 cluster issuers and HTTP01 issuers per namespace
+type: application
+version: 0.1.0

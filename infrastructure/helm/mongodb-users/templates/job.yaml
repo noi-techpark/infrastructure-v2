@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-users
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    # The hook job is invisible to helm-diff; this makes a password change show up
+    # as a diff, so helmfile upgrades the release and the job reruns.
+    checksum/passwords: {{ .Values.passwordsChecksum | quote }}
+data:
+  users.js: |
+    const users = {{ .Values.users | toJson }};
+    const admin = db.getSiblingDB('admin');
+    for (const [name, roles] of Object.entries(users)) {
+      const pwd = process.env[`PW_${name}`];
+      if (!pwd) throw new Error(`no password for ${name} in secret {{ .Values.passwordsSecret }}`);
+      // updateUser also resets the password, so the sops file stays authoritative
+      // for users that already exist in a restored database.
+      if (admin.getUser(name)) {
+        admin.updateUser(name, { pwd, roles });
+        print(`updated ${name}`);
+      } else {
+        admin.createUser({ user: name, pwd, roles });
+        print(`created ${name}`);
+      }
+    }
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodb-users
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mongosh
+          image: {{ .Values.image }}
+          command: [mongosh]
+          args:
+            - $(MONGODB_URI)
+            - --quiet
+            - --username=root
+            - --password=$(MONGODB_ROOT_PASSWORD)
+            - --authenticationDatabase=admin
+            - --file=/scripts/users.js
+          env:
+            - name: MONGODB_URI
+              value: {{ .Values.uri | quote }}
+            - name: MONGODB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rootPassword.secret }}
+                  key: {{ .Values.rootPassword.key }}
+          envFrom:
+            - prefix: PW_
+              secretRef:
+                name: {{ .Values.passwordsSecret }}
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: mongodb-users

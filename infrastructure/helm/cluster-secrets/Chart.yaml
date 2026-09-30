@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cluster-secrets
+description: Namespaces and the secrets shared across the platform, rendered from the environment's sops file
+type: application
+version: 0.1.0

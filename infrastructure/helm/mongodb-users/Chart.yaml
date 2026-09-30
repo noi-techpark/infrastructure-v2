@@ -1,0 +1,5 @@
+apiVersion: v2
+name: mongodb-users
+description: Creates or updates the application users in MongoDB after every install and upgrade
+type: application
+version: 0.1.0

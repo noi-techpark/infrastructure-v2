@@ -1,0 +1,29 @@
+{{- $r := .Values.rabbitmq }}
+{{- $password := required "rabbitmq.password" $r.password }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq
+  namespace: core
+type: Opaque
+stringData:
+  rabbitmq-password: {{ $password | quote }}
+  rabbitmq-erlang-cookie: {{ required "rabbitmq.erlangCookie" $r.erlangCookie | quote }}
+{{- range $r.namespaces }}
+---
+# Same shape as the one the bitnami chart generates with serviceBindings.enabled.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-svcbind
+  namespace: {{ . }}
+type: servicebinding.io/rabbitmq
+stringData:
+  type: rabbitmq
+  provider: bitnami
+  host: {{ $r.host }}
+  port: {{ $r.port | quote }}
+  username: {{ $r.username }}
+  password: {{ $password | quote }}
+  uri: {{ printf "amqp://%s:%s@%s:%s" $r.username $password $r.host $r.port | quote }}
+{{- end }}

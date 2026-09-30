@@ -1,0 +1,8 @@
+prometheus:
+  ingress:
+    tls:
+      - hosts:
+          - prometheus.scw.opendatahub.testingmachine.eu
+        secretName: tls-prometheus
+    hosts:
+      - prometheus.scw.opendatahub.testingmachine.eu

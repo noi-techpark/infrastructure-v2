@@ -1,0 +1,21 @@
+# The backup location is set in the helmfile: it needs the environment's bucket and
+# endpoint, and a list cannot be completed from a second values file.
+configuration:
+  volumeSnapshotLocation: []
+  # No Velero snapshot plugin for Scaleway: volumes are copied by the node agent instead.
+  defaultVolumesToFsBackup: true
+
+snapshotsEnabled: false
+deployNodeAgent: true
+
+credentials:
+  useSecret: true
+  # Rendered by cluster-secrets, AWS credentials-file format under the key `cloud`.
+  existingSecret: velero-credentials
+
+# The CRD upgrade job needs docker.io/bitnami/kubectl:<cluster version>, which Bitnami no
+# longer publishes, and copies its sh into the glibc-based velero image, so a musl image
+# cannot replace it. Helm installs the CRDs on first install; when upgrading the chart,
+# apply them first:
+#   kubectl exec -n velero-system deploy/velero -- /velero install --crds-only --dry-run -o yaml | kubectl apply -f -
+upgradeCRDs: false

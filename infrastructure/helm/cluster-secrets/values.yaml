@@ -1,0 +1,35 @@
+# Defaults for everything that is not secret. The environment file and the sops file
+# are layered on top by helmfile and supply the passwords.
+
+namespaces: [core, collector, monitoring, parking, pt, cert-manager, velero-system]
+
+mongodb:
+  host: mongodb-headless.core.svc.cluster.local
+  # One svcbind secret per user, copied into each listed namespace.
+  userNamespaces:
+    writer: [core]
+    notifier: [core]
+    collector: [core, collector, parking]
+    prometheus: [monitoring]
+
+rabbitmq:
+  username: opendatahub
+  host: rabbitmq.core.svc.cluster.local
+  port: "5672"
+  namespaces: [core, collector, parking]
+
+registry:
+  server: ghcr.io
+  username: noi-techpark-bot
+  email: digital@noi.bz.it
+  readNamespaces: [core, collector, parking, pt]
+  readWriteNamespaces: [core]
+
+basicAuth:
+  username: operator
+
+postgres:
+  db: bdp
+  schemas: intimev2,public
+  readwriteUser: bdp
+  readonlyUser: bdp_readonly

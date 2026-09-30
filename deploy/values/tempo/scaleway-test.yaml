@@ -1,0 +1,11 @@
+gateway:
+  ingress:
+    tls:
+      - hosts:
+          - tempo.scw.opendatahub.testingmachine.eu
+        secretName: tls-tempo
+    hosts:
+      - host: tempo.scw.opendatahub.testingmachine.eu
+        paths:
+          - path: /
+            pathType: Prefix
