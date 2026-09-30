@@ -5,14 +5,15 @@ on:
     paths:
       - "infrastructure/raw-writer-2/**"      
       - "infrastructure/helm/raw-writer-2/**"
+      - "deploy/values/raw-writer-2/**"
       - ".github/workflows/odh-v2-core-writer-2.yaml"
   workflow_dispatch:
 
 env:
   WORKING_DIRECTORY: infrastructure/raw-writer-2
   KUBERNETES_NAMESPACE: core
-  KUBERNETES_VALUE_PATH: infrastructure/helm/raw-writer-2/values.yaml
-  KUBERNETES_CHART_PATH: infrastructure/helm/raw-writer-2/raw-writer-2
+  KUBERNETES_VALUE_PATH: deploy/values/raw-writer-2/values.yaml
+  KUBERNETES_CHART_PATH: infrastructure/helm/raw-writer-2
   PROJECT_NAME: raw-writer-2
 
 jobs:

@@ -82,7 +82,7 @@ helm repo update
 # Make sure to correctly set your cluster ARN / account ID and the image.tag version.
 # Refer to https://github.com/kubernetes/autoscaler/releases/ for the latest releases
 helm upgrade --install aws-cluster-autoscaler autoscaler/cluster-autoscaler \
-  --values infrastructure/helm/aws-cluster-autoscaler/values.yaml \
+  --values deploy/aws/values/aws-cluster-autoscaler/values.yaml \
   --set rbac.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::828408288281:role/aws-main-eu-01-cluster-autoscaler" \
   --namespace kube-system --set image.tag="v1.33.0"
 ```

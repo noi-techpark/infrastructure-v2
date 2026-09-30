@@ -39,7 +39,7 @@ helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
 ```sh
 helm upgrade --install \
   metrics-server metrics-server/metrics-server \
-  --values infrastructure/helm/metrics-server/values.yaml \
+  --values deploy/aws/values/metrics-server/values.yaml \
   --namespace kube-system
 ```
 
@@ -52,7 +52,7 @@ helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
 ```sh
 helm upgrade --install \
   kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
-  --values infrastructure/helm/kubernetes-dashboard/values.yaml \
+  --values deploy/aws/values/kubernetes-dashboard/values.yaml \
   --namespace kube-system
 ```
 
@@ -67,7 +67,7 @@ helm repo add autoscaler https://kubernetes.github.io/autoscaler
 # NOTE: The role ARN can be obtained from the outputs of terraform `cluster_autscaler_role`
 # But it should suffice to plug in the correct account ID
 helm upgrade --install aws-cluster-autoscaler autoscaler/cluster-autoscaler \
-  --values infrastructure/helm/aws-cluster-autoscaler/values.yaml \
+  --values deploy/aws/values/aws-cluster-autoscaler/values.yaml \
   --set rbac.serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::828408288281:role/aws-main-eu-01-cluster-autoscaler" \
   --namespace kube-system
 ```
@@ -82,7 +82,7 @@ helm repo add eks https://aws.github.io/eks-charts
 
 ```sh
 helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
-  --values infrastructure/helm/aws-load-balancer-controller/values.yaml \
+  --values deploy/aws/values/aws-load-balancer-controller/values.yaml \
   --namespace kube-system
 ```
 
@@ -90,7 +90,7 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
 
 
 ```sh
-kubectl apply -f infrastructure/helm/aws-storage-class/gp3.yaml
+kubectl apply -f deploy/aws/manifests/aws-storage-class/gp3.yaml
 ```
 
 ### Amazon EFS Storage class
@@ -100,7 +100,7 @@ AZ-independent storage. Requires the EFS CSI driver addon (provisioned via Terra
 ```sh
 # NOTE: The EFS file system ID can be obtained from the terraform output `efs_file_system_id`
 export EFS_FILE_SYSTEM_ID=fs-xxxxxxxxxxxxxxxxx
-envsubst < infrastructure/helm/aws-storage-class/efs.yaml | kubectl apply -f -
+envsubst < deploy/aws/manifests/aws-storage-class/efs.yaml | kubectl apply -f -
 ```
 
 ### Velero
@@ -115,7 +115,7 @@ kubectl create namespace velero-system
 
 ```sh
 helm upgrade --install velero vmware-tanzu/velero \
-  --values infrastructure/helm/velero/values.yaml \
+  --values deploy/values/velero/values.yaml --values deploy/aws/values/velero/aws.yaml \
   --namespace velero-system
 ```
 
@@ -127,7 +127,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 #### On initial setup, let mongodb create it's secrets on it's own:
 ```sh
 helm install mongodb bitnami/mongodb \
-  --values infrastructure/helm/mongodb/values.yaml \
+  --values deploy/values/mongodb/values.yaml \
   --namespace core
 ```
 > [!WARNING]
@@ -140,7 +140,7 @@ export MONGODB_REPLICA_SET_KEY=$(kubectl get secret --namespace "core" mongodb -
 export MONGODB_ROOT_PASSWORD=$(kubectl get secret --namespace "core" mongodb -o jsonpath="{.data.mongodb-root-password}" | base64 -d)
 
 helm upgrade mongodb bitnami/mongodb \
-  --values infrastructure/helm/mongodb/values.yaml \
+  --values deploy/values/mongodb/values.yaml \
   --set auth.rootPassword=$MONGODB_ROOT_PASSWORD \
   --set auth.replicaSetKey=$MONGODB_REPLICA_SET_KEY \
   --version 14.6.1 \
@@ -278,7 +278,7 @@ kubectl create secret generic raw-data-bridge-basic-auth -n core \
 #### Initial setup
 ```sh
 helm install rabbitmq bitnami/rabbitmq \
-  --values infrastructure/helm/rabbitmq/values.yaml \
+  --values deploy/values/rabbitmq/values.yaml \
   --namespace core
 ```
 
@@ -288,7 +288,7 @@ export RABBITMQ_PASSWORD=$(kubectl get secret --namespace "core" rabbitmq -o jso
 export RABBITMQ_ERLANG_COOKIE=$(kubectl get secret --namespace "core" rabbitmq -o jsonpath="{.data.rabbitmq-erlang-cookie}" | base64 -d)
 
 helm upgrade rabbitmq bitnami/rabbitmq \
-  --values infrastructure/helm/rabbitmq/values.yaml \
+  --values deploy/values/rabbitmq/values.yaml \
   --set auth.password=$RABBITMQ_PASSWORD \
   --set auth.erlangCookie=$RABBITMQ_ERLANG_COOKIE \
   --namespace core
@@ -306,7 +306,7 @@ helm repo add naps https://naps.github.io/helm-charts/
 
 ```sh
 helm upgrade --install mosquitto naps/mosquitto \
-  --values infrastructure/helm/mosquitto/values.yaml \
+  --values deploy/values/mosquitto/values.yaml \
   --namespace core
 ```
 
@@ -336,8 +336,8 @@ helm upgrade --install notifier ./infrastructure/helm/notifier/notifier \
 ```
 
 ```sh
-helm upgrade --install router ./infrastructure/helm/router/router \
-  --values infrastructure/helm/router/values.yaml \
+helm upgrade --install router ./infrastructure/helm/router \
+  --values deploy/values/router/values.yaml \
   --namespace core
 ```
 
@@ -349,8 +349,8 @@ helm upgrade --install router ./infrastructure/helm/router/router \
 ```
 
 ```sh
-helm upgrade --install raw-writer ./infrastructure/helm/raw-writer/raw-writer \
-  --values infrastructure/helm/raw-writer/values.yaml \
+helm upgrade --install raw-writer ./infrastructure/helm/raw-writer \
+  --values deploy/values/raw-writer/values.yaml \
   --namespace core
 ```
 
@@ -366,8 +366,8 @@ helm upgrade --install raw-writer ./infrastructure/helm/raw-writer/raw-writer \
 kubectl get secrets -n core raw-s3
 
 # for production pin the image tag
-helm upgrade --install raw-writer-2 ./infrastructure/helm/raw-writer-2/raw-writer-2 \
-  --values infrastructure/helm/raw-writer-2/values.yaml \
+helm upgrade --install raw-writer-2 ./infrastructure/helm/raw-writer-2 \
+  --values deploy/values/raw-writer-2/values.yaml \
   --set image.tag=597a2ffe8d7f3b1f23d3775a6a551c03563aad45 \
   --namespace core
 ```
@@ -380,17 +380,17 @@ helm upgrade --install raw-writer-2 ./infrastructure/helm/raw-writer-2/raw-write
 ```
 
 ```sh
-helm upgrade --install raw-data-bridge ./infrastructure/helm/raw-data-bridge/raw-data-bridge \
-  --values infrastructure/helm/raw-data-bridge/values.yaml \
-  --values infrastructure/helm/raw-data-bridge/values.dev.yaml \
+helm upgrade --install raw-data-bridge ./infrastructure/helm/raw-data-bridge \
+  --values deploy/values/raw-data-bridge/values.yaml \
+  --values deploy/values/raw-data-bridge/test.yaml \
   --namespace core
 ```
 
 **PROD**
 ```sh
-helm upgrade --install raw-data-bridge ./infrastructure/helm/raw-data-bridge/raw-data-bridge \
-  --values infrastructure/helm/raw-data-bridge/values.yaml \
-  --values infrastructure/helm/raw-data-bridge/values.prod.yaml \
+helm upgrade --install raw-data-bridge ./infrastructure/helm/raw-data-bridge \
+  --values deploy/values/raw-data-bridge/values.yaml \
+  --values deploy/values/raw-data-bridge/prod.yaml \
   --namespace core
 ```
 
@@ -403,11 +403,11 @@ helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 ```sh
 # Testing:
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx  --namespace ingress-nginx --create-namespace \
---values infrastructure/helm/nginx-ingress/values.test.yaml 
+--values deploy/values/ingress-nginx/values.yaml --values deploy/aws/values/ingress-nginx/aws-test.yaml 
 
 # Production:
 helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx  --namespace ingress-nginx --create-namespace \
---values infrastructure/helm/nginx-ingress/values.prod.yaml 
+--values deploy/values/ingress-nginx/values.yaml --values deploy/aws/values/ingress-nginx/aws-prod.yaml 
 ```
 
 ### Certmanager (https certificates)
@@ -428,13 +428,13 @@ kubectl rollout restart deployment cert-manager -n cert-manager
 # TODO: create a route53 issuer so we can use dns instead of http challenges
 for NAMESPACE in core collector monitoring parking
 do
-  kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-staging-clusterissuer.yaml
-  kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml
+  kubectl create --namespace $NAMESPACE -f deploy/aws/manifests/cert-manager/letsencrypt-staging-clusterissuer.yaml
+  kubectl create --namespace $NAMESPACE -f deploy/aws/manifests/cert-manager/letsencrypt-prod-clusterissuer.yaml
 done
 
 # cluster dns issuers
-kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-dns-prod-clusterissuer.yaml
-kubectl create -f infrastructure/ingress/cert-manager/letsencrypt-dns-staging-clusterissuer.yaml
+kubectl create -f deploy/aws/manifests/cert-manager/letsencrypt-dns-prod-clusterissuer.yaml
+kubectl create -f deploy/aws/manifests/cert-manager/letsencrypt-dns-staging-clusterissuer.yaml
 ```
 
 ### Pomerium Ingress (protected endpoints)
@@ -454,20 +454,20 @@ export ISSUER=letsencrypt-dns-prod
 export AUTHENTICATE_URL=authenticate.internal.opendatahub.com
 export IDP_URL=https://auth.opendatahub.com/auth/realms/noi
 
-envsubst < infrastructure/helm/pomerium/service-patch.template.yaml > infrastructure/helm/pomerium/service-patch.yaml
-envsubst < infrastructure/helm/pomerium/certificate.template.yaml > infrastructure/helm/pomerium/certificate.yaml
-envsubst < infrastructure/helm/pomerium/pomerium.template.yaml > infrastructure/helm/pomerium/pomerium.yaml
+envsubst < deploy/aws/manifests/pomerium/service-patch.template.yaml > deploy/aws/manifests/pomerium/service-patch.yaml
+envsubst < deploy/aws/manifests/pomerium/certificate.template.yaml > deploy/aws/manifests/pomerium/certificate.yaml
+envsubst < deploy/aws/manifests/pomerium/pomerium.template.yaml > deploy/aws/manifests/pomerium/pomerium.yaml
 ```
 ```
-kubectl apply -k infrastructure/helm/pomerium
-kubectl apply -f infrastructure/helm/pomerium/pomerium.yaml
+kubectl apply -k deploy/aws/manifests/pomerium
+kubectl apply -f deploy/aws/manifests/pomerium/pomerium.yaml
 
 kubectl -n pomerium patch secret idp-secret --type='merge' -p '{"stringData":{"client_id":"<CLIENT HERE>","client_secret":"<SECRET HERE>"}}'
 ```
 
 TO DELETE
 ```
-kubectl delete -k infrastructure/helm/pomerium
+kubectl delete -k deploy/aws/manifests/pomerium
 ```
 
 keycloak side we need to setup a claim mapper of type "user role mapper" which maps the roles to a "top level claim", like "roles".
@@ -548,154 +548,33 @@ Login credentials for anshar are auto-generated as secrets on first install
 
 ```sh
 # testing
-helm upgrade --install anshar infrastructure/helm/anshar/anshar \
-  --values infrastructure/helm/anshar/test.yaml \
+helm upgrade --install anshar infrastructure/helm/anshar \
+  --values deploy/values/anshar/test.yaml \
   --namespace pt
 
 # production
-helm upgrade --install anshar infrastructure/helm/anshar/anshar \
-  --values infrastructure/helm/anshar/prod.yaml \
+helm upgrade --install anshar infrastructure/helm/anshar \
+  --values deploy/values/anshar/prod.yaml \
   --namespace pt
 ```
 
 ### Analytics
 Frontend application that uses Ninja-API to visualize mobility data on maps and charts
 ```sh
-helm upgrade --install analytics infrastructure/helm/analytics/analytics --namespace core --values infrastructure/helm/analytics/values.yaml
+helm upgrade --install analytics infrastructure/helm/analytics --namespace core --values deploy/values/analytics/values.yaml
 ```
 ### Nginx fileserver
 Nginx with internal write, external readonly for file publication
 ```sh
-helm upgrade --install files infrastructure/helm/nginx-files/nginx-fileserver --namespace core --values infrastructure/helm/nginx-files/values.yaml
+helm upgrade --install files infrastructure/helm/nginx-fileserver --namespace core --values deploy/values/files/values.yaml --values deploy/aws/values/files/aws.yaml
 ```
 PROD:
 ```sh
-helm upgrade --install files infrastructure/helm/nginx-files/nginx-fileserver --namespace core \
-  --values infrastructure/helm/nginx-files/values.yaml \
-  --values infrastructure/helm/nginx-files/values.prod.yaml 
+helm upgrade --install files infrastructure/helm/nginx-fileserver --namespace core \
+  --values deploy/values/files/values.yaml --values deploy/aws/values/files/aws.yaml \
+  --values deploy/values/files/prod.yaml \
+  --values deploy/aws/values/files/aws-prod.yaml
 ```
-
-### MinIO
-
-https://artifacthub.io/packages/helm/minio/minio
-
-Single-node object storage with public GET access and pomerium-protected console.
-
-> [!IMPORTANT]
-> Requires the EFS StorageClass. Apply it before deploying MinIO:
-> ```sh
-> kubectl apply -f infrastructure/helm/aws-storage-class/efs.yaml
-> ```
-
-```sh
-helm repo add minio https://charts.min.io
-```
-
-#### Create the credentials secret
-```sh
-ROOT_USER=minioadmin
-ROOT_PASSWORD=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 24)
-
-kubectl create secret generic minio-credentials \
-  --namespace core \
-  --from-literal=rootUser="$ROOT_USER" \
-  --from-literal=rootPassword="$ROOT_PASSWORD"
-```
-
-#### Deploy
-```sh
-helm upgrade --install minio minio/minio \
-  --namespace core \
-  --values infrastructure/helm/minio/values.yaml
-```
-
-#### Bucket management via mc
-
-> [!NOTE]
-> The MinIO console (web UI) is an object browser only. Bucket administration is done via `mc` CLI.
-
-```sh
-# Start a temporary mc pod
-export ROOT_PASSWORD=$(kubectl get secret minio-credentials -n core -o jsonpath='{.data.rootPassword}' | base64 -d)
-
-kubectl run mc-admin --rm -it --restart=Never --namespace core \
-  --image=quay.io/minio/mc:latest --env="ROOT_PW=$ROOT_PASSWORD" -- sh -c '
-  mc alias set myminio http://minio:9000 minioadmin $ROOT_PW && sh'
-```
-
-Common operations inside the mc pod:
-```sh
-# Create a bucket
-mc mb myminio/my-bucket
-
-# Set anonymous download (public GET)
-mc anonymous set download myminio/my-bucket
-
-# Check bucket policy
-mc anonymous get myminio/my-bucket
-
-# Enable versioning
-mc version enable myminio/my-bucket
-
-# List buckets
-mc ls myminio/
-
-# List bucket contents
-mc ls myminio/my-bucket/
-```
-
-#### Accessing files
-
-**Public GET (anonymous, no auth needed):**
-```sh
-# Via external ingress
-curl https://bucket.dev.testingmachine.eu/public/path/file.txt
-
-# Via internal service
-curl http://minio.core.svc:9000/public/path/file.txt
-```
-
-**S3-compatible upload (authenticated, from within the cluster):**
-
-Using `mc`:
-```sh
-mc cp myfile.txt myminio/public/path/myfile.txt
-
-echo "data" | mc pipe myminio/public/path/myfile.txt
-```
-
-Using Python (boto3):
-```python
-import boto3
-
-s3 = boto3.client(
-    "s3",
-    endpoint_url="http://minio.core.svc:9000",
-    aws_access_key_id="minioadmin",
-    aws_secret_access_key="<from secret>",
-)
-
-# Upload
-s3.put_object(Bucket="public", Key="path/file.txt", Body=b"hello")
-
-# Download
-obj = s3.get_object(Bucket="public", Key="path/file.txt")
-print(obj["Body"].read().decode())
-```
-
-Using curl with HTTP (authenticated via query params with presigned URL):
-```sh
-# Generate a presigned PUT URL (valid 1h)
-mc share upload --expire 1h myminio/public/path/file.txt
-# outputs a curl command with signed URL, e.g.:
-# curl https://minio:9000/public/path/file.txt?X-Amz-Algorithm=... -F file=@/path/to/file
-
-# Generate a presigned GET URL
-mc share download --expire 1h myminio/public/path/file.txt
-```
-
-> [!NOTE]
-> Anonymous PUT is blocked by bucket policy. Internal services must authenticate using S3 credentials from the `minio-credentials` secret, or use presigned URLs.
 
 ## Preserve important volumes:
 Default storageclasses set `reclaimPolicy: Delete`, which means that deleting the PVC can accidentally delete your volume underneath.

@@ -1,0 +1,35 @@
+image:
+  repository: ghcr.io/noi-techpark/infrastructure-v2/router
+  pullPolicy: Always
+  tag: "v1.0"
+
+env:
+  - name: APP_MQ_URI
+    valueFrom:
+      secretKeyRef: 
+        name: rabbitmq-svcbind
+        key: uri
+  - name: APP_MQ_READY_QUEUE
+    value: ready
+  - name: APP_MQ_ROUTED_EXCHANGE
+    value: routed
+  - name: APP_MQ_UNROUTABLE_EXCHANGE
+    value: routed-dl
+  - name: APP_MQ_ROUTED_QUEUE
+    value: routed
+  - name: APP_MQ_CLIENT_NAME
+    value: router
+  - name: APP_LOG_LEVEL
+    value: INFO
+  - name: SERVICE_NAME
+    value: router
+  - name: TELEMETRY_TRACE_GRPC_ENDPOINT
+    value: tempo-distributor-discovery.monitoring.svc.cluster.local:4317
+
+resources:
+  limits:
+    cpu: 250m
+    memory: 200Mi
+  requests:
+    cpu: 5m
+    memory: 50Mi

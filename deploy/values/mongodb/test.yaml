@@ -1,0 +1,3 @@
+resources:
+  requests:
+    memory: 1.8Gi # set this to  (limits.memory - 1Gi) / 2

@@ -34,7 +34,7 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 
 2.
 ```
-helm upgrade --install prometheus prometheus-community/kube-prometheus-stack -f infrastructure/helm/prometheus/values.yaml -n monitoring --create-namespace
+helm upgrade --install prometheus prometheus-community/kube-prometheus-stack -f deploy/values/prometheus/values.yaml -f deploy/aws/values/prometheus/aws.yaml -n monitoring --create-namespace
 ```
 
 2.1 PROD
@@ -42,15 +42,15 @@ helm upgrade --install prometheus prometheus-community/kube-prometheus-stack -f 
 ```
 helm upgrade --install \
 prometheus prometheus-community/kube-prometheus-stack \
--f infrastructure/helm/prometheus/values.yaml \
--f infrastructure/helm/prometheus/values.prod.yaml \
+-f deploy/values/prometheus/values.yaml -f deploy/aws/values/prometheus/aws.yaml \
+-f deploy/values/prometheus/prod.yaml \
 -n monitoring --create-namespace
 ```
 
 2. When deploying in **KIND**
 ```
 helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
-  -f infrastructure/helm/prometheus/values.yaml \
+  -f deploy/values/prometheus/values.yaml -f deploy/aws/values/prometheus/aws.yaml \
   --set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName=standard \
   --set alertmanager.alertmanagerSpec.storage.volumeClaimTemplate.spec.storageClassName=standard \
   -n monitoring --create-namespace
@@ -102,7 +102,7 @@ Service and pod monitor resources tells prometheus what to scrape how to scrape
 Deploy RabbitMQ ServiceMonitor
 
 ```
-kubectl apply --filename infrastructure/helm/rabbitmq/service-monitor.yaml -n monitoring
+kubectl apply --filename deploy/aws/manifests/rabbitmq-service-monitor.yaml -n monitoring
 ```
 
 Scraped metrics are described here: [Monitoring RabbitMQ](https://www.rabbitmq.com/docs/prometheus#detailed-endpoint)
@@ -116,7 +116,7 @@ The bellow manifest creates mongdb-exporter pod, service and serviceMonitor
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
-helm upgrade --install mongodb-prometheus-exporter prometheus-community/prometheus-mongodb-exporter -f infrastructure/helm/mongodb/exporter.yaml -n monitoring
+helm upgrade --install mongodb-prometheus-exporter prometheus-community/prometheus-mongodb-exporter -f deploy/values/mongodb-prometheus-exporter/values.yaml -n monitoring
 ```
 
 MongoDB exporter has a field in the values to control the instance name
@@ -140,20 +140,20 @@ helm repo add grafana https://grafana.github.io/helm-charts
 
 2.
 ```
-helm upgrade --install tempo grafana/tempo-distributed -f infrastructure/helm/tempo/values.yaml -n monitoring
+helm upgrade --install tempo grafana/tempo-distributed -f deploy/values/tempo/values.yaml -f deploy/aws/values/tempo/aws.yaml -n monitoring
 ```
 
 2.1 PROD
 ```
 helm upgrade --install tempo grafana/tempo-distributed \
--f infrastructure/helm/tempo/values.yaml \
--f infrastructure/helm/tempo/values.prod.yaml \
+-f deploy/values/tempo/values.yaml -f deploy/aws/values/tempo/aws.yaml \
+-f deploy/values/tempo/prod.yaml \
 -n monitoring
 ```
 
 2. When deploying in **KIND**
 ```
-helm upgrade --install tempo grafana/tempo-distributed -f infrastructure/helm/tempo/values.yaml \
+helm upgrade --install tempo grafana/tempo-distributed -f deploy/values/tempo/values.yaml -f deploy/aws/values/tempo/aws.yaml \
   --set ingester.persistence.enabled=false \
   -n monitoring --create-namespace
 ```

@@ -1,48 +1,35 @@
-replicaCount: 2
+# Default values for raw-data-bridge.
+replicaCount: 1
 
 image:
   repository: ghcr.io/noi-techpark/infrastructure-v2/raw-data-bridge
-  pullPolicy: Always
-  tag: "v2.3"
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  port: 2000
+  type: ClusterIP
+  
+health:
+  delay: 30
 
 env:
   - name: APP_MONGO_URI
-    valueFrom:
-      secretKeyRef: 
-        name: mongodb-collector-svcbind
-        key: uri
-  # Must match raw-writer-2's DB_PREFIX, which is spelled without the APP_
-  # prefix on that side. Empty in every environment today. A mismatch reads a
-  # database nothing writes to, where every collection is missing, so every read
-  # answers 404 and a consumer fails to start rather than starting empty.
-  - name: APP_DB_PREFIX
-    value: ""
-  - name: APP_LOG_LEVEL
+    value: mongodb://user:password@mongodb
+  - name: APP_LOGLEVEL
     value: INFO
-  - name: SERVICE_NAME
-    value: raw-data-bridge
-  - name: TELEMETRY_TRACE_GRPC_ENDPOINT
-    value: tempo-distributor-discovery.monitoring.svc.cluster.local:4317
-  - name: APP_S3_ACCESS_KEY_ID
-    valueFrom:
-      secretKeyRef:
-        name: raw-s3
-        key: accessKeyId
-  - name: APP_S3_SECRET_ACCESS_KEY
-    valueFrom:
-      secretKeyRef:
-        name: raw-s3
-        key: secretAccessKey
-  - name: APP_S3_REGION
-    valueFrom:
-      secretKeyRef:
-        name: raw-s3
-        key: region
 
-resources:
-  limits:
-    cpu: 500m
-    memory: 600Mi
-  requests:
-    cpu: 10m
-    memory: 300Mi
+podAnnotations: {}
+podLabels: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+ingress:
+  enabled: false

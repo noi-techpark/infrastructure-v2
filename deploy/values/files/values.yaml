@@ -1,0 +1,103 @@
+nameOverride: nginx
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "300m"
+  host: files.dev.testingmachine.eu
+  tls:
+    enabled: true
+    secretName: tls-files
+    
+replicaCount: 2
+
+# Shared by all replicas, hence ReadWriteMany.
+persistence:
+  enabled: true
+  accessMode: ReadWriteMany
+  mountPath: /data
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: nginx
+        app.kubernetes.io/instance: files
+  
+nginx:  
+  config: >
+    user  nginx;
+    worker_processes  auto;
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      sendfile      off;
+      aio           threads;
+      client_body_temp_path /tmp/nginx-upload-tmp;
+      keepalive_timeout 65;
+
+      # ── Internal server: all methods ────────────────────────
+      server {
+        listen 8080;
+        client_max_body_size 300m;
+
+        root /data;
+        autoindex on;
+
+        location /health {
+          return 200 "ok\n";
+          add_header Content-Type text/plain;
+        }
+
+        location / {
+          dav_methods PUT DELETE;
+          dav_access  user:rw group:r all:r;
+          create_full_put_path on;
+          client_body_in_file_only on;
+
+          limit_except GET HEAD PUT DELETE POST OPTIONS {
+            deny all;
+          }
+        }
+      }
+
+      # ── External server: GET only ───────────────────────────
+      server {
+        listen 8081;
+
+        root /data;
+        autoindex on;
+
+        location / {
+            limit_except GET HEAD OPTIONS {
+                deny all;
+            }
+            root /data;
+        }
+
+        location /siri-lite/ {
+            limit_except GET HEAD OPTIONS POST {
+                deny all;
+            }
+
+            # Treat POST like GET: serve static file at the request URI
+            if ($request_method = POST) {
+                rewrite ^ $uri break;
+            }
+            root /data;
+
+            error_page 405 =200 $uri;
+        }
+      }
+    }

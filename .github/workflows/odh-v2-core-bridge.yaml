@@ -5,14 +5,15 @@ on:
     paths:
       - "infrastructure/raw-data-bridge/**"      
       - "infrastructure/helm/raw-data-bridge/**"
+      - "deploy/values/raw-data-bridge/**"
       - ".github/workflows/odh-v2-core-bridge.yaml"
   workflow_dispatch:
 
 env:
   WORKING_DIRECTORY: infrastructure/raw-data-bridge
   KUBERNETES_NAMESPACE: core
-  KUBERNETES_VALUE_PATH: infrastructure/helm/raw-data-bridge/values.yaml
-  KUBERNETES_CHART_PATH: infrastructure/helm/raw-data-bridge/raw-data-bridge
+  KUBERNETES_VALUE_PATH: deploy/values/raw-data-bridge/values.yaml
+  KUBERNETES_CHART_PATH: infrastructure/helm/raw-data-bridge
   PROJECT_NAME: raw-data-bridge
 
 jobs:

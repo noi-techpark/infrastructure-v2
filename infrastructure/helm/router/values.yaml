@@ -1,35 +1,33 @@
+# Default values for raw-writer.
+replicaCount: 1
+
 image:
   repository: ghcr.io/noi-techpark/infrastructure-v2/router
-  pullPolicy: Always
-  tag: "v1.0"
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
 
 env:
   - name: APP_MQ_URI
-    valueFrom:
-      secretKeyRef: 
-        name: rabbitmq-svcbind
-        key: uri
+    value: amqp://user:password@rabbitmq
+  - name: APP_MQ_READY_EXCHANGE
+    value: ready
   - name: APP_MQ_READY_QUEUE
     value: ready
   - name: APP_MQ_ROUTED_EXCHANGE
     value: routed
-  - name: APP_MQ_UNROUTABLE_EXCHANGE
-    value: routed-dl
   - name: APP_MQ_ROUTED_QUEUE
     value: routed
-  - name: APP_MQ_CLIENT_NAME
-    value: router
-  - name: APP_LOG_LEVEL
+  - name: APP_LOGLEVEL
     value: INFO
-  - name: SERVICE_NAME
-    value: router
-  - name: TELEMETRY_TRACE_GRPC_ENDPOINT
-    value: tempo-distributor-discovery.monitoring.svc.cluster.local:4317
 
-resources:
-  limits:
-    cpu: 250m
-    memory: 200Mi
-  requests:
-    cpu: 5m
-    memory: 50Mi
+podAnnotations: {}
+podLabels: {}
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

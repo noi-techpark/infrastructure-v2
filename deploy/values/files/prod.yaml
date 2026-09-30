@@ -1,0 +1,6 @@
+nameOverride: nginx
+
+ingress:
+  host: files.opendatahub.com
+    
+replicaCount: 2
