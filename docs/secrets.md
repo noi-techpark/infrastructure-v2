@@ -133,9 +133,15 @@ To make certain secrets available across namespaces, we use kubernetes-reflector
     rabbitmq-svcbind mongodb-collector-svcbind container-registry-r \
     reflector.v1.k8s.emberstack.com/reflection-allowed='true' \
     reflector.v1.k8s.emberstack.com/reflection-auto-enabled='true' \
-    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces='collector'
+    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces='collector,parking'
 ```
 If you use custom additional namespaces you can add them by extending the `reflection-allowed-namespaces` annotation
+
+**A new namespace needs this before its first deploy.** ghcr packages are private by default, the
+kubelet has no credentials of its own, and a chart referencing `container-registry-r` in a
+namespace the secret was never reflected into gets `ImagePullBackOff` with no clue as to why.
+Verify with `kubectl get secret container-registry-r -n YOUR_NAMESPACE` before deploying, not
+after.
 ```sh
 kubectl --namespace core annotate secret \
     rabbitmq-svcbind \

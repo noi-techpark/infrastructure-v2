@@ -426,7 +426,7 @@ kubectl rollout restart deployment cert-manager -n cert-manager
   
 # Create the letsencrypt issuers. 
 # TODO: create a route53 issuer so we can use dns instead of http challenges
-for NAMESPACE in core collector monitoring
+for NAMESPACE in core collector monitoring parking
 do
   kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-staging-clusterissuer.yaml
   kubectl create --namespace $NAMESPACE -f infrastructure/ingress/cert-manager/letsencrypt-prod-clusterissuer.yaml
