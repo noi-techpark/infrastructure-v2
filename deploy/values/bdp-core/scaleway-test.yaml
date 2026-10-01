@@ -1,13 +1,16 @@
-# On AWS an external proxy terminated TLS for this API; here the ingress does it.
+# TLS ends at the proxy (proxy-opendatahub-test); the ingress serves plain HTTP behind it.
+# For TLS in the cluster as well, swap in the commented lines and point the proxy site at
+# https. Only the DNS01 cluster issuer works here: HTTP01 challenges would reach the proxy.
+# Deployed by the app repository's CD; kept as reference for its Scaleway values.
 ingress:
-  annotations:
-    cert-manager.io/issuer: letsencrypt-prod
+  # annotations:
+  #   cert-manager.io/cluster-issuer: letsencrypt-dns-prod
+  # tls:
+  #   - secretName: tls-bdp-core
+  #     hosts:
+  #       - mobility.share.scw.opendatahub.testingmachine.eu
   hosts:
     - host: mobility.share.scw.opendatahub.testingmachine.eu
       paths:
         - path: "/"
           pathType: Prefix
-  tls:
-    - secretName: tls-bdp-core
-      hosts:
-        - mobility.share.scw.opendatahub.testingmachine.eu

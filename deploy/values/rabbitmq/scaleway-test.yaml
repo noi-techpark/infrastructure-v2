@@ -1,9 +1,13 @@
+# TLS ends at the proxy (proxy-opendatahub-test); the ingress serves plain HTTP behind it.
+# For TLS in the cluster as well, swap in the commented lines and point the proxy site at
+# https. Only the DNS01 cluster issuer works here: HTTP01 challenges would reach the proxy.
 ingress:
+  annotations:
+    cert-manager.io/issuer: null
+    # cert-manager.io/cluster-issuer: letsencrypt-dns-prod
   hostname: rabbitmq.scw.opendatahub.testingmachine.eu
-  tls:
-    - hosts:
-      - rabbitmq.scw.opendatahub.testingmachine.eu
-      secretName: tls-rabbitmq
+  tls: false
+  # tls: true
   hosts:
     - host: rabbitmq.scw.opendatahub.testingmachine.eu
       paths:
