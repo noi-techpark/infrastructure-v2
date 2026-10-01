@@ -45,10 +45,15 @@ All of it lives in the `infrastructure` repository, `terraform/scaleway/opendata
 
 - `kubernetes`: the Kapsule cluster, tagged `scw-filestorage-csi` for File Storage
   (`sfs-standard`, used by `files`) on a POP2 pool. Autoscaling is set on the pool, and
-  Kapsule runs its own metrics-server; neither is deployed from here. Output `ingress_ip_id` goes to `loadBalancers.ingressIpId`.
-- `shared`: the Velero and raw data buckets with one API key each, the DNS zone
-  `scw.opendatahub.testingmachine.eu` and the cert-manager DNS01 key. `velero.bucket` goes
+  Kapsule runs its own metrics-server; neither is deployed from here. The ingress load balancer
+  and its IP are created here too, output `ingress_lb_id` goes to `ingress.lbId` (see
+  [Replacing the cluster](#replacing-the-cluster)).
+- `shared`: the Velero and raw data buckets with one API key each. `velero.bucket` goes
   to the environment file, the rest to the sops file via `from-terraform.py`.
+- `../default/dns`: the zone `scw.opendatahub.testingmachine.eu` (project Default), the
+  records of the proxies, and the environment's DNS key for cert-manager and external-dns,
+  copied by `from-terraform.py`.
+- `proxy`: `proxy-opendatahub-test`, the Caddy in front of the cluster's ingress.
 - `db`: the `timeseries` and `content` PostgreSQL instances, copied to the sops file via
   `from-terraform.py`.
 
@@ -86,6 +91,54 @@ helmfile -e test apply
 
 # a single release
 helmfile -e test apply -l name=raw-data-bridge
+```
+
+## Replacing the cluster
+
+Deleting the cluster (`delete_additional_resources = true`) also deletes its volumes, so
+MongoDB, RabbitMQ, Prometheus and `files` start empty: back up first. It deletes the load
+balancers whose name starts with the cluster ID too, **with their IPs**, even reserved
+ones. That is why the ingress load balancer and its IP belong to Terraform
+(`kubernetes`, `scaleway_lb.ingress`): the cluster only configures its frontends and
+backends (`scw-loadbalancer-externally-managed`), and both survive the cluster.
+
+```sh
+# 1. the controller removes its frontends and backends from the load balancer
+cd deploy && helmfile -e test destroy -l name=ingress-nginx
+
+# 2. new cluster and pool (infrastructure repo)
+terraform -chdir=terraform/scaleway/opendatahub-test/kubernetes apply -replace=scaleway_k8s_cluster.main
+
+# 3. kubeconfig of the new cluster under the same context name; the cluster ID is the
+#    kubernetes_cluster_id output without its fr-par/ prefix
+kubectl config delete-context dev-scw
+scw k8s kubeconfig install <cluster-id> region=fr-par
+kubectl config rename-context scw-main-eu-01-<cluster-id> dev-scw
+
+# 4. everything else, in one run
+deploy/preflight.sh test
+cd deploy && helmfile -e test apply
+```
+
+The DNS records stay in the zone throughout; external-dns in the new cluster takes over the
+ones it owns. The proxy needs no change.
+
+### If step 1 was forgotten
+
+The load balancer and its IP are intact, but the frontends and backends of the deleted
+cluster are still on it. The new controller cannot create its own: `helmfile apply` waits
+on ingress-nginx until it times out, its Service gets no external IP, and its events show
+`failed creating frontend port: 80`. Remove the leftovers; the controller recreates them
+for the new nodes within seconds, and the apply continues (or run it again):
+
+```sh
+LB=$(terraform -chdir=terraform/scaleway/opendatahub-test/kubernetes output -raw ingress_lb_id)
+for f in $(scw lb frontend list zone=fr-par-1 lb-id=${LB#*/} -o json | jq -r '.[].id'); do
+  scw lb frontend delete "$f" zone=fr-par-1
+done
+for b in $(scw lb backend list zone=fr-par-1 lb-id=${LB#*/} -o json | jq -r '.[].id'); do
+  scw lb backend delete "$b" zone=fr-par-1
+done
 ```
 
 ## Not covered yet
