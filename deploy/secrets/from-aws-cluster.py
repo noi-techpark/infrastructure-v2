@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: CC0-1.0
 
 # Migration only: copies the credentials that exist nowhere but in the AWS cluster
-# (registry tokens, Keycloak client secrets) into an environment's sops file, without
+# (registry tokens, the collector Keycloak client secret) into an environment's sops file, without
 # printing them. Replace them with values issued for Scaleway before AWS is shut down.
 # usage: deploy/secrets/from-aws-cluster.py deploy/secrets/test.yaml <kube context>
 import base64, json, subprocess, sys
@@ -26,14 +26,10 @@ def ghcr_token(name):
     return entry.get("password") or base64.b64decode(entry["auth"]).decode().split(":", 1)[1]
 
 
-ninja = json.loads(subprocess.run(["helm", "--kube-context", context, "get", "values", "ninja-api", "-n", "core", "-o", "json"],
-                                  capture_output=True, text=True, check=True).stdout)
-
 values = {
     '["registry"]["readToken"]': ghcr_token("container-registry-r"),
     '["registry"]["readWriteToken"]': ghcr_token("container-registry-rw"),
     '["oauthCollector"]["clientSecret"]': secret("collector", "oauth-collector")["clientSecret"],
-    '["ninjaApi"]["oauthClientSecret"]': ninja["oauth"]["clientSecret"],
 }
 for path, value in values.items():
     subprocess.run(["sops", "set", "--value-stdin", secrets, path],

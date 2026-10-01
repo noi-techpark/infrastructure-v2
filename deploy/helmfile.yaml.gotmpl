@@ -255,8 +255,9 @@ releases:
     chart: ../infrastructure/helm/analytics
     inherit: [template: default]
 
-  # Legacy core applications: chart and values live in their own repositories, pinned
-  # to a commit so a push there does not change what gets deployed here.
+  # ninja-api and bdp-core are deployed by the CD of their own repositories, which sets
+  # the image per commit; kept here as reference for a first install by hand.
+{{- /*
   - name: ninja-api
     namespace: core
     labels:
@@ -267,8 +268,6 @@ releases:
     values:
       - https://raw.githubusercontent.com/noi-techpark/it.bz.opendatahub.api.mobility-ninja/06b9b6f6a18fa3161c8bc631360fc062fb738f16/infrastructure/helm/{{ .Environment.Name }}.yaml
       - values/ninja-api/scaleway-{{ .Environment.Name }}.yaml
-      - oauth:
-          clientSecret: {{ .Values.ninjaApi.oauthClientSecret | quote }}
 
   - name: bdp-core
     namespace: core
@@ -282,6 +281,7 @@ releases:
       - values/bdp-core/scaleway-{{ .Environment.Name }}.yaml
       - env:
           LOG_APPLICATION_VERSION: helm-setup
+*/}}
 
   # ── public transport ──────────────────────────────────────────────────────
 

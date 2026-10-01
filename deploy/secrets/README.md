@@ -63,7 +63,6 @@ After a new key, rotate the values themselves too: old versions in git stay read
 | `tourism.pgconnection` | Terraform `db`, built from `endpoints.content` and `credentials["content/tourism"]` | `from-terraform.py` |
 | `registry.readToken`, `registry.readWriteToken` | GitHub PATs of `noi-techpark-bot`, `read:packages` / `write:packages` | by hand |
 | `oauthCollector.clientSecret` | Keycloak, realm `noi`, client `odh-mobility-datacollector` → Credentials | by hand |
-| `ninjaApi.oauthClientSecret` | Keycloak, realm `noi`, client `odh-mobility-v2` → Credentials | by hand |
 
 Non-secret values that also come from Terraform live in `deploy/environments/<env>.yaml`:
 `loadBalancers.ingressIpId` (`kubernetes` output `ingress_ip_id`) and `velero.bucket`
@@ -71,7 +70,7 @@ Non-secret values that also come from Terraform live in `deploy/environments/<en
 
 ## Migration from AWS
 
-The test environment currently shares the registry tokens and Keycloak client secrets
+The test environment currently shares the registry tokens and the collector Keycloak client secret
 with the AWS test cluster; they were copied with
 
 ```sh

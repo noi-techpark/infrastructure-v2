@@ -70,7 +70,6 @@ expect '["velero"]["secretKey"]'
 expect '["scalewayDns"]["accessKey"]'
 expect '["scalewayDns"]["secretKey"]'
 expect '["oauthCollector"]["clientSecret"]'
-expect '["ninjaApi"]["oauthClientSecret"]'
 
 if (( ${#manual[@]} )); then
   echo "Still empty, fill in with: sops $file"
