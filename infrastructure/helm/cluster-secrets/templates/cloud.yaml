@@ -11,15 +11,18 @@ stringData:
     aws_access_key_id={{ required "velero.accessKey" $v.accessKey }}
     aws_secret_access_key={{ required "velero.secretKey" $v.secretKey }}
 {{- with .Values.scalewayDns }}
+{{- $key := . }}
+{{- /* scaleway-certmanager-webhook (DNS01 challenges) and external-dns (records) */}}
+{{- range list "cert-manager" "external-dns" }}
 ---
-# Read by scaleway-certmanager-webhook as environment, for DNS01 challenges.
 apiVersion: v1
 kind: Secret
 metadata:
   name: scaleway-dns
-  namespace: cert-manager
+  namespace: {{ . }}
 type: Opaque
 stringData:
-  SCW_ACCESS_KEY: {{ required "scalewayDns.accessKey" .accessKey | quote }}
-  SCW_SECRET_KEY: {{ required "scalewayDns.secretKey" .secretKey | quote }}
+  SCW_ACCESS_KEY: {{ required "scalewayDns.accessKey" $key.accessKey | quote }}
+  SCW_SECRET_KEY: {{ required "scalewayDns.secretKey" $key.secretKey | quote }}
+{{- end }}
 {{- end }}

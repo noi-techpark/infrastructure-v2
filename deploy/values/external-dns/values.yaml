@@ -1,0 +1,25 @@
+# Creates a record for every Ingress host. ingress-nginx publishes the proxy's hostname as
+# each Ingress's address, so the records are CNAMEs to the proxy, not the load balancer.
+provider:
+  name: scaleway
+
+env:
+  - name: SCW_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: scaleway-dns
+        key: SCW_ACCESS_KEY
+  - name: SCW_SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: scaleway-dns
+        key: SCW_SECRET_KEY
+
+sources: [ingress]
+
+# Also deletes the records of removed Ingresses, but only those marked as its own by the
+# ownership TXT records below; records maintained by hand in the zone are never touched.
+policy: sync
+registry: txt
+# Ownership records go to their own name; a TXT next to a CNAME of the same name is invalid.
+txtPrefix: "extdns-%{record_type}-"

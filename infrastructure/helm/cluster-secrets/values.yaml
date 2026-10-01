@@ -1,7 +1,7 @@
 # Defaults for everything that is not secret. The environment file and the sops file
 # are layered on top by helmfile and supply the passwords.
 
-namespaces: [core, collector, monitoring, parking, pt, cert-manager, velero-system]
+namespaces: [core, collector, monitoring, parking, pt, cert-manager, velero-system, external-dns]
 
 mongodb:
   host: mongodb-headless.core.svc.cluster.local

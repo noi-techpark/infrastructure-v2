@@ -37,6 +37,8 @@ repositories:
     url: https://grafana.github.io/helm-charts
   - name: scaleway
     url: https://helm.scw.cloud/
+  - name: external-dns
+    url: https://kubernetes-sigs.github.io/external-dns/
 
 helmDefaults:
   wait: true
@@ -84,14 +86,40 @@ releases:
     chart: ingress-nginx/ingress-nginx
     version: 4.14.0
     inherit: [template: default]
-    {{- with .Values.loadBalancers.ingressIpId }}
     values:
       - controller:
           service:
             annotations:
-              # Reserved flexible IP, so DNS survives the load balancer being recreated.
-              service.beta.kubernetes.io/scw-loadbalancer-ip-ids: {{ . | quote }}
-    {{- end }}
+              {{- with .Values.ingress.lbId }}
+              service.beta.kubernetes.io/scw-loadbalancer-id: {{ . | quote }}
+              service.beta.kubernetes.io/scw-loadbalancer-externally-managed: "true"
+              {{- end }}
+          {{- with .Values.ingress.proxy }}
+          # Ingresses report the proxy as their address; external-dns turns that into CNAMEs.
+          publishService:
+            enabled: false
+          extraArgs:
+            publish-status-address: {{ . }}
+          {{- end }}
+          config:
+            # TLS ends at the proxy; take the scheme and client address from its headers.
+            use-forwarded-headers: "true"
+
+  - name: external-dns
+    namespace: external-dns
+    labels:
+      tier: platform
+    chart: external-dns/external-dns
+    version: 1.23.0
+    # Only where the environment owns records in the zone.
+    installed: {{ ne .Values.dns.ownerId "" }}
+    # After ingress-nginx, which must already report the proxy as Ingress address: an
+    # earlier first run publishes A records to the load balancer instead of CNAMEs.
+    needs: [kube-system/cluster-secrets, ingress-nginx/ingress-nginx]
+    inherit: [template: default]
+    values:
+      - txtOwnerId: {{ .Values.dns.ownerId | quote }}
+        domainFilters: [{{ .Values.dns.zone }}]
 
   - name: cert-manager
     namespace: cert-manager

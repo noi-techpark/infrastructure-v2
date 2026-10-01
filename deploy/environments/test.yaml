@@ -18,10 +18,20 @@ objectStorage:
 velero:
   bucket: opendatahub-test-velero
 
-loadBalancers:
-  # ID of the reserved flexible IP for the ingress load balancer. Empty: Scaleway
-  # assigns an ephemeral one.
-  ingressIpId: "27104218-72fd-4360-ba3c-1745b64305f3"
+# Hosts reach the cluster through the proxy (Caddy, TLS), which forwards to the ingress
+# load balancer over plain HTTP, as on AWS.
+ingress:
+  # Terraform kubernetes output ingress_lb_id. The load balancer and its IP belong to
+  # Terraform and outlive the cluster; the controller only configures it. Empty: the
+  # controller creates its own load balancer, deleted with the cluster.
+  lbId: "fr-par-1/754663ca-e851-4115-91e4-4339ca019abc"
+  # Published as the address of every Ingress, so external-dns points hosts at the proxy.
+  proxy: "proxy-opendatahub-test.scw.opendatahub.testingmachine.eu"
+
+# external-dns: the zone it writes to and the name marking its own records.
+dns:
+  zone: scw.opendatahub.testingmachine.eu
+  ownerId: "opendatahub-test"
 
 oauthCollector:
   authorizationUri: https://auth.opendatahub.testingmachine.eu/auth
