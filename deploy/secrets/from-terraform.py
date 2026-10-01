@@ -7,7 +7,8 @@
 # without printing them.
 # usage: deploy/secrets/from-terraform.py deploy/secrets/test.yaml \
 #          ../infrastructure/terraform/scaleway/opendatahub-test
-# Each module's .env (Terraform and state bucket credentials) is loaded if present.
+# Reads the shared and db modules there, and the environment's DNS key from default/dns
+# next to it. Each module's .env (Terraform and state bucket credentials) is loaded if present.
 import json, os, subprocess, sys
 
 if len(sys.argv) != 3:
@@ -28,7 +29,8 @@ def outputs(module):
     return {k: v["value"] for k, v in json.loads(out).items()}
 
 
-shared, db = outputs("shared"), outputs("db")
+shared, db, dns = outputs("shared"), outputs("db"), outputs("../default/dns")
+dns_key = dns[f"k8s_dns_{os.path.basename(os.path.normpath(tf_root)).replace('-', '_')}_access_key"]
 keys, endpoints, users = shared["access_keys"], db["endpoints"], db["credentials"]
 content, tourism = endpoints["content"], users["content/tourism"]
 
@@ -43,8 +45,8 @@ values = {
     '["rawS3"]["bucketName"]': shared["buckets"]["raw"],
     '["rawS3"]["accessKeyId"]': keys["raw"]["access_key"],
     '["rawS3"]["secretAccessKey"]': keys["raw"]["secret_key"],
-    '["scalewayDns"]["accessKey"]': shared["cert_manager_access_key"]["access_key"],
-    '["scalewayDns"]["secretKey"]': shared["cert_manager_access_key"]["secret_key"],
+    '["scalewayDns"]["accessKey"]': dns_key["access_key"],
+    '["scalewayDns"]["secretKey"]': dns_key["secret_key"],
     '["postgres"]["host"]': endpoints["timeseries"]["host"],
     '["postgres"]["port"]': str(endpoints["timeseries"]["port"]),
     '["postgres"]["readwritePassword"]': users["timeseries/bdp"]["password"],

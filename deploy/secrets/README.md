@@ -58,15 +58,23 @@ After a new key, rotate the values themselves too: old versions in git stay read
 | `basicAuth.{tempo,prometheus,rawDataBridge}.{password,htpasswd}` | random, htpasswd via `openssl passwd -apr1` | `init.sh` |
 | `velero.accessKey`, `velero.secretKey` | Terraform `shared`, output `access_keys.velero` | `from-terraform.py` |
 | `rawS3.bucketName`, `rawS3.accessKeyId`, `rawS3.secretAccessKey` | Terraform `shared`, outputs `buckets.raw`, `access_keys.raw` | `from-terraform.py` |
-| `scalewayDns.accessKey`, `scalewayDns.secretKey` | Terraform `shared`, output `cert_manager_access_key` | `from-terraform.py` |
+| `scalewayDns.accessKey`, `scalewayDns.secretKey` | Terraform `default/dns`, output `k8s_dns_opendatahub_<env>_access_key` | `from-terraform.py` |
 | `postgres.host`, `postgres.port`, `postgres.readwritePassword`, `postgres.readonlyPassword` | Terraform `db`, outputs `endpoints.timeseries`, `credentials["timeseries/bdp"]`, `credentials["timeseries/bdp_readonly"]` | `from-terraform.py` |
 | `tourism.pgconnection` | Terraform `db`, built from `endpoints.content` and `credentials["content/tourism"]` | `from-terraform.py` |
 | `registry.readToken`, `registry.readWriteToken` | GitHub PATs of `noi-techpark-bot`, `read:packages` / `write:packages` | by hand |
 | `oauthCollector.clientSecret` | Keycloak, realm `noi`, client `odh-mobility-datacollector` → Credentials | by hand |
 
 Non-secret values that also come from Terraform live in `deploy/environments/<env>.yaml`:
-`loadBalancers.ingressIpId` (`kubernetes` output `ingress_ip_id`) and `velero.bucket`
+`ingress.lbId` (`kubernetes` output `ingress_lb_id`) and `velero.bucket`
 (`shared` output `buckets.velero`).
+
+## Scaleway API keys must not expire
+
+The Velero, raw data and DNS keys are used by the cluster unattended, so they are created
+**without an expiry**. This requires the organization IAM security setting
+`MaxAPIKeyExpirationDuration` to stay unlimited. With a limit, Scaleway gives new keys an
+expiry, the keys stop working when it passes, and every Terraform plan shows them being
+replaced.
 
 ## Migration from AWS
 
