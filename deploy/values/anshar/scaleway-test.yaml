@@ -5,7 +5,7 @@ resources:
     cpu: 10m
     memory: 384Mi
   limits:
-    memory: 512Mi
+    memory: 768Mi
 
 # TLS ends at the proxy (proxy-opendatahub-test); the ingress serves plain HTTP behind it.
 # For TLS in the cluster as well, swap in the commented lines and point the proxy site at
