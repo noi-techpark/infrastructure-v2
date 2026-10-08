@@ -39,6 +39,7 @@ ingress:
 
 podAnnotations: {}
 podLabels: {}
+javaOpts: ""
 resources: {}
 nodeSelector: {}
 tolerations: []
