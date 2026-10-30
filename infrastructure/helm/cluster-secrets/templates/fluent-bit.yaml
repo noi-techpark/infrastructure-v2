@@ -1,0 +1,12 @@
+{{- /* fluent-bit (log shipping); only where the environment has these passwords */}}
+{{- with .Values.fluentBit }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: fluent-bit
+  namespace: monitoring
+type: Opaque
+stringData:
+  OPENSEARCH_PASSWORD: {{ required "fluentBit.opensearchPassword" .opensearchPassword | quote }}
+  LOKI_PASSWORD: {{ required "fluentBit.lokiPassword" .lokiPassword | quote }}
+{{- end }}

@@ -63,10 +63,30 @@ After a new key, rotate the values themselves too: old versions in git stay read
 | `tourism.pgconnection` | Terraform `db`, built from `endpoints.content` and `credentials["content/tourism"]` | `from-terraform.py` |
 | `registry.readToken`, `registry.readWriteToken` | GitHub PATs of `noi-techpark-bot`, `read:packages` / `write:packages` | by hand |
 | `oauthCollector.clientSecret` | Keycloak, realm `noi`, client `odh-mobility-datacollector` → Credentials | by hand |
+| `fluentBit.opensearchPassword` | Terraform `digital/opensearch`, output `opensearch_fluentbit_password` | by hand, see below |
+| `fluentBit.lokiPassword` | Ansible, `fluentbit.loki.password` in `ansible/group_vars/proxyscwtest.yml` (vault) | by hand, see below |
 
 Non-secret values that also come from Terraform live in `deploy/environments/<env>.yaml`:
 `ingress.lbId` (`kubernetes` output `ingress_lb_id`) and `velero.bucket`
 (`shared` output `buckets.velero`).
+
+### fluentBit
+
+Only for environments that ship logs (test so far): the `fluent-bit` release and its secret
+exist only where `fluentBit` is in the sops file, so `init.sh` and `from-terraform.py` leave
+it out. Both values are the passwords of the user `fluentbit` that the Caddy access logs on
+`proxy-test` already use, from the infrastructure repository:
+
+```sh
+# OpenSearch (needs the module's credentials, ../.env there)
+terraform -chdir=../infrastructure/terraform/scaleway/digital/opensearch output -json opensearch_fluentbit_password \
+  | sops set --value-stdin deploy/secrets/test.yaml '["fluentBit"]["opensearchPassword"]'
+
+# Loki: the basic auth of the proxy's Loki site; prints the password, paste it with sops
+(cd ../infrastructure/ansible && ansible localhost -m debug -a var=fluentbit.loki.password \
+  -e @group_vars/proxyscwtest.yml --ask-vault-pass)
+sops deploy/secrets/test.yaml
+```
 
 ## Scaleway API keys must not expire
 

@@ -1,0 +1,11 @@
+# OpenSearch and Loki of the Digital project (infrastructure repo, terraform/scaleway/digital).
+# OpenSearch is reached on its own endpoint, whose certificate covers *.scbl.fr-par.scw.cloud;
+# the host changes if the deployment is recreated (terraform output opensearch_endpoints).
+# Loki has no authentication of its own and is reached through the proxy's basic auth.
+env:
+  - name: CLUSTER
+    value: opendatahub-test
+  - name: OPENSEARCH_HOST
+    value: abf90ff0-249b-4985-8018-faa02d266440.scbl.fr-par.scw.cloud
+  - name: LOKI_HOST
+    value: loki.scw.opendatahub.testingmachine.eu

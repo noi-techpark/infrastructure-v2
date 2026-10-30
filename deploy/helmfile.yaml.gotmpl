@@ -39,6 +39,8 @@ repositories:
     url: https://helm.scw.cloud/
   - name: external-dns
     url: https://kubernetes-sigs.github.io/external-dns/
+  - name: fluent
+    url: https://fluent.github.io/helm-charts
 
 helmDefaults:
   wait: true
@@ -341,6 +343,20 @@ releases:
     version: 1.42.3
     needs: [kube-system/cluster-secrets, monitoring/prometheus]
     # Creates ServiceMonitors, whose CRD arrives with the prometheus release.
+    disableValidationOnInstall: true
+    inherit: [template: default]
+
+  # Container logs to OpenSearch and Loki in the Digital project. Only where the environment
+  # has their passwords (fluentBit in the sops file): those exist for test only.
+  - name: fluent-bit
+    namespace: monitoring
+    labels:
+      tier: monitoring
+    chart: fluent/fluent-bit
+    version: 0.58.3
+    installed: {{ hasKey .Values "fluentBit" }}
+    needs: [kube-system/cluster-secrets, monitoring/prometheus]
+    # Creates a ServiceMonitor, whose CRD arrives with the prometheus release.
     disableValidationOnInstall: true
     inherit: [template: default]
 

@@ -1,0 +1,157 @@
+# Ships the container logs of every pod to OpenSearch (retention-<class>-YYYY.MM.DD) and to
+# Loki ({job="kubernetes", log_retention="<class>"}), the same lines to both. The class comes
+# from the pod label log-retention (10d, 30d or 90d), 30d when missing or unknown; OpenSearch
+# ISM policies and Loki's retention_stream delete by class (infrastructure repo,
+# terraform/scaleway/digital/opensearch/ism.tf and ansible/files/loki-scw/config.yaml).
+# Hosts and the cluster name come from scaleway-<env>.yaml, passwords from the fluent-bit
+# secret rendered by cluster-secrets.
+
+envFrom:
+  - secretRef:
+      name: fluent-bit
+
+# Every node, whatever its taints: a node without the DaemonSet loses its logs.
+tolerations:
+  - operator: Exists
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+serviceMonitor:
+  enabled: true
+
+# Kapsule runs containerd: /var/log/containers links to /var/log/pods, both under /var/log.
+# /var/lib/fluent-bit keeps the read positions and the chunk buffer across pod restarts.
+daemonSetVolumes:
+  - name: varlog
+    hostPath:
+      path: /var/log
+  - name: state
+    hostPath:
+      path: /var/lib/fluent-bit
+      type: DirectoryOrCreate
+  - name: etcmachineid
+    hostPath:
+      path: /etc/machine-id
+      type: File
+
+daemonSetVolumeMounts:
+  - name: varlog
+    mountPath: /var/log
+    readOnly: true
+  - name: state
+    mountPath: /var/lib/fluent-bit
+  - name: etcmachineid
+    mountPath: /etc/machine-id
+    readOnly: true
+
+luaScripts:
+  retention.lua: |
+    -- Retention class from the pod label log-retention; anything else gets the default.
+    -- The pod labels are dropped afterwards, as on AWS: each one would be a field in
+    -- OpenSearch.
+    local classes = { ["10d"] = true, ["30d"] = true, ["90d"] = true }
+
+    function retention(tag, timestamp, record)
+      local class = "30d"
+      local k8s = record["kubernetes"]
+      if type(k8s) == "table" then
+        local labels = k8s["labels"]
+        if type(labels) == "table" and classes[labels["log-retention"]] then
+          class = labels["log-retention"]
+        end
+        k8s["labels"] = nil
+      end
+      record["log_retention"] = class
+      record["log_index"] = "retention-" .. class
+      return 2, timestamp, record
+    end
+
+config:
+  service: |
+    [SERVICE]
+        Daemon Off
+        Flush {{ .Values.flush }}
+        Log_Level {{ .Values.logLevel }}
+        Parsers_File /fluent-bit/etc/parsers.conf
+        Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
+        HTTP_Server On
+        HTTP_Listen 0.0.0.0
+        HTTP_Port {{ .Values.metricsPort }}
+        Health_Check On
+        # Buffers chunks on disk, so a restart or an unreachable output does not lose logs.
+        storage.path /var/lib/fluent-bit/storage
+
+  inputs: |
+    [INPUT]
+        Name tail
+        Tag kube.*
+        Path /var/log/containers/*.log
+        multiline.parser cri
+        # Read position per file, so a restart neither skips nor repeats lines.
+        DB /var/lib/fluent-bit/kube-tail.db
+        storage.type filesystem
+        Skip_Long_Lines On
+
+  filters: |
+    # JSON log lines are parsed into the field json, as Filebeat did on AWS, so application
+    # fields cannot collide with the metadata.
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        Merge_Log On
+        Merge_Log_Key json
+        Keep_Log Off
+        Labels On
+        Annotations Off
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude On
+
+    [FILTER]
+        Name lua
+        Match kube.*
+        script /fluent-bit/scripts/retention.lua
+        call retention
+
+    [FILTER]
+        Name modify
+        Match kube.*
+        Add cluster ${CLUSTER}
+
+  outputs: |
+    [OUTPUT]
+        Name opensearch
+        Match kube.*
+        Host ${OPENSEARCH_HOST}
+        Port 9200
+        tls On
+        tls.verify On
+        HTTP_User fluentbit
+        HTTP_Passwd ${OPENSEARCH_PASSWORD}
+        Logstash_Format On
+        Logstash_Prefix_Key $log_index
+        Suppress_Type_Name On
+        Replace_Dots On
+        Trace_Error On
+        Retry_Limit no_limits
+        storage.total_limit_size 1G
+
+    # Pod names stay out of the labels: every pod would be a new stream.
+    [OUTPUT]
+        Name loki
+        Match kube.*
+        Host ${LOKI_HOST}
+        Port 443
+        tls On
+        tls.verify On
+        HTTP_User fluentbit
+        HTTP_Passwd ${LOKI_PASSWORD}
+        Labels job=kubernetes, cluster=${CLUSTER}, namespace=$kubernetes['namespace_name'], container=$kubernetes['container_name'], log_retention=$log_retention
+        Remove_Keys log_index
+        Line_Format json
+        Retry_Limit no_limits
+        storage.total_limit_size 1G

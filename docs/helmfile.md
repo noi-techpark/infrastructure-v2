@@ -56,6 +56,8 @@ All of it lives in the `infrastructure` repository, `terraform/scaleway/opendata
 - `proxy`: `proxy-opendatahub-test`, the Caddy in front of the cluster's ingress.
 - `db`: the `timeseries` and `content` PostgreSQL instances, copied to the sops file via
   `from-terraform.py`.
+- `../digital/opensearch`, `../digital/loki`: where `fluent-bit` ships the logs, shared by
+  all environments and only used where the sops file has `fluentBit` (test so far).
 
 ## Tools and access
 
@@ -92,6 +94,32 @@ helmfile -e test apply
 # a single release
 helmfile -e test apply -l name=raw-data-bridge
 ```
+
+## Logs
+
+`fluent-bit` (DaemonSet in `monitoring`) ships the container logs of every pod to OpenSearch
+and Loki in the Digital project, the same lines to both. How long they are kept is chosen per
+pod with the label `log-retention`:
+
+| `log-retention` | OpenSearch index | Loki stream | Kept |
+|---|---|---|---|
+| `10d` | `retention-10d-YYYY.MM.DD` | `{job="kubernetes", log_retention="10d"}` | 10 days |
+| `30d`, missing or anything else | `retention-30d-YYYY.MM.DD` | `{job="kubernetes", log_retention="30d"}` | 30 days |
+| `90d` | `retention-90d-YYYY.MM.DD` | `{job="kubernetes", log_retention="90d"}` | 90 days |
+
+Set it on the pod template (e.g. a chart's `podLabels`), not on the Deployment. JSON log lines
+are parsed into the field `json`; pod labels and annotations are not shipped. Other Loki labels:
+`cluster`, `namespace`, `container`. A pod is left out with the annotation
+`fluentbit.io/exclude: "true"`.
+
+Deleting is done on the receiving side (infrastructure repository): ISM policies in
+`terraform/scaleway/digital/opensearch/ism.tf`, `retention_stream` in
+`ansible/files/loki-scw/config.yaml`. A new class needs an entry in both and in the
+`retention.lua` of `deploy/values/fluent-bit/values.yaml`.
+
+The release is installed only where the sops file has `fluentBit` (see
+[secrets](../deploy/secrets/README.md#fluentbit)); hosts are in
+`deploy/values/fluent-bit/scaleway-<env>.yaml`.
 
 ## Replacing the cluster
 
