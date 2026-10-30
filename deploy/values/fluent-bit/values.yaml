@@ -71,6 +71,52 @@ luaScripts:
       return 2, timestamp, record
     end
 
+  stringify.lua: |
+    -- Fields that apps log sometimes as text, sometimes as number or object (e.g. MongoDB's
+    -- attr.user). OpenSearch maps a field by the first value of the day and rejects the other
+    -- kind, so these are always sent as text; objects as JSON. Same list as Filebeat on AWS,
+    -- plus id and attr.error.
+    local fields = { {"id"}, {"error"}, {"station"}, {"attr", "user"}, {"attr", "error"} }
+
+    local function encode(v)
+      local t = type(v)
+      if t == "table" then
+        local parts = {}
+        if next(v) == nil or #v > 0 then
+          for i, x in ipairs(v) do parts[i] = encode(x) end
+          return "[" .. table.concat(parts, ",") .. "]"
+        end
+        for k, x in pairs(v) do parts[#parts + 1] = encode(tostring(k)) .. ":" .. encode(x) end
+        return "{" .. table.concat(parts, ",") .. "}"
+      elseif t == "string" then
+        return '"' .. v:gsub('[%c"\\]', function(c)
+          return string.format("\\u%04x", c:byte())
+        end) .. '"'
+      end
+      return tostring(v)
+    end
+
+    function stringify(tag, timestamp, record)
+      local json = record["json"]
+      if type(json) ~= "table" then
+        return 0, timestamp, record
+      end
+      local changed = false
+      for _, path in ipairs(fields) do
+        local parent = json
+        for i = 1, #path - 1 do
+          parent = type(parent) == "table" and parent[path[i]] or nil
+        end
+        local key = path[#path]
+        if type(parent) == "table" and parent[key] ~= nil and type(parent[key]) ~= "string" then
+          local v = parent[key]
+          parent[key] = type(v) == "table" and encode(v) or tostring(v)
+          changed = true
+        end
+      end
+      return changed and 2 or 0, timestamp, record
+    end
+
 config:
   service: |
     [SERVICE]
@@ -108,6 +154,9 @@ config:
         Keep_Log Off
         Labels On
         Annotations Off
+        # Pod metadata from the API server; the default 32k is too small for pods with large
+        # annotations, whose lines then ship without kubernetes fields ("cannot increase buffer").
+        Buffer_Size 512k
         K8S-Logging.Parser On
         K8S-Logging.Exclude On
 
@@ -116,6 +165,12 @@ config:
         Match kube.*
         script /fluent-bit/scripts/retention.lua
         call retention
+
+    [FILTER]
+        Name lua
+        Match kube.*
+        script /fluent-bit/scripts/stringify.lua
+        call stringify
 
     [FILTER]
         Name modify
@@ -137,7 +192,10 @@ config:
         Suppress_Type_Name On
         Replace_Dots On
         Trace_Error On
-        Retry_Limit no_limits
+        # Finite, unlike Loki: a record OpenSearch rejects (mapping conflict) fails on every
+        # retry and would otherwise stay in the buffer forever. 15 retries span a few hours
+        # of outage; Loki keeps every line regardless.
+        Retry_Limit 15
         storage.total_limit_size 1G
 
     # Pod names stay out of the labels: every pod would be a new stream.
