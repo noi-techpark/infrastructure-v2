@@ -19,7 +19,7 @@ resources:
     cpu: 50m
     memory: 64Mi
   limits:
-    memory: 256Mi
+    memory: 512Mi
 
 serviceMonitor:
   enabled: true
@@ -131,6 +131,11 @@ config:
         Health_Check On
         # Buffers chunks on disk, so a restart or an unreachable output does not lose logs.
         storage.path /var/lib/fluent-bit/storage
+        # Chunks held in memory at once (about 2 MB each), including the backlog read back
+        # after a restart. The default of 128 exceeds the memory limit, and a large backlog
+        # then gets the pod OOMKilled on every start.
+        storage.max_chunks_up 32
+        storage.backlog.mem_limit 16M
 
   inputs: |
     [INPUT]
