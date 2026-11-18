@@ -1,7 +1,8 @@
 image:
   tag: "2026-05-29T13-12"
 
-javaOpts: "-Xmx256m -XX:MaxMetaspaceSize=128m"
+# Temporary mitigation for CVE-2026-114938 (Java4Shell): -XX:-UseBASE64Intrinsics, remove once the JDK in the image includes the fix
+javaOpts: "-Xmx256m -XX:MaxMetaspaceSize=128m -XX:-UseBASE64Intrinsics"
 
 resources:
   requests:
